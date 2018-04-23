@@ -1,0 +1,3 @@
+# olca-ipc.py
+`olca-ipc.py` is a Python package for calling openLCA functions from Python. It
+is different ...
