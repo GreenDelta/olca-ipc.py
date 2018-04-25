@@ -35,57 +35,37 @@ def to_snake_case(identifier: str) -> str:
     return s
 
 
+def py_type(model_type: str) -> str:
+    if model_type == 'string':
+        return 'str'
+    if model_type == 'double':
+        return 'float'
+    if model_type == 'boolean':
+        return 'bool'
+    if model_type == 'integer':
+        return 'int'
+    return model_type
+
+
 def print_class(c: model.ClassType):
     parent = c.super_class if c.super_class is not None else 'object'
     t = 'class %s(%s):\n\n' % (c.name, parent)
     t += '    def __init__(self):\n'
+    if len(c.properties) == 0:
+        t += '        pass\n'
     for prop in c.properties:
         attr = to_snake_case(prop.name)
-        t += '        self.%s = None  # type: %s\n' % (attr, prop.field_type)
+        ptype = py_type(prop.field_type)
+        t += '        self.%s = None  # type: %s\n' % (attr, ptype)
     t += '\n'
     print(t)
 
 
-def convert_property(prop):
-    name = prop['name']
-    t = name[0].upper() + name[1:]
-    type = prop['type']
-    if type == 'integer':
-        t += ' int' + (' `json:"%s"`' % name)
-    elif type == 'double':
-        t += ' float64' + (' `json:"%s"`' % name)
-    elif type == 'boolean':
-        t += ' bool' + (' `json:"%s"`' % name)
-    elif type == 'date' or type == 'dateTime':
-        t += ' string' + (' `json:"%s,omitempty"`' % name)
-    elif type == 'List[string]':
-        t += ' []string' + (' `json:"%s,omitempty"`' % name)
-    elif type.startswith('List['):
-        sub = type[5:(len(type) - 1)]
-        t += ' []' + sub + (' `json:"%s,omitempty"`' % name)
-    else:
-        t += ' ' + type + (' `json:"%s,omitempty"`' % name)
-    return t
-
-
-def print_constructor(class_model):
-    if 'superClass' not in class_model:
-        return
-    name = class_model['name']
-    s = class_model['superClass']
-    if s != 'RootEntity' and s != 'CategorizedEntity':
-        return
-    t = '// New%s initializes a new %s with the given id and name\n' % (
-        name, name)
-    v = name[0].lower()
-    t += 'func New%s(id, name string) *%s {\n' % (name, name)
-    t += '\t%s := %s{}\n' % (v, name)
-    t += '\t%s.Context = ContextURL\n' % v
-    t += '\t%s.Type = "%s"\n' % (v, name)
-    t += '\t%s.ID = id\n' % v
-    t += '\t%s.Name = name\n' % v
-    t += '\treturn &%s\n' % v
-    t += '}\n'
+def print_enum(e: model.EnumType):
+    t = 'class %s(Enum):\n' % e.name
+    for item in e.items:
+        t += "    %s = '%s'\n" % (item.name, item.name)
+    t += '\n'
     print(t)
 
 
@@ -94,8 +74,10 @@ if __name__ == '__main__':
     print('# openLCA data exchange model.package schema.')
     print('# For more information see '
           'http://greendelta.github.io/olca-schema/\n')
+    print('from enum import Enum\n')
 
     m = model.Model.load_yaml(YAML_DIR)  # type: model.Model
-
+    for e in m.enums:
+        print_enum(e)
     for c in m.classes:
         print_class(c)
