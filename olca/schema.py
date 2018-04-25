@@ -62,6 +62,8 @@ class Entity(object):
     def __init__(self):
         pass
 
+    def to_json(self) -> dict:
+        return {}
 
 class AllocationFactor(Entity):
 
@@ -71,6 +73,12 @@ class AllocationFactor(Entity):
         self.value = None  # type: float
         self.allocated_exchange = None  # type: Exchange
 
+    def to_json(self) -> dict:
+        jdict = super.to_json()  # type: dict
+        if product_exchange is not None:
+        if allocation_type is not None:
+        if value is not None:
+        if allocated_exchange is not None:
 
 class Exchange(Entity):
 
@@ -90,6 +98,22 @@ class Exchange(Entity):
         self.uncertainty = None  # type: Uncertainty
         self.comment = None  # type: str
 
+    def to_json(self) -> dict:
+        jdict = super.to_json()  # type: dict
+        if internal_id is not None:
+        if avoided_product is not None:
+        if flow is not None:
+        if flow_property is not None:
+        if input is not None:
+        if quantitative_reference is not None:
+        if base_uncertainty is not None:
+        if provider is not None:
+        if amount is not None:
+        if amount_formula is not None:
+        if unit is not None:
+        if pedigree_uncertainty is not None:
+        if uncertainty is not None:
+        if comment is not None:
 
 class FlowPropertyFactor(Entity):
 
@@ -98,6 +122,11 @@ class FlowPropertyFactor(Entity):
         self.conversion_factor = None  # type: float
         self.reference_flow_property = None  # type: bool
 
+    def to_json(self) -> dict:
+        jdict = super.to_json()  # type: dict
+        if flow_property is not None:
+        if conversion_factor is not None:
+        if reference_flow_property is not None:
 
 class ImpactFactor(Entity):
 
@@ -109,6 +138,14 @@ class ImpactFactor(Entity):
         self.formula = None  # type: str
         self.uncertainty = None  # type: Uncertainty
 
+    def to_json(self) -> dict:
+        jdict = super.to_json()  # type: dict
+        if flow is not None:
+        if flow_property is not None:
+        if unit is not None:
+        if value is not None:
+        if formula is not None:
+        if uncertainty is not None:
 
 class Parameter(Entity):
 
@@ -123,6 +160,17 @@ class Parameter(Entity):
         self.source_type = None  # type: str
         self.uncertainty = None  # type: Uncertainty
 
+    def to_json(self) -> dict:
+        jdict = super.to_json()  # type: dict
+        if name is not None:
+        if description is not None:
+        if parameter_scope is not None:
+        if input_parameter is not None:
+        if value is not None:
+        if formula is not None:
+        if external_source is not None:
+        if source_type is not None:
+        if uncertainty is not None:
 
 class ProcessDocumentation(Entity):
 
@@ -143,7 +191,7 @@ class ProcessDocumentation(Entity):
         self.sources = None  # type: List[Source]
         self.restrictions_description = None  # type: str
         self.copyright = None  # type: bool
-        self.creation_date = None  # type: dateTime
+        self.creation_date = None  # type: str
         self.data_documentor = None  # type: Actor
         self.data_generator = None  # type: Actor
         self.data_set_owner = None  # type: Actor
@@ -152,6 +200,32 @@ class ProcessDocumentation(Entity):
         self.publication = None  # type: Source
         self.geography_description = None  # type: str
 
+    def to_json(self) -> dict:
+        jdict = super.to_json()  # type: dict
+        if time_description is not None:
+        if valid_until is not None:
+        if valid_from is not None:
+        if technology_description is not None:
+        if data_collection_description is not None:
+        if completeness_description is not None:
+        if data_selection_description is not None:
+        if review_details is not None:
+        if data_treatment_description is not None:
+        if inventory_method_description is not None:
+        if modeling_constants_description is not None:
+        if reviewer is not None:
+        if sampling_description is not None:
+        if sources is not None:
+        if restrictions_description is not None:
+        if copyright is not None:
+        if creation_date is not None:
+        if data_documentor is not None:
+        if data_generator is not None:
+        if data_set_owner is not None:
+        if intended_application is not None:
+        if project_description is not None:
+        if publication is not None:
+        if geography_description is not None:
 
 class ProcessLink(Entity):
 
@@ -161,6 +235,12 @@ class ProcessLink(Entity):
         self.process = None  # type: Process
         self.exchange = None  # type: Exchange
 
+    def to_json(self) -> dict:
+        jdict = super.to_json()  # type: dict
+        if provider is not None:
+        if flow is not None:
+        if process is not None:
+        if exchange is not None:
 
 class RootEntity(Entity):
 
@@ -168,8 +248,14 @@ class RootEntity(Entity):
         self.name = None  # type: str
         self.description = None  # type: str
         self.version = None  # type: str
-        self.last_change = None  # type: dateTime
+        self.last_change = None  # type: str
 
+    def to_json(self) -> dict:
+        jdict = super.to_json()  # type: dict
+        if name is not None:
+        if description is not None:
+        if version is not None:
+        if last_change is not None:
 
 class Uncertainty(Entity):
 
@@ -190,12 +276,32 @@ class Uncertainty(Entity):
         self.maximum = None  # type: float
         self.maximum_formula = None  # type: str
 
+    def to_json(self) -> dict:
+        jdict = super.to_json()  # type: dict
+        if distribution_type is not None:
+        if mean is not None:
+        if mean_formula is not None:
+        if geom_mean is not None:
+        if geom_mean_formula is not None:
+        if minimum is not None:
+        if minimum_formula is not None:
+        if sd is not None:
+        if sd_formula is not None:
+        if geom_sd is not None:
+        if geom_sd_formula is not None:
+        if mode is not None:
+        if mode_formula is not None:
+        if maximum is not None:
+        if maximum_formula is not None:
 
 class CategorizedEntity(RootEntity):
 
     def __init__(self):
         self.category = None  # type: Category
 
+    def to_json(self) -> dict:
+        jdict = super.to_json()  # type: dict
+        if category is not None:
 
 class ImpactCategory(RootEntity):
 
@@ -203,6 +309,10 @@ class ImpactCategory(RootEntity):
         self.reference_unit_name = None  # type: str
         self.impact_factors = None  # type: List[ImpactFactor]
 
+    def to_json(self) -> dict:
+        jdict = super.to_json()  # type: dict
+        if reference_unit_name is not None:
+        if impact_factors is not None:
 
 class Location(RootEntity):
 
@@ -212,6 +322,12 @@ class Location(RootEntity):
         self.longitude = None  # type: float
         self.kml = None  # type: str
 
+    def to_json(self) -> dict:
+        jdict = super.to_json()  # type: dict
+        if code is not None:
+        if latitude is not None:
+        if longitude is not None:
+        if kml is not None:
 
 class Unit(RootEntity):
 
@@ -220,6 +336,11 @@ class Unit(RootEntity):
         self.reference_unit = None  # type: bool
         self.synonyms = None  # type: List[string]
 
+    def to_json(self) -> dict:
+        jdict = super.to_json()  # type: dict
+        if conversion_factor is not None:
+        if reference_unit is not None:
+        if synonyms is not None:
 
 class Actor(CategorizedEntity):
 
@@ -233,12 +354,25 @@ class Actor(CategorizedEntity):
         self.website = None  # type: str
         self.zip_code = None  # type: str
 
+    def to_json(self) -> dict:
+        jdict = super.to_json()  # type: dict
+        if address is not None:
+        if city is not None:
+        if country is not None:
+        if email is not None:
+        if telefax is not None:
+        if telephone is not None:
+        if website is not None:
+        if zip_code is not None:
 
 class Category(CategorizedEntity):
 
     def __init__(self):
         self.model_type = None  # type: ModelType
 
+    def to_json(self) -> dict:
+        jdict = super.to_json()  # type: dict
+        if model_type is not None:
 
 class Flow(CategorizedEntity):
 
@@ -249,6 +383,13 @@ class Flow(CategorizedEntity):
         self.flow_properties = None  # type: List[FlowPropertyFactor]
         self.location = None  # type: Location
 
+    def to_json(self) -> dict:
+        jdict = super.to_json()  # type: dict
+        if flow_type is not None:
+        if cas is not None:
+        if formula is not None:
+        if flow_properties is not None:
+        if location is not None:
 
 class FlowProperty(CategorizedEntity):
 
@@ -256,6 +397,10 @@ class FlowProperty(CategorizedEntity):
         self.flow_property_type = None  # type: FlowPropertyType
         self.unit_group = None  # type: UnitGroup
 
+    def to_json(self) -> dict:
+        jdict = super.to_json()  # type: dict
+        if flow_property_type is not None:
+        if unit_group is not None:
 
 class ImpactMethod(CategorizedEntity):
 
@@ -263,6 +408,10 @@ class ImpactMethod(CategorizedEntity):
         self.impact_categories = None  # type: List[ImpactCategory]
         self.parameters = None  # type: List[Parameter]
 
+    def to_json(self) -> dict:
+        jdict = super.to_json()  # type: dict
+        if impact_categories is not None:
+        if parameters is not None:
 
 class Process(CategorizedEntity):
 
@@ -275,6 +424,15 @@ class Process(CategorizedEntity):
         self.process_documentation = None  # type: ProcessDocumentation
         self.process_type = None  # type: ProcessType
 
+    def to_json(self) -> dict:
+        jdict = super.to_json()  # type: dict
+        if default_allocation_method is not None:
+        if allocation_factors is not None:
+        if exchanges is not None:
+        if location is not None:
+        if parameters is not None:
+        if process_documentation is not None:
+        if process_type is not None:
 
 class ProductSystem(CategorizedEntity):
 
@@ -287,6 +445,15 @@ class ProductSystem(CategorizedEntity):
         self.target_flow_property = None  # type: FlowProperty
         self.process_links = None  # type: List[ProcessLink]
 
+    def to_json(self) -> dict:
+        jdict = super.to_json()  # type: dict
+        if processes is not None:
+        if reference_process is not None:
+        if reference_exchange is not None:
+        if target_amount is not None:
+        if target_unit is not None:
+        if target_flow_property is not None:
+        if process_links is not None:
 
 class SocialIndicator(CategorizedEntity):
 
@@ -297,6 +464,13 @@ class SocialIndicator(CategorizedEntity):
         self.unit_of_measurement = None  # type: str
         self.evaluation_scheme = None  # type: str
 
+    def to_json(self) -> dict:
+        jdict = super.to_json()  # type: dict
+        if activity_variable is not None:
+        if activity_quantity is not None:
+        if activity_unit is not None:
+        if unit_of_measurement is not None:
+        if evaluation_scheme is not None:
 
 class Source(CategorizedEntity):
 
@@ -306,6 +480,12 @@ class Source(CategorizedEntity):
         self.year = None  # type: int
         self.external_file = None  # type: str
 
+    def to_json(self) -> dict:
+        jdict = super.to_json()  # type: dict
+        if doi is not None:
+        if text_reference is not None:
+        if year is not None:
+        if external_file is not None:
 
 class UnitGroup(CategorizedEntity):
 
@@ -313,4 +493,8 @@ class UnitGroup(CategorizedEntity):
         self.default_flow_property = None  # type: FlowProperty
         self.units = None  # type: List[Unit]
 
+    def to_json(self) -> dict:
+        jdict = super.to_json()  # type: dict
+        if default_flow_property is not None:
+        if units is not None:
 

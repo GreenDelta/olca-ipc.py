@@ -44,6 +44,8 @@ def py_type(model_type: str) -> str:
         return 'bool'
     if model_type == 'integer':
         return 'int'
+    if model_type == 'dateTime':
+        return 'str'
     return model_type
 
 
@@ -57,7 +59,21 @@ def print_class(c: model.ClassType):
         attr = to_snake_case(prop.name)
         ptype = py_type(prop.field_type)
         t += '        self.%s = None  # type: %s\n' % (attr, ptype)
-    t += '\n'
+    print(t)
+    print_to_json(c)
+
+
+def print_to_json(c: model.ClassType):
+    t = '    def to_json(self) -> dict:\n'
+    off = '        '
+    if len(c.properties) == 0:
+        t += off + 'return {}\n'
+    else:
+        t += off + 'jdict = super.to_json()  # type: dict\n'
+        for prop in c.properties:
+            is_primitive = prop.field_type[0].islower()
+            attr = to_snake_case(prop.name)
+            t += off + 'if %s is not None:\n' % attr
     print(t)
 
 
