@@ -19,9 +19,12 @@ enumerations to the console:
 
 """
 
+from os import path
+
 import model
 
-YAML_DIR = '../../olca-schema/yaml'
+
+YAML_DIR = path.abspath(path.dirname(__file__)) +'/../../olca-schema/yaml'
 
 
 def to_snake_case(identifier: str) -> str:
