@@ -66,6 +66,7 @@ def print_class(c: model.ClassType, m: model.Model):
         t += '        self.%s = None  # type: %s\n' % (attr, ptype)
     print(t)
     print_to_json(c, m)
+    print_from_json(c, m)
 
 
 def print_to_json(c: model.ClassType, m: model.Model):
@@ -96,6 +97,41 @@ def print_to_json(c: model.ClassType, m: model.Model):
                     "    jdict['%s'] = self.%s.to_json()\n" % (prop.name, attr)
         t += off + 'return jdict\n'
     print(t)
+
+
+def print_from_json(c: model.ClassType, m: model.Model):
+    t = '    def from_json(self, jdict: dict):\n'
+    off = '        '
+    if len(c.properties) == 0:
+        t += off + 'pass'
+    else:
+        t += off + 'super(%s, self).from_json(jdict)\n' % c.name
+        for prop in c.properties:
+            attr = to_snake_case(prop.name)
+            is_primitive = prop.field_type[0].islower()
+            is_enum = m.find_enum(prop.field_type) is not None
+            is_list = prop.field_type.startswith('List[')
+            t += off + "val = jdict.get('%s')\n" % prop.name
+            t += off + "if val is not None:\n"
+            if is_primitive:
+                t += off + "    self.%s = val\n" % (attr)
+            elif is_enum:
+                t += off + \
+                    "    self.%s = %s(val)\n" % (attr, prop.field_type)
+            elif is_list:
+                t += off + "    self.%s = []\n" % (attr)
+                t += off + "    for d in val:\n"
+                t += off + off + 'e = %s()\n' % list_elem_type(prop.field_type)
+                t += off + off + 'e.from_json(d)\n'
+                t += off + off + 'self.%s.append(e)\n' % attr
+            else:
+                t += off + "    self.%s = %s()\n" % (attr, prop.field_type)
+                t += off + "    self.%s.from_json(val)\n" % (attr)
+    print(t)
+
+
+def list_elem_type(list_type: str) -> str:
+    return list_type[5:(len(list_type) - 1)]
 
 
 def print_enum(e: model.EnumType):

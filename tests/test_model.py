@@ -12,10 +12,14 @@ class TestModel(unittest.TestCase):
                          schema.FlowType('ELEMENTARY_FLOW'))
 
     def test_json_conversion(self):
-        p = schema.Process()
-        p.name = 'a process'
-        jdict = p.to_json()
-        self.assertEqual('a process', jdict['name'])
+        p1 = schema.Process()
+        p1.name = 'a process'
+        p1.process_type = schema.ProcessType.UNIT_PROCESS
+        jdict = p1.to_json()
+        p2 = schema.Process()
+        p2.from_json(jdict)
+        self.assertEqual('a process', p2.name)
+        self.assertEqual(schema.ProcessType.UNIT_PROCESS, p2.process_type)
 
 if __name__ == '__main__':
     unittest.main()
