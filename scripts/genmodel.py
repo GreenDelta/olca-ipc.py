@@ -76,7 +76,10 @@ def print_to_json(c: model.ClassType):
         for prop in c.properties:
             is_primitive = prop.field_type[0].islower()
             attr = to_snake_case(prop.name)
-            t += off + 'if %s is not None:\n' % attr
+            t += off + 'if self.%s is not None:\n' % attr
+            if is_primitive:
+                t += off + "    jdict['%s'] = self.%s\n" % (prop.name, attr)
+        t += off + 'return jdict\n'
     print(t)
 
 
