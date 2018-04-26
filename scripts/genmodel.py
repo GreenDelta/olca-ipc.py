@@ -24,7 +24,7 @@ from os import path
 import model
 
 
-YAML_DIR = path.abspath(path.dirname(__file__)) +'/../../olca-schema/yaml'
+YAML_DIR = path.abspath(path.dirname(__file__)) + '/../../olca-schema/yaml'
 
 
 def to_snake_case(identifier: str) -> str:
@@ -52,7 +52,7 @@ def py_type(model_type: str) -> str:
     return model_type
 
 
-def print_class(c: model.ClassType):
+def print_class(c: model.ClassType, m: model.Model):
     parent = c.super_class if c.super_class is not None else 'object'
     t = 'class %s(%s):\n\n' % (c.name, parent)
     t += '    def __init__(self):\n'
@@ -63,10 +63,10 @@ def print_class(c: model.ClassType):
         ptype = py_type(prop.field_type)
         t += '        self.%s = None  # type: %s\n' % (attr, ptype)
     print(t)
-    print_to_json(c)
+    print_to_json(c, m)
 
 
-def print_to_json(c: model.ClassType):
+def print_to_json(c: model.ClassType, m: model.Model):
     t = '    def to_json(self) -> dict:\n'
     off = '        '
     if len(c.properties) == 0:
@@ -74,11 +74,24 @@ def print_to_json(c: model.ClassType):
     else:
         t += off + 'jdict = super.to_json()  # type: dict\n'
         for prop in c.properties:
-            is_primitive = prop.field_type[0].islower()
             attr = to_snake_case(prop.name)
             t += off + 'if self.%s is not None:\n' % attr
+            is_primitive = prop.field_type[0].islower()
+            is_enum = m.find_enum(prop.field_type) is not None
+            is_list = prop.field_type.startswith('List[')
             if is_primitive:
                 t += off + "    jdict['%s'] = self.%s\n" % (prop.name, attr)
+            if is_enum:
+                t += off + \
+                    "    jdict['%s'] = self.%s.value\n" % (prop.name, attr)
+            elif is_list:
+                t += off + "    jdict['%s'] = []\n" % (prop.name)
+                t += off + "    for e in %s:\n" % (attr)
+                t += off + off + \
+                    "jdict['%s'].append(e.to_json())\n" % (prop.name)
+            else:
+                t += off + \
+                    "    jdict['%s'] = self.%s.to_json()\n" % (prop.name, attr)
         t += off + 'return jdict\n'
     print(t)
 
@@ -102,4 +115,4 @@ if __name__ == '__main__':
     for e in m.enums:
         print_enum(e)
     for c in m.classes:
-        print_class(c)
+        print_class(c, m)

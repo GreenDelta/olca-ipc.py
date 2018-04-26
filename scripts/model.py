@@ -35,9 +35,17 @@ class Model:
     def find_class(self, name):
         if name is None:
             return None
-        for t in self.types:
-            if t.name == name:
-                return t
+        for c in self.classes:
+            if c.name == name:
+                return c
+        return None
+
+    def find_enum(self, name):
+        if name is None:
+            return None
+        for e in self.enums:
+            if e.name == name:
+                return e
         return None
 
     def get_super_classes(self, clazz):
