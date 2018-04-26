@@ -72,7 +72,7 @@ def print_to_json(c: model.ClassType, m: model.Model):
     if len(c.properties) == 0:
         t += off + 'return {}\n'
     else:
-        t += off + 'jdict = super.to_json()  # type: dict\n'
+        t += off + 'jdict = super(%s, self).to_json()  # type: dict\n' % c.name
         for prop in c.properties:
             attr = to_snake_case(prop.name)
             t += off + 'if self.%s is not None:\n' % attr

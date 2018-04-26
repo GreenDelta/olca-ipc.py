@@ -76,7 +76,7 @@ class AllocationFactor(Entity):
         self.allocated_exchange = None  # type: Exchange
 
     def to_json(self) -> dict:
-        jdict = super.to_json()  # type: dict
+        jdict = super(AllocationFactor, self).to_json()  # type: dict
         if self.product_exchange is not None:
             jdict['productExchange'] = self.product_exchange.to_json()
         if self.allocation_type is not None:
@@ -108,7 +108,7 @@ class Exchange(Entity):
         self.comment = None  # type: str
 
     def to_json(self) -> dict:
-        jdict = super.to_json()  # type: dict
+        jdict = super(Exchange, self).to_json()  # type: dict
         if self.internal_id is not None:
             jdict['internalId'] = self.internal_id
             jdict['internalId'] = self.internal_id.to_json()
@@ -157,7 +157,7 @@ class FlowPropertyFactor(Entity):
         self.reference_flow_property = None  # type: bool
 
     def to_json(self) -> dict:
-        jdict = super.to_json()  # type: dict
+        jdict = super(FlowPropertyFactor, self).to_json()  # type: dict
         if self.flow_property is not None:
             jdict['flowProperty'] = self.flow_property.to_json()
         if self.conversion_factor is not None:
@@ -180,7 +180,7 @@ class ImpactFactor(Entity):
         self.uncertainty = None  # type: Uncertainty
 
     def to_json(self) -> dict:
-        jdict = super.to_json()  # type: dict
+        jdict = super(ImpactFactor, self).to_json()  # type: dict
         if self.flow is not None:
             jdict['flow'] = self.flow.to_json()
         if self.flow_property is not None:
@@ -212,7 +212,7 @@ class Parameter(Entity):
         self.uncertainty = None  # type: Uncertainty
 
     def to_json(self) -> dict:
-        jdict = super.to_json()  # type: dict
+        jdict = super(Parameter, self).to_json()  # type: dict
         if self.name is not None:
             jdict['name'] = self.name
             jdict['name'] = self.name.to_json()
@@ -270,7 +270,7 @@ class ProcessDocumentation(Entity):
         self.geography_description = None  # type: str
 
     def to_json(self) -> dict:
-        jdict = super.to_json()  # type: dict
+        jdict = super(ProcessDocumentation, self).to_json()  # type: dict
         if self.time_description is not None:
             jdict['timeDescription'] = self.time_description
             jdict['timeDescription'] = self.time_description.to_json()
@@ -351,7 +351,7 @@ class ProcessLink(Entity):
         self.exchange = None  # type: Exchange
 
     def to_json(self) -> dict:
-        jdict = super.to_json()  # type: dict
+        jdict = super(ProcessLink, self).to_json()  # type: dict
         if self.provider is not None:
             jdict['provider'] = self.provider.to_json()
         if self.flow is not None:
@@ -372,7 +372,7 @@ class RootEntity(Entity):
         self.last_change = None  # type: str
 
     def to_json(self) -> dict:
-        jdict = super.to_json()  # type: dict
+        jdict = super(RootEntity, self).to_json()  # type: dict
         if self.name is not None:
             jdict['name'] = self.name
             jdict['name'] = self.name.to_json()
@@ -408,7 +408,7 @@ class Uncertainty(Entity):
         self.maximum_formula = None  # type: str
 
     def to_json(self) -> dict:
-        jdict = super.to_json()  # type: dict
+        jdict = super(Uncertainty, self).to_json()  # type: dict
         if self.distribution_type is not None:
             jdict['distributionType'] = self.distribution_type.value
         if self.mean is not None:
@@ -462,7 +462,7 @@ class CategorizedEntity(RootEntity):
         self.category = None  # type: Category
 
     def to_json(self) -> dict:
-        jdict = super.to_json()  # type: dict
+        jdict = super(CategorizedEntity, self).to_json()  # type: dict
         if self.category is not None:
             jdict['category'] = self.category.to_json()
         return jdict
@@ -475,7 +475,7 @@ class ImpactCategory(RootEntity):
         self.impact_factors = None  # type: List[ImpactFactor]
 
     def to_json(self) -> dict:
-        jdict = super.to_json()  # type: dict
+        jdict = super(ImpactCategory, self).to_json()  # type: dict
         if self.reference_unit_name is not None:
             jdict['referenceUnitName'] = self.reference_unit_name
             jdict['referenceUnitName'] = self.reference_unit_name.to_json()
@@ -495,7 +495,7 @@ class Location(RootEntity):
         self.kml = None  # type: str
 
     def to_json(self) -> dict:
-        jdict = super.to_json()  # type: dict
+        jdict = super(Location, self).to_json()  # type: dict
         if self.code is not None:
             jdict['code'] = self.code
             jdict['code'] = self.code.to_json()
@@ -519,7 +519,7 @@ class Unit(RootEntity):
         self.synonyms = None  # type: List[string]
 
     def to_json(self) -> dict:
-        jdict = super.to_json()  # type: dict
+        jdict = super(Unit, self).to_json()  # type: dict
         if self.conversion_factor is not None:
             jdict['conversionFactor'] = self.conversion_factor
             jdict['conversionFactor'] = self.conversion_factor.to_json()
@@ -546,7 +546,7 @@ class Actor(CategorizedEntity):
         self.zip_code = None  # type: str
 
     def to_json(self) -> dict:
-        jdict = super.to_json()  # type: dict
+        jdict = super(Actor, self).to_json()  # type: dict
         if self.address is not None:
             jdict['address'] = self.address
             jdict['address'] = self.address.to_json()
@@ -580,7 +580,7 @@ class Category(CategorizedEntity):
         self.model_type = None  # type: ModelType
 
     def to_json(self) -> dict:
-        jdict = super.to_json()  # type: dict
+        jdict = super(Category, self).to_json()  # type: dict
         if self.model_type is not None:
             jdict['modelType'] = self.model_type.value
         return jdict
@@ -596,7 +596,7 @@ class Flow(CategorizedEntity):
         self.location = None  # type: Location
 
     def to_json(self) -> dict:
-        jdict = super.to_json()  # type: dict
+        jdict = super(Flow, self).to_json()  # type: dict
         if self.flow_type is not None:
             jdict['flowType'] = self.flow_type.value
         if self.cas is not None:
@@ -621,7 +621,7 @@ class FlowProperty(CategorizedEntity):
         self.unit_group = None  # type: UnitGroup
 
     def to_json(self) -> dict:
-        jdict = super.to_json()  # type: dict
+        jdict = super(FlowProperty, self).to_json()  # type: dict
         if self.flow_property_type is not None:
             jdict['flowPropertyType'] = self.flow_property_type.value
         if self.unit_group is not None:
@@ -636,7 +636,7 @@ class ImpactMethod(CategorizedEntity):
         self.parameters = None  # type: List[Parameter]
 
     def to_json(self) -> dict:
-        jdict = super.to_json()  # type: dict
+        jdict = super(ImpactMethod, self).to_json()  # type: dict
         if self.impact_categories is not None:
             jdict['impactCategories'] = []
             for e in impact_categories:
@@ -660,7 +660,7 @@ class Process(CategorizedEntity):
         self.process_type = None  # type: ProcessType
 
     def to_json(self) -> dict:
-        jdict = super.to_json()  # type: dict
+        jdict = super(Process, self).to_json()  # type: dict
         if self.default_allocation_method is not None:
             jdict['defaultAllocationMethod'] = self.default_allocation_method.value
         if self.allocation_factors is not None:
@@ -696,7 +696,7 @@ class ProductSystem(CategorizedEntity):
         self.process_links = None  # type: List[ProcessLink]
 
     def to_json(self) -> dict:
-        jdict = super.to_json()  # type: dict
+        jdict = super(ProductSystem, self).to_json()  # type: dict
         if self.processes is not None:
             jdict['processes'] = []
             for e in processes:
@@ -729,7 +729,7 @@ class SocialIndicator(CategorizedEntity):
         self.evaluation_scheme = None  # type: str
 
     def to_json(self) -> dict:
-        jdict = super.to_json()  # type: dict
+        jdict = super(SocialIndicator, self).to_json()  # type: dict
         if self.activity_variable is not None:
             jdict['activityVariable'] = self.activity_variable
             jdict['activityVariable'] = self.activity_variable.to_json()
@@ -755,7 +755,7 @@ class Source(CategorizedEntity):
         self.external_file = None  # type: str
 
     def to_json(self) -> dict:
-        jdict = super.to_json()  # type: dict
+        jdict = super(Source, self).to_json()  # type: dict
         if self.doi is not None:
             jdict['doi'] = self.doi
             jdict['doi'] = self.doi.to_json()
@@ -778,7 +778,7 @@ class UnitGroup(CategorizedEntity):
         self.units = None  # type: List[Unit]
 
     def to_json(self) -> dict:
-        jdict = super.to_json()  # type: dict
+        jdict = super(UnitGroup, self).to_json()  # type: dict
         if self.default_flow_property is not None:
             jdict['defaultFlowProperty'] = self.default_flow_property.to_json()
         if self.units is not None:
