@@ -58,6 +58,8 @@ def print_class(c: model.ClassType, m: model.Model):
     t += '    def __init__(self):\n'
     if len(c.properties) == 0:
         t += '        pass\n'
+    else:
+        t += '        super(%s, self).__init__()\n' % (c.name)
     for prop in c.properties:
         attr = to_snake_case(prop.name)
         ptype = py_type(prop.field_type)
@@ -81,7 +83,7 @@ def print_to_json(c: model.ClassType, m: model.Model):
             is_list = prop.field_type.startswith('List[')
             if is_primitive:
                 t += off + "    jdict['%s'] = self.%s\n" % (prop.name, attr)
-            if is_enum:
+            elif is_enum:
                 t += off + \
                     "    jdict['%s'] = self.%s.value\n" % (prop.name, attr)
             elif is_list:
