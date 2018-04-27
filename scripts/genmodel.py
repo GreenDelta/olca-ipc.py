@@ -49,6 +49,8 @@ def py_type(model_type: str) -> str:
         return 'int'
     if model_type == 'dateTime':
         return 'str'
+    if model_type == 'date':
+        return 'str'
     return model_type
 
 
@@ -57,9 +59,9 @@ def print_class(c: model.ClassType, m: model.Model):
     t = 'class %s(%s):\n\n' % (c.name, parent)
     t += '    def __init__(self):\n'
     if len(c.properties) == 0:
-        t += '        pass\n'
+        t += '        self.id = None  # type: str\n'
     else:
-        t += '        super(%s, self).__init__()\n' % (c.name)
+        t += '        super(%s, self).__init__()\n' % c.name
     for prop in c.properties:
         attr = to_snake_case(prop.name)
         ptype = py_type(prop.field_type)
@@ -73,9 +75,12 @@ def print_to_json(c: model.ClassType, m: model.Model):
     t = '    def to_json(self) -> dict:\n'
     off = '        '
     if len(c.properties) == 0:
-        t += off + 'return {}\n'
+        t += off + "json = {'@type': type(self).__name__}\n"
+        t += off + 'if self.id is not None:\n'
+        t += off + "    json['@id'] = self.id\n"
+        t += off + 'return json\n'
     else:
-        t += off + 'jdict = super(%s, self).to_json()  # type: dict\n' % c.name
+        t += off + 'json = super(%s, self).to_json()  # type: dict\n' % c.name
         for prop in c.properties:
             attr = to_snake_case(prop.name)
             t += off + 'if self.%s is not None:\n' % attr
@@ -83,50 +88,50 @@ def print_to_json(c: model.ClassType, m: model.Model):
             is_enum = m.find_enum(prop.field_type) is not None
             is_list = prop.field_type.startswith('List[')
             if is_primitive:
-                t += off + "    jdict['%s'] = self.%s\n" % (prop.name, attr)
+                t += off + "    json['%s'] = self.%s\n" % (prop.name, attr)
             elif is_enum:
                 t += off + \
-                    "    jdict['%s'] = self.%s.value\n" % (prop.name, attr)
+                    "    json['%s'] = self.%s.value\n" % (prop.name, attr)
             elif is_list:
-                t += off + "    jdict['%s'] = []\n" % (prop.name)
-                t += off + "    for e in %s:\n" % (attr)
+                t += off + "    json['%s'] = []\n" % prop.name
+                t += off + "    for e in self.%s:\n" % attr
                 t += off + off + \
-                    "jdict['%s'].append(e.to_json())\n" % (prop.name)
+                    "json['%s'].append(e.to_json())\n" % prop.name
             else:
                 t += off + \
-                    "    jdict['%s'] = self.%s.to_json()\n" % (prop.name, attr)
-        t += off + 'return jdict\n'
+                    "    json['%s'] = self.%s.to_json()\n" % (prop.name, attr)
+        t += off + 'return json\n'
     print(t)
 
 
 def print_from_json(c: model.ClassType, m: model.Model):
-    t = '    def from_json(self, jdict: dict):\n'
+    t = '    def from_json(self, json: dict):\n'
     off = '        '
     if len(c.properties) == 0:
-        t += off + 'pass'
+        t += off + "self.id = json.get('@id')\n"
     else:
-        t += off + 'super(%s, self).from_json(jdict)\n' % c.name
+        t += off + 'super(%s, self).from_json(json)\n' % c.name
         for prop in c.properties:
             attr = to_snake_case(prop.name)
             is_primitive = prop.field_type[0].islower()
             is_enum = m.find_enum(prop.field_type) is not None
             is_list = prop.field_type.startswith('List[')
-            t += off + "val = jdict.get('%s')\n" % prop.name
+            t += off + "val = json.get('%s')\n" % prop.name
             t += off + "if val is not None:\n"
             if is_primitive:
-                t += off + "    self.%s = val\n" % (attr)
+                t += off + "    self.%s = val\n" % attr
             elif is_enum:
                 t += off + \
                     "    self.%s = %s(val)\n" % (attr, prop.field_type)
             elif is_list:
-                t += off + "    self.%s = []\n" % (attr)
+                t += off + "    self.%s = []\n" % attr
                 t += off + "    for d in val:\n"
                 t += off + off + 'e = %s()\n' % list_elem_type(prop.field_type)
                 t += off + off + 'e.from_json(d)\n'
                 t += off + off + 'self.%s.append(e)\n' % attr
             else:
                 t += off + "    self.%s = %s()\n" % (attr, prop.field_type)
-                t += off + "    self.%s.from_json(val)\n" % (attr)
+                t += off + "    self.%s.from_json(val)\n" % attr
     print(t)
 
 
@@ -147,10 +152,11 @@ if __name__ == '__main__':
     print('# openLCA data exchange model.package schema.')
     print('# For more information see '
           'http://greendelta.github.io/olca-schema/\n')
-    print('from enum import Enum\n')
+    print('from enum import Enum')
+    print('from typing import List\n')
 
     m = model.Model.load_yaml(YAML_DIR)  # type: model.Model
-    for e in m.enums:
-        print_enum(e)
-    for c in m.classes:
-        print_class(c, m)
+    for enum in m.enums:
+        print_enum(enum)
+    for clazz in m.classes:
+        print_class(clazz, m)
