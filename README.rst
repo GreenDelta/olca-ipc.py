@@ -9,10 +9,29 @@ Usage
 We will distribute the package later on PyPi; to install the current development
 version just do: 
 
-.. code-block: bash
+.. code:: bash
+
     pip install -e .
 
 Running the tests:
 
-.. code-block: bash
+.. code:: bash
+
     python -m unittest discover tests -v
+
+Here is a small example:
+
+.. code:: python
+
+    import olca
+    import uuid
+
+    def main():
+        # expect that the openLCA IPC server is running at port 8080
+        client = olca.Client(8080)
+        actor = olca.Actor()
+        actor.id = str(uuid.uuid4())
+        actor.name = 'A test actor'
+        resp = client.insert(actor)
+        print(resp)  #  should print ' ok'
+
