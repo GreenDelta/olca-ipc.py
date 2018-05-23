@@ -113,6 +113,84 @@ class AllocationFactor(Entity):
             self.allocated_exchange.from_json(val)
 
 
+class CalculationSetup(Entity):
+
+    def __init__(self):
+        super(CalculationSetup, self).__init__()
+        self.product_system = None  # type: Ref
+        self.impact_method = None  # type: Ref
+        self.with_costs = None  # type: bool
+        self.nw_set = None  # type: Ref
+        self.allocation_method = None  # type: AllocationType
+        self.parameter_redefs = None  # type: List[ParameterRedef]
+        self.amount = None  # type: float
+        self.unit = None  # type: Ref
+        self.flow_property = None  # type: Ref
+
+    def to_json(self) -> dict:
+        json = super(CalculationSetup, self).to_json()  # type: dict
+        if self.product_system is not None:
+            json['productSystem'] = self.product_system.to_json()
+        if self.impact_method is not None:
+            json['impactMethod'] = self.impact_method.to_json()
+        if self.with_costs is not None:
+            json['withCosts'] = self.with_costs
+        if self.nw_set is not None:
+            json['nwSet'] = self.nw_set.to_json()
+        if self.allocation_method is not None:
+            json['allocationMethod'] = self.allocation_method.value
+        if self.parameter_redefs is not None:
+            json['parameterRedefs'] = []
+            for e in self.parameter_redefs:
+                json['parameterRedefs'].append(e.to_json())
+        if self.amount is not None:
+            json['amount'] = self.amount
+        if self.unit is not None:
+            json['unit'] = self.unit.to_json()
+        if self.flow_property is not None:
+            json['flowProperty'] = self.flow_property.to_json()
+        return json
+
+    def from_json(self, json: dict):
+        super(CalculationSetup, self).from_json(json)
+        val = json.get('productSystem')
+        if val is not None:
+            self.product_system = Ref()
+            self.product_system.from_json(val)
+        val = json.get('impactMethod')
+        if val is not None:
+            self.impact_method = Ref()
+            self.impact_method.from_json(val)
+        val = json.get('withCosts')
+        if val is not None:
+            self.with_costs = val
+        val = json.get('nwSet')
+        if val is not None:
+            self.nw_set = Ref()
+            self.nw_set.from_json(val)
+        val = json.get('allocationMethod')
+        if val is not None:
+            self.allocation_method = AllocationType(val)
+        val = json.get('parameterRedefs')
+        if val is not None:
+            self.parameter_redefs = []
+            for d in val:
+                e = ParameterRedef()
+                e.from_json(d)
+                self.parameter_redefs.append(e)
+        val = json.get('amount')
+        if val is not None:
+            self.amount = val
+        val = json.get('unit')
+        if val is not None:
+            self.unit = Ref()
+            self.unit.from_json(val)
+        val = json.get('flowProperty')
+        if val is not None:
+            self.flow_property = Ref()
+            self.flow_property.from_json(val)
+
+
 class Exchange(Entity):
 
     def __init__(self):
@@ -247,6 +325,38 @@ class FlowPropertyFactor(Entity):
             self.reference_flow_property = val
 
 
+class FlowResult(Entity):
+
+    def __init__(self):
+        super(FlowResult, self).__init__()
+        self.flow = None  # type: FlowRef
+        self.input = None  # type: bool
+        self.value = None  # type: float
+
+    def to_json(self) -> dict:
+        json = super(FlowResult, self).to_json()  # type: dict
+        if self.flow is not None:
+            json['flow'] = self.flow.to_json()
+        if self.input is not None:
+            json['input'] = self.input
+        if self.value is not None:
+            json['value'] = self.value
+        return json
+
+    def from_json(self, json: dict):
+        super(FlowResult, self).from_json(json)
+        val = json.get('flow')
+        if val is not None:
+            self.flow = FlowRef()
+            self.flow.from_json(val)
+        val = json.get('input')
+        if val is not None:
+            self.input = val
+        val = json.get('value')
+        if val is not None:
+            self.value = val
+
+
 class ImpactFactor(Entity):
 
     def __init__(self):
@@ -298,6 +408,32 @@ class ImpactFactor(Entity):
         if val is not None:
             self.uncertainty = Uncertainty()
             self.uncertainty.from_json(val)
+
+
+class ImpactResult(Entity):
+
+    def __init__(self):
+        super(ImpactResult, self).__init__()
+        self.impact_category = None  # type: ImpactCategoryRef
+        self.value = None  # type: float
+
+    def to_json(self) -> dict:
+        json = super(ImpactResult, self).to_json()  # type: dict
+        if self.impact_category is not None:
+            json['impactCategory'] = self.impact_category.to_json()
+        if self.value is not None:
+            json['value'] = self.value
+        return json
+
+    def from_json(self, json: dict):
+        super(ImpactResult, self).from_json(json)
+        val = json.get('impactCategory')
+        if val is not None:
+            self.impact_category = ImpactCategoryRef()
+            self.impact_category.from_json(val)
+        val = json.get('value')
+        if val is not None:
+            self.value = val
 
 
 class Parameter(Entity):
@@ -366,6 +502,38 @@ class Parameter(Entity):
         if val is not None:
             self.uncertainty = Uncertainty()
             self.uncertainty.from_json(val)
+
+
+class ParameterRedef(Entity):
+
+    def __init__(self):
+        super(ParameterRedef, self).__init__()
+        self.name = None  # type: str
+        self.value = None  # type: float
+        self.context = None  # type: Ref
+
+    def to_json(self) -> dict:
+        json = super(ParameterRedef, self).to_json()  # type: dict
+        if self.name is not None:
+            json['name'] = self.name
+        if self.value is not None:
+            json['value'] = self.value
+        if self.context is not None:
+            json['context'] = self.context.to_json()
+        return json
+
+    def from_json(self, json: dict):
+        super(ParameterRedef, self).from_json(json)
+        val = json.get('name')
+        if val is not None:
+            self.name = val
+        val = json.get('value')
+        if val is not None:
+            self.value = val
+        val = json.get('context')
+        if val is not None:
+            self.context = Ref()
+            self.context.from_json(val)
 
 
 class ProcessDocumentation(Entity):
@@ -612,6 +780,43 @@ class RootEntity(Entity):
         val = json.get('lastChange')
         if val is not None:
             self.last_change = val
+
+
+class SimpleResult(Entity):
+
+    def __init__(self):
+        super(SimpleResult, self).__init__()
+        self.flow_results = None  # type: List[FlowResult]
+        self.impact_results = None  # type: List[ImpactResult]
+
+    def to_json(self) -> dict:
+        json = super(SimpleResult, self).to_json()  # type: dict
+        if self.flow_results is not None:
+            json['flowResults'] = []
+            for e in self.flow_results:
+                json['flowResults'].append(e.to_json())
+        if self.impact_results is not None:
+            json['impactResults'] = []
+            for e in self.impact_results:
+                json['impactResults'].append(e.to_json())
+        return json
+
+    def from_json(self, json: dict):
+        super(SimpleResult, self).from_json(json)
+        val = json.get('flowResults')
+        if val is not None:
+            self.flow_results = []
+            for d in val:
+                e = FlowResult()
+                e.from_json(d)
+                self.flow_results.append(e)
+        val = json.get('impactResults')
+        if val is not None:
+            self.impact_results = []
+            for d in val:
+                e = ImpactResult()
+                e.from_json(d)
+                self.impact_results.append(e)
 
 
 class Uncertainty(Entity):
