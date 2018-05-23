@@ -23,7 +23,12 @@ class Client(object):
         json = model.to_json()
         return self.__post('update/model', json)
 
-    def get_descriptors(self, model_type) -> List[schema.RootEntity]:
+    def calculate(self, setup: schema.CalculationSetup) -> schema.SimpleResult:
+        if setup is None:
+            return
+        return self.__post('calculate', setup.to_json())
+
+    def get_descriptors(self, model_type) -> List[schema.Ref]:
         """
         Get the list of descriptors of the entities with the given
         model type.
