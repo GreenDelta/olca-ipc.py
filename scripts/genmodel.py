@@ -53,6 +53,9 @@ def py_type(model_type: str) -> str:
         return 'str'
     if model_type.startswith('Ref['):
         return 'Ref'
+    if model_type.startswith('List['):
+        list_type = py_type(list_elem_type(model_type))
+        return 'List[%s]' % list_type
     return model_type
 
 
@@ -132,8 +135,12 @@ def print_from_json(c: model.ClassType, m: model.Model):
             elif is_list:
                 t += off + "    self.%s = []\n" % attr
                 t += off + "    for d in val:\n"
-                t += off + off + 'e = %s()\n' % list_elem_type(py_type(prop.field_type))
-                t += off + off + 'e.from_json(d)\n'
+                list_type = list_elem_type(prop.field_type)
+                if list_type[0].islower():
+                    t += off + off + 'e = d\n'
+                else:
+                    t += off + off + 'e = %s()\n' % list_type
+                    t += off + off + 'e.from_json(d)\n'
                 t += off + off + 'self.%s.append(e)\n' % attr
             else:
                 t += off + "    self.%s = %s()\n" % (attr, py_type(prop.field_type))
@@ -142,7 +149,10 @@ def print_from_json(c: model.ClassType, m: model.Model):
 
 
 def list_elem_type(list_type: str) -> str:
-    return list_type[5:(len(list_type) - 1)]
+    t = list_type[5:(len(list_type) - 1)]
+    if t.startswith('Ref['):
+        return 'Ref'
+    return t
 
 
 def print_enum(e: model.EnumType):

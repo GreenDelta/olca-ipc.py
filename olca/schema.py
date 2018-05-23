@@ -5,6 +5,7 @@
 from enum import Enum
 from typing import List
 
+
 class AllocationType(Enum):
     PHYSICAL_ALLOCATION = 'PHYSICAL_ALLOCATION'
     ECONOMIC_ALLOCATION = 'ECONOMIC_ALLOCATION'
@@ -56,7 +57,6 @@ class UncertaintyType(Enum):
     NORMAL_DISTRIBUTION = 'NORMAL_DISTRIBUTION'
     TRIANGLE_DISTRIBUTION = 'TRIANGLE_DISTRIBUTION'
     UNIFORM_DISTRIBUTION = 'UNIFORM_DISTRIBUTION'
-
 
 
 class Entity(object):
@@ -385,7 +385,7 @@ class ProcessDocumentation(Entity):
         self.modeling_constants_description = None  # type: str
         self.reviewer = None  # type: Ref
         self.sampling_description = None  # type: str
-        self.sources = None  # type: List[Ref[Source]]
+        self.sources = None  # type: List[Ref]
         self.restrictions_description = None  # type: str
         self.copyright = None  # type: bool
         self.creation_date = None  # type: str
@@ -497,7 +497,7 @@ class ProcessDocumentation(Entity):
         if val is not None:
             self.sources = []
             for d in val:
-                e = Ref[Source]()
+                e = Ref()
                 e.from_json(d)
                 self.sources.append(e)
         val = json.get('restrictionsDescription')
@@ -830,7 +830,7 @@ class Unit(RootEntity):
         super(Unit, self).__init__()
         self.conversion_factor = None  # type: float
         self.reference_unit = None  # type: bool
-        self.synonyms = None  # type: List[string]
+        self.synonyms = None  # type: List[str]
 
     def to_json(self) -> dict:
         json = super(Unit, self).to_json()  # type: dict
@@ -856,8 +856,7 @@ class Unit(RootEntity):
         if val is not None:
             self.synonyms = []
             for d in val:
-                e = string()
-                e.from_json(d)
+                e = d
                 self.synonyms.append(e)
 
 
@@ -1387,4 +1386,3 @@ class UnitGroup(CategorizedEntity):
                 e = Unit()
                 e.from_json(d)
                 self.units.append(e)
-
