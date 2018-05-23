@@ -32,9 +32,11 @@ class Model:
         m._sort_classes()
         return m
 
-    def find_class(self, name):
+    def find_class(self, name: str):
         if name is None:
             return None
+        if name.startswith('Ref['):
+            return self.find_class('Ref')
         for c in self.classes:
             if c.name == name:
                 return c
@@ -59,7 +61,9 @@ class Model:
     def _sort_classes(self):
         parent_relations = {}
         for c in self.classes:
-            parent_relations[c.name] = c.super_class
+            super_class = self.find_class(c.super_class)
+            if super_class is not None:
+                parent_relations[c.name] = super_class.name
 
         def calc_depth(class_name):
             if class_name is None:

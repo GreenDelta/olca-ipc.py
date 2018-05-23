@@ -3,9 +3,7 @@
 # For more information see http://greendelta.github.io/olca-schema/
 
 from enum import Enum
-
 from typing import List
-
 
 class AllocationType(Enum):
     PHYSICAL_ALLOCATION = 'PHYSICAL_ALLOCATION'
@@ -58,6 +56,7 @@ class UncertaintyType(Enum):
     NORMAL_DISTRIBUTION = 'NORMAL_DISTRIBUTION'
     TRIANGLE_DISTRIBUTION = 'TRIANGLE_DISTRIBUTION'
     UNIFORM_DISTRIBUTION = 'UNIFORM_DISTRIBUTION'
+
 
 
 class Entity(object):
@@ -120,12 +119,12 @@ class Exchange(Entity):
         super(Exchange, self).__init__()
         self.internal_id = None  # type: int
         self.avoided_product = None  # type: bool
-        self.flow = None  # type: Flow
-        self.flow_property = None  # type: FlowProperty
+        self.flow = None  # type: FlowRef
+        self.flow_property = None  # type: Ref
         self.input = None  # type: bool
         self.quantitative_reference = None  # type: bool
         self.base_uncertainty = None  # type: float
-        self.provider = None  # type: Process
+        self.provider = None  # type: ProcessRef
         self.amount = None  # type: float
         self.amount_formula = None  # type: str
         self.unit = None  # type: Unit
@@ -175,11 +174,11 @@ class Exchange(Entity):
             self.avoided_product = val
         val = json.get('flow')
         if val is not None:
-            self.flow = Flow()
+            self.flow = FlowRef()
             self.flow.from_json(val)
         val = json.get('flowProperty')
         if val is not None:
-            self.flow_property = FlowProperty()
+            self.flow_property = Ref()
             self.flow_property.from_json(val)
         val = json.get('input')
         if val is not None:
@@ -192,7 +191,7 @@ class Exchange(Entity):
             self.base_uncertainty = val
         val = json.get('provider')
         if val is not None:
-            self.provider = Process()
+            self.provider = ProcessRef()
             self.provider.from_json(val)
         val = json.get('amount')
         if val is not None:
@@ -220,7 +219,7 @@ class FlowPropertyFactor(Entity):
 
     def __init__(self):
         super(FlowPropertyFactor, self).__init__()
-        self.flow_property = None  # type: FlowProperty
+        self.flow_property = None  # type: Ref
         self.conversion_factor = None  # type: float
         self.reference_flow_property = None  # type: bool
 
@@ -238,7 +237,7 @@ class FlowPropertyFactor(Entity):
         super(FlowPropertyFactor, self).from_json(json)
         val = json.get('flowProperty')
         if val is not None:
-            self.flow_property = FlowProperty()
+            self.flow_property = Ref()
             self.flow_property.from_json(val)
         val = json.get('conversionFactor')
         if val is not None:
@@ -252,9 +251,9 @@ class ImpactFactor(Entity):
 
     def __init__(self):
         super(ImpactFactor, self).__init__()
-        self.flow = None  # type: Flow
-        self.flow_property = None  # type: FlowProperty
-        self.unit = None  # type: Unit
+        self.flow = None  # type: FlowRef
+        self.flow_property = None  # type: Ref
+        self.unit = None  # type: Ref
         self.value = None  # type: float
         self.formula = None  # type: str
         self.uncertainty = None  # type: Uncertainty
@@ -279,15 +278,15 @@ class ImpactFactor(Entity):
         super(ImpactFactor, self).from_json(json)
         val = json.get('flow')
         if val is not None:
-            self.flow = Flow()
+            self.flow = FlowRef()
             self.flow.from_json(val)
         val = json.get('flowProperty')
         if val is not None:
-            self.flow_property = FlowProperty()
+            self.flow_property = Ref()
             self.flow_property.from_json(val)
         val = json.get('unit')
         if val is not None:
-            self.unit = Unit()
+            self.unit = Ref()
             self.unit.from_json(val)
         val = json.get('value')
         if val is not None:
@@ -384,18 +383,18 @@ class ProcessDocumentation(Entity):
         self.data_treatment_description = None  # type: str
         self.inventory_method_description = None  # type: str
         self.modeling_constants_description = None  # type: str
-        self.reviewer = None  # type: Actor
+        self.reviewer = None  # type: Ref
         self.sampling_description = None  # type: str
-        self.sources = None  # type: List[Source]
+        self.sources = None  # type: List[Ref[Source]]
         self.restrictions_description = None  # type: str
         self.copyright = None  # type: bool
         self.creation_date = None  # type: str
-        self.data_documentor = None  # type: Actor
-        self.data_generator = None  # type: Actor
-        self.data_set_owner = None  # type: Actor
+        self.data_documentor = None  # type: Ref
+        self.data_generator = None  # type: Ref
+        self.data_set_owner = None  # type: Ref
         self.intended_application = None  # type: str
         self.project_description = None  # type: str
-        self.publication = None  # type: Source
+        self.publication = None  # type: Ref
         self.geography_description = None  # type: str
 
     def to_json(self) -> dict:
@@ -489,7 +488,7 @@ class ProcessDocumentation(Entity):
             self.modeling_constants_description = val
         val = json.get('reviewer')
         if val is not None:
-            self.reviewer = Actor()
+            self.reviewer = Ref()
             self.reviewer.from_json(val)
         val = json.get('samplingDescription')
         if val is not None:
@@ -498,7 +497,7 @@ class ProcessDocumentation(Entity):
         if val is not None:
             self.sources = []
             for d in val:
-                e = Source()
+                e = Ref[Source]()
                 e.from_json(d)
                 self.sources.append(e)
         val = json.get('restrictionsDescription')
@@ -512,15 +511,15 @@ class ProcessDocumentation(Entity):
             self.creation_date = val
         val = json.get('dataDocumentor')
         if val is not None:
-            self.data_documentor = Actor()
+            self.data_documentor = Ref()
             self.data_documentor.from_json(val)
         val = json.get('dataGenerator')
         if val is not None:
-            self.data_generator = Actor()
+            self.data_generator = Ref()
             self.data_generator.from_json(val)
         val = json.get('dataSetOwner')
         if val is not None:
-            self.data_set_owner = Actor()
+            self.data_set_owner = Ref()
             self.data_set_owner.from_json(val)
         val = json.get('intendedApplication')
         if val is not None:
@@ -530,7 +529,7 @@ class ProcessDocumentation(Entity):
             self.project_description = val
         val = json.get('publication')
         if val is not None:
-            self.publication = Source()
+            self.publication = Ref()
             self.publication.from_json(val)
         val = json.get('geographyDescription')
         if val is not None:
@@ -541,9 +540,9 @@ class ProcessLink(Entity):
 
     def __init__(self):
         super(ProcessLink, self).__init__()
-        self.provider = None  # type: Process
-        self.flow = None  # type: Flow
-        self.process = None  # type: Process
+        self.provider = None  # type: Ref
+        self.flow = None  # type: Ref
+        self.process = None  # type: Ref
         self.exchange = None  # type: Exchange
 
     def to_json(self) -> dict:
@@ -562,15 +561,15 @@ class ProcessLink(Entity):
         super(ProcessLink, self).from_json(json)
         val = json.get('provider')
         if val is not None:
-            self.provider = Process()
+            self.provider = Ref()
             self.provider.from_json(val)
         val = json.get('flow')
         if val is not None:
-            self.flow = Flow()
+            self.flow = Ref()
             self.flow.from_json(val)
         val = json.get('process')
         if val is not None:
-            self.process = Process()
+            self.process = Ref()
             self.process.from_json(val)
         val = json.get('exchange')
         if val is not None:
@@ -722,7 +721,7 @@ class CategorizedEntity(RootEntity):
 
     def __init__(self):
         super(CategorizedEntity, self).__init__()
-        self.category = None  # type: Category
+        self.category = None  # type: Ref
 
     def to_json(self) -> dict:
         json = super(CategorizedEntity, self).to_json()  # type: dict
@@ -734,7 +733,7 @@ class CategorizedEntity(RootEntity):
         super(CategorizedEntity, self).from_json(json)
         val = json.get('category')
         if val is not None:
-            self.category = Category()
+            self.category = Ref()
             self.category.from_json(val)
 
 
@@ -806,13 +805,32 @@ class Location(RootEntity):
             self.kml = val
 
 
+class Ref(RootEntity):
+
+    def __init__(self):
+        super(Ref, self).__init__()
+        self.category = None  # type: str
+
+    def to_json(self) -> dict:
+        json = super(Ref, self).to_json()  # type: dict
+        if self.category is not None:
+            json['category'] = self.category
+        return json
+
+    def from_json(self, json: dict):
+        super(Ref, self).from_json(json)
+        val = json.get('category')
+        if val is not None:
+            self.category = val
+
+
 class Unit(RootEntity):
 
     def __init__(self):
         super(Unit, self).__init__()
         self.conversion_factor = None  # type: float
         self.reference_unit = None  # type: bool
-        self.synonyms = None  # type: List[str]
+        self.synonyms = None  # type: List[string]
 
     def to_json(self) -> dict:
         json = super(Unit, self).to_json()  # type: dict
@@ -838,7 +856,9 @@ class Unit(RootEntity):
         if val is not None:
             self.synonyms = []
             for d in val:
-                self.synonyms.append(d)
+                e = string()
+                e.from_json(d)
+                self.synonyms.append(e)
 
 
 class Actor(CategorizedEntity):
@@ -929,7 +949,7 @@ class Flow(CategorizedEntity):
         self.cas = None  # type: str
         self.formula = None  # type: str
         self.flow_properties = None  # type: List[FlowPropertyFactor]
-        self.location = None  # type: Location
+        self.location = None  # type: Ref
 
     def to_json(self) -> dict:
         json = super(Flow, self).to_json()  # type: dict
@@ -967,7 +987,7 @@ class Flow(CategorizedEntity):
                 self.flow_properties.append(e)
         val = json.get('location')
         if val is not None:
-            self.location = Location()
+            self.location = Ref()
             self.location.from_json(val)
 
 
@@ -976,7 +996,7 @@ class FlowProperty(CategorizedEntity):
     def __init__(self):
         super(FlowProperty, self).__init__()
         self.flow_property_type = None  # type: FlowPropertyType
-        self.unit_group = None  # type: UnitGroup
+        self.unit_group = None  # type: Ref
 
     def to_json(self) -> dict:
         json = super(FlowProperty, self).to_json()  # type: dict
@@ -993,15 +1013,65 @@ class FlowProperty(CategorizedEntity):
             self.flow_property_type = FlowPropertyType(val)
         val = json.get('unitGroup')
         if val is not None:
-            self.unit_group = UnitGroup()
+            self.unit_group = Ref()
             self.unit_group.from_json(val)
+
+
+class FlowRef(Ref):
+
+    def __init__(self):
+        super(FlowRef, self).__init__()
+        self.ref_unit = None  # type: str
+        self.location = None  # type: str
+        self.flow_type = None  # type: FlowType
+
+    def to_json(self) -> dict:
+        json = super(FlowRef, self).to_json()  # type: dict
+        if self.ref_unit is not None:
+            json['refUnit'] = self.ref_unit
+        if self.location is not None:
+            json['location'] = self.location
+        if self.flow_type is not None:
+            json['flowType'] = self.flow_type.value
+        return json
+
+    def from_json(self, json: dict):
+        super(FlowRef, self).from_json(json)
+        val = json.get('refUnit')
+        if val is not None:
+            self.ref_unit = val
+        val = json.get('location')
+        if val is not None:
+            self.location = val
+        val = json.get('flowType')
+        if val is not None:
+            self.flow_type = FlowType(val)
+
+
+class ImpactCategoryRef(Ref):
+
+    def __init__(self):
+        super(ImpactCategoryRef, self).__init__()
+        self.ref_unit = None  # type: str
+
+    def to_json(self) -> dict:
+        json = super(ImpactCategoryRef, self).to_json()  # type: dict
+        if self.ref_unit is not None:
+            json['refUnit'] = self.ref_unit
+        return json
+
+    def from_json(self, json: dict):
+        super(ImpactCategoryRef, self).from_json(json)
+        val = json.get('refUnit')
+        if val is not None:
+            self.ref_unit = val
 
 
 class ImpactMethod(CategorizedEntity):
 
     def __init__(self):
         super(ImpactMethod, self).__init__()
-        self.impact_categories = None  # type: List[ImpactCategory]
+        self.impact_categories = None  # type: List[ImpactCategoryRef]
         self.parameters = None  # type: List[Parameter]
 
     def to_json(self) -> dict:
@@ -1022,7 +1092,7 @@ class ImpactMethod(CategorizedEntity):
         if val is not None:
             self.impact_categories = []
             for d in val:
-                e = ImpactCategory()
+                e = ImpactCategoryRef()
                 e.from_json(d)
                 self.impact_categories.append(e)
         val = json.get('parameters')
@@ -1109,16 +1179,41 @@ class Process(CategorizedEntity):
             self.process_type = ProcessType(val)
 
 
+class ProcessRef(Ref):
+
+    def __init__(self):
+        super(ProcessRef, self).__init__()
+        self.location = None  # type: str
+        self.process_type = None  # type: ProcessType
+
+    def to_json(self) -> dict:
+        json = super(ProcessRef, self).to_json()  # type: dict
+        if self.location is not None:
+            json['location'] = self.location
+        if self.process_type is not None:
+            json['processType'] = self.process_type.value
+        return json
+
+    def from_json(self, json: dict):
+        super(ProcessRef, self).from_json(json)
+        val = json.get('location')
+        if val is not None:
+            self.location = val
+        val = json.get('processType')
+        if val is not None:
+            self.process_type = ProcessType(val)
+
+
 class ProductSystem(CategorizedEntity):
 
     def __init__(self):
         super(ProductSystem, self).__init__()
-        self.processes = None  # type: List[Process]
-        self.reference_process = None  # type: Process
+        self.processes = None  # type: List[ProcessRef]
+        self.reference_process = None  # type: ProcessRef
         self.reference_exchange = None  # type: Exchange
         self.target_amount = None  # type: float
-        self.target_unit = None  # type: Unit
-        self.target_flow_property = None  # type: FlowProperty
+        self.target_unit = None  # type: Ref
+        self.target_flow_property = None  # type: Ref
         self.process_links = None  # type: List[ProcessLink]
 
     def to_json(self) -> dict:
@@ -1149,12 +1244,12 @@ class ProductSystem(CategorizedEntity):
         if val is not None:
             self.processes = []
             for d in val:
-                e = Process()
+                e = ProcessRef()
                 e.from_json(d)
                 self.processes.append(e)
         val = json.get('referenceProcess')
         if val is not None:
-            self.reference_process = Process()
+            self.reference_process = ProcessRef()
             self.reference_process.from_json(val)
         val = json.get('referenceExchange')
         if val is not None:
@@ -1165,11 +1260,11 @@ class ProductSystem(CategorizedEntity):
             self.target_amount = val
         val = json.get('targetUnit')
         if val is not None:
-            self.target_unit = Unit()
+            self.target_unit = Ref()
             self.target_unit.from_json(val)
         val = json.get('targetFlowProperty')
         if val is not None:
-            self.target_flow_property = FlowProperty()
+            self.target_flow_property = Ref()
             self.target_flow_property.from_json(val)
         val = json.get('processLinks')
         if val is not None:
@@ -1185,8 +1280,8 @@ class SocialIndicator(CategorizedEntity):
     def __init__(self):
         super(SocialIndicator, self).__init__()
         self.activity_variable = None  # type: str
-        self.activity_quantity = None  # type: FlowProperty
-        self.activity_unit = None  # type: Unit
+        self.activity_quantity = None  # type: Ref
+        self.activity_unit = None  # type: Ref
         self.unit_of_measurement = None  # type: str
         self.evaluation_scheme = None  # type: str
 
@@ -1211,11 +1306,11 @@ class SocialIndicator(CategorizedEntity):
             self.activity_variable = val
         val = json.get('activityQuantity')
         if val is not None:
-            self.activity_quantity = FlowProperty()
+            self.activity_quantity = Ref()
             self.activity_quantity.from_json(val)
         val = json.get('activityUnit')
         if val is not None:
-            self.activity_unit = Unit()
+            self.activity_unit = Ref()
             self.activity_unit.from_json(val)
         val = json.get('unitOfMeasurement')
         if val is not None:
@@ -1266,7 +1361,7 @@ class UnitGroup(CategorizedEntity):
 
     def __init__(self):
         super(UnitGroup, self).__init__()
-        self.default_flow_property = None  # type: FlowProperty
+        self.default_flow_property = None  # type: Ref
         self.units = None  # type: List[Unit]
 
     def to_json(self) -> dict:
@@ -1283,7 +1378,7 @@ class UnitGroup(CategorizedEntity):
         super(UnitGroup, self).from_json(json)
         val = json.get('defaultFlowProperty')
         if val is not None:
-            self.default_flow_property = FlowProperty()
+            self.default_flow_property = Ref()
             self.default_flow_property.from_json(val)
         val = json.get('units')
         if val is not None:
@@ -1292,3 +1387,4 @@ class UnitGroup(CategorizedEntity):
                 e = Unit()
                 e.from_json(d)
                 self.units.append(e)
+

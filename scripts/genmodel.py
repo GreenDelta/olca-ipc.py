@@ -51,12 +51,14 @@ def py_type(model_type: str) -> str:
         return 'str'
     if model_type == 'date':
         return 'str'
+    if model_type.startswith('Ref['):
+        return 'Ref'
     return model_type
 
 
 def print_class(c: model.ClassType, m: model.Model):
     parent = c.super_class if c.super_class is not None else 'object'
-    t = 'class %s(%s):\n\n' % (c.name, parent)
+    t = '\nclass %s(%s):\n\n' % (c.name, py_type(parent))
     t += '    def __init__(self):\n'
     if len(c.properties) == 0:
         t += '        self.id = None  # type: str\n'
@@ -95,8 +97,12 @@ def print_to_json(c: model.ClassType, m: model.Model):
             elif is_list:
                 t += off + "    json['%s'] = []\n" % prop.name
                 t += off + "    for e in self.%s:\n" % attr
-                t += off + off + \
-                    "json['%s'].append(e.to_json())\n" % prop.name
+                list_type = py_type(list_elem_type(prop.field_type))
+                if list_type[0].islower():
+                    t += off + off + "json['%s'].append(e)\n" % prop.name
+                else:
+                    t += off + off + \
+                        "json['%s'].append(e.to_json())\n" % prop.name
             else:
                 t += off + \
                     "    json['%s'] = self.%s.to_json()\n" % (prop.name, attr)
@@ -126,11 +132,11 @@ def print_from_json(c: model.ClassType, m: model.Model):
             elif is_list:
                 t += off + "    self.%s = []\n" % attr
                 t += off + "    for d in val:\n"
-                t += off + off + 'e = %s()\n' % list_elem_type(prop.field_type)
+                t += off + off + 'e = %s()\n' % list_elem_type(py_type(prop.field_type))
                 t += off + off + 'e.from_json(d)\n'
                 t += off + off + 'self.%s.append(e)\n' % attr
             else:
-                t += off + "    self.%s = %s()\n" % (attr, prop.field_type)
+                t += off + "    self.%s = %s()\n" % (attr, py_type(prop.field_type))
                 t += off + "    self.%s.from_json(val)\n" % attr
     print(t)
 
