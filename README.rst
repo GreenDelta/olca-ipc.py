@@ -19,19 +19,43 @@ Running the tests:
 
     python -m unittest discover tests -v
 
-Here is a small example:
+Connecting with openLCA
+~~~~~~~~~~~~~~~~~~~~~~~
+In order to communicate with openLCA, you first need to start the openLCA
+IPC server. You can do this via the user interface in openLCA under
+``Window > Developer Tools > IPC Server``. The IPC server runs on a specific
+port, e.g. ``8080``, to which you connect from an IPC client:
 
-.. code:: python
+.. code-block:: python
 
     import olca
-    import uuid
+    client = olca.Client(8080)
 
-    def main():
-        # expect that the openLCA IPC server is running at port 8080
-        client = olca.Client(8080)
-        actor = olca.Actor()
-        actor.id = str(uuid.uuid4())
-        actor.name = 'A test actor'
-        resp = client.insert(actor)
-        print(resp)  #  should print ' ok'
+An instance of the ``olca.Client`` class is then a convenient entry point for
+calling functions of openLCA and processing their results.
+
+Browsing the database content
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The method ``get_descriptors`` returns a list of data set references with some
+meta-data for a given data set type (like ``olca.Flow``, ``òlca.Process``,
+etc.):
+
+.. code-block:: python
+
+    methods = client.get_descriptors(olca.ImpactMethod)
+    for method in methods:
+        print('%s\t%s' % (method.id, method.name))
+
+
+Insert, update, delete
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+    actor = olca.Actor()
+    actor.id = str(uuid.uuid4())
+    actor.name = 'A test actor'
+    resp = client.insert(actor)
+    print(resp)  #  should print ' ok'
+
 
