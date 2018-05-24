@@ -63,9 +63,13 @@ class Entity(object):
 
     def __init__(self):
         self.id = None  # type: str
+        self.olca_type = None  # type: str
 
     def to_json(self) -> dict:
-        json = {'@type': type(self).__name__}
+        o_type = self.olca_type
+        if o_type is None:
+            o_type = type(self).__name__
+        json = {'@type': o_type}
         if self.id is not None:
             json['@id'] = self.id
         return json

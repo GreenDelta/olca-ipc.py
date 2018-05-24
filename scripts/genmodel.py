@@ -63,8 +63,9 @@ def print_class(c: model.ClassType, m: model.Model):
     parent = c.super_class if c.super_class is not None else 'object'
     t = '\nclass %s(%s):\n\n' % (c.name, py_type(parent))
     t += '    def __init__(self):\n'
-    if len(c.properties) == 0:
+    if c.name == 'Entity':
         t += '        self.id = None  # type: str\n'
+        t += '        self.olca_type = None  # type: str\n'
     else:
         t += '        super(%s, self).__init__()\n' % c.name
     for prop in c.properties:
@@ -79,8 +80,11 @@ def print_class(c: model.ClassType, m: model.Model):
 def print_to_json(c: model.ClassType, m: model.Model):
     t = '    def to_json(self) -> dict:\n'
     off = '        '
-    if len(c.properties) == 0:
-        t += off + "json = {'@type': type(self).__name__}\n"
+    if c.name == 'Entity':
+        t += off + "o_type = self.olca_type\n"
+        t += off + "if o_type is None:\n"
+        t += off + "    o_type = type(self).__name__\n"
+        t += off + "json = {'@type': o_type}\n"
         t += off + 'if self.id is not None:\n'
         t += off + "    json['@id'] = self.id\n"
         t += off + 'return json\n'
