@@ -39,7 +39,7 @@ class Client(object):
         result = self.__post('get/descriptors', params)
         descriptors = []
         for r in result:
-            d = schema.RootEntity()
+            d = schema.Ref()
             d.from_json(r)
             descriptors.append(d)
         return descriptors
