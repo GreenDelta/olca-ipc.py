@@ -25,8 +25,11 @@ class Client(object):
 
     def calculate(self, setup: schema.CalculationSetup) -> schema.SimpleResult:
         if setup is None:
-            return
-        return self.__post('calculate', setup.to_json())
+            raise ValueError('Invalid calculation setup')
+        resp = self.__post('calculate', setup.to_json())
+        result = schema.SimpleResult()
+        result.from_json(resp)
+        return result
 
     def get_descriptors(self, model_type) -> List[schema.Ref]:
         """
@@ -51,10 +54,20 @@ class Client(object):
         e.from_json(result)
         return e
 
-    def get_process(self, id: str) -> schema.Process:
-        return self.get(schema.Process, id)
+    def dispose(self, entity: schema.Entity):
+        """
+        Removes the given entity from the memory of the IPC server.  This is
+        required for calculation results that are hold on the server for
+        further processing.
 
-    def __post(self, method: str, params):
+        :param entity: The entity that should be disposed.
+        """
+        if entity is None:
+            return
+        arg = {'@type': type(entity).__name__, '@id': entity.id}
+        self.__post('dispose', arg)
+
+    def __post(self, method: str, params) -> dict:
         req = {
             'jsonrpc': '2.0',
             'id': self.next_id,
