@@ -2,22 +2,26 @@ import requests
 
 import olca.schema as schema
 
-from typing import List, Type
+from typing import List
 
 
 class Client(object):
+    """
+    An instance of Client holds a connection and provides a set of methods in
+    order to communicate with an openLCA IPC server.
+    """
 
     def __init__(self, port):
         self.url = 'http://localhost:%i' % port
         self.next_id = 1
 
-    def insert(self, model: Type[schema.RootEntity]):
+    def insert(self, model: schema.RootEntity):
         if model is None:
             return
         json = model.to_json()
         return self.__post('insert/model', json)
 
-    def update(self, model: Type[schema.RootEntity]):
+    def update(self, model: schema.RootEntity):
         if model is None:
             return
         json = model.to_json()
