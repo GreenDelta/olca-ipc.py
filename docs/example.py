@@ -14,7 +14,26 @@ import olca
 
 def main():
     # this is the entry point of our script
-    assert 1 == 1
+
+    # First we create a connection to the IPC server. The `Client` class
+    # provides all the methods we need to communicate with the IPC server.
+    client = olca.Client(8080)
+
+    # Search for the flow property `Mass` and unit `kg` in the database.
+    # The `find` method does not return a full data set but just a reference
+    # to the data set.
+    mass_ref = client.find(olca.FlowProperty, 'Mass')
+    assert type(mass_ref) == olca.Ref
+    mass = client.get(olca.FlowProperty, mass_ref.id)
+    assert type(mass) == olca.FlowProperty
+    units_of_mass = client.get(olca.UnitGroup, mass.unit_group.id)
+    kg = None
+    for unit in units_of_mass.units:
+        if unit.name == 'kg':
+            kg = unit
+            break
+    assert kg is not None, 'Could not find unit kg'
+
 
 
 if __name__ == '__main__':

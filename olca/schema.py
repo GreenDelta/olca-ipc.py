@@ -1018,24 +1018,19 @@ class Ref(RootEntity):
 
     def __init__(self):
         super(Ref, self).__init__()
-        self.category_path = None  # type: List[str]
+        self.category = None  # type: str
 
     def to_json(self) -> dict:
         json = super(Ref, self).to_json()  # type: dict
-        if self.category_path is not None:
-            json['categoryPath'] = []
-            for e in self.category_path:
-                json['categoryPath'].append(e)
+        if self.category is not None:
+            json['category'] = self.category
         return json
 
     def from_json(self, json: dict):
         super(Ref, self).from_json(json)
-        val = json.get('categoryPath')
+        val = json.get('category')
         if val is not None:
-            self.category_path = []
-            for d in val:
-                e = d
-                self.category_path.append(e)
+            self.category = val
 
 
 class Unit(RootEntity):

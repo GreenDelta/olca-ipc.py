@@ -2,7 +2,10 @@ import requests
 
 import olca.schema as schema
 
-from typing import List
+from typing import List, Type, TypeVar
+
+
+T = TypeVar('T')
 
 
 class Client(object):
@@ -51,12 +54,25 @@ class Client(object):
             descriptors.append(d)
         return descriptors
 
-    def get(self, model_type, id: str):
-        params = {'@type': model_type.__name__, '@id': id}
+    def get(self, model_type: Type[T], model_id: str) -> T:
+        params = {'@type': model_type.__name__, '@id': model_id}
         result = self.__post('get/model', params)
         e = model_type()
         e.from_json(result)
         return e
+
+    def find(self, model_type, name: str) -> schema.Ref:
+        """Searches for a data set with the given type and name.
+
+        :param model_type: The class of the data set, e.g. `olca.Flow`.
+        :param name: The name of the data set.
+        :return: The reference to the first data set with the given name and
+                 type from the databases or ``None`` if there is no such data
+                 set in the database.
+        """
+        for d in self.get_descriptors(model_type):
+            if d.name == name:
+                return d
 
     def dispose(self, entity: schema.Entity):
         """

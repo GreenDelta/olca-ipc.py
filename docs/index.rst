@@ -16,6 +16,28 @@ repository. The ``olca-ipc.py`` package provides a class based implementation of
 the openLCA data exchange format and an API for communicating with an openLCA
 IPC server via instances of these classes.
 
+The current stable version of ``olca-ipc.py`` is available via the
+`Python Package Index <https://pypi.org/project/olca-ipc/>`_. Thus, in order to
+use it, you can just install (and uninstall) it with pip:
+
+.. code-block:: bash
+
+    pip install -U olca-ipc
+
+In order to communicate with openLCA, you first need to start an openLCA IPC
+server. You can do this via the user interface in openLCA under
+``Window > Developer Tools > IPC Server``. The IPC server runs on a specific
+port, e.g. ``8080``, to which you connect from an IPC client:
+
+.. code-block:: python
+
+    import olca
+    client = olca.Client(8080)
+
+An instance of the ``olca.Client`` class is then a convenient entry point for
+calling functions of openLCA and processing their results.
+
+
 .. toctree::
     :maxdepth: 2
     :caption: Contents:

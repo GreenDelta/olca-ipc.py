@@ -16,21 +16,6 @@ repository. The ``olca-ipc.py`` package provides a class based implementation of
 the openLCA data exchange format and an API for communicating with an openLCA
 IPC server via instances of these classes.
 
-Usage
------
-We will distribute the package later on PyPi; to install the current development
-version just do: 
-
-.. code:: bash
-
-    pip install -e .
-
-Running the tests:
-
-.. code:: bash
-
-    python -m unittest discover tests -v
-
 Connecting with openLCA
 ~~~~~~~~~~~~~~~~~~~~~~~
 In order to communicate with openLCA, you first need to start the openLCA
