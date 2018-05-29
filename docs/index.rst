@@ -1,10 +1,10 @@
-olca-ipc.py
-===========
+olca-ipc
+========
 
 openLCA provides an `implementation <https://github.com/GreenDelta/olca-modules/tree/master/olca-ipc>`_
 of an `JSON-RPC <http://www.jsonrpc.org/specification>`_ based protocol for
 inter-process communication (IPC). With this, it is possible to call functions
-in openLCA and processing their results outside of openLCA. The ``olca-ipc.py``
+in openLCA and processing their results outside of openLCA. The ``olca-ipc``
 package provides a convenience API for using this IPC protocol from standard
 Python (Cpython v3.4+) so that it is possible to use openLCA as a data storage
 and calculation engine and combine it with the libraries from the Python
@@ -12,11 +12,11 @@ ecosystem.
 
 The openLCA IPC protocol is based on the openLCA data exchange format which is
 specified in the `olca-schema <https://github.com/GreenDelta/olca-schema>`_
-repository. The ``olca-ipc.py`` package provides a class based implementation of
+repository. The ``olca-ipc`` package provides a class based implementation of
 the openLCA data exchange format and an API for communicating with an openLCA
 IPC server via instances of these classes.
 
-The current stable version of ``olca-ipc.py`` is available via the
+The current stable version of ``olca-ipc`` is available via the
 `Python Package Index <https://pypi.org/project/olca-ipc/>`_. Thus, in order to
 use it, you can just install (and uninstall) it with pip:
 

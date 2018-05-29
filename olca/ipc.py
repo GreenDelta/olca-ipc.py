@@ -30,6 +30,12 @@ class Client(object):
         json = model.to_json()
         return self.__post('update/model', json)
 
+    def delete(self, model: schema.RootEntity):
+        if model is None:
+            return
+        json = model.to_json()
+        return self.__post('delete/model', json)
+
     def calculate(self, setup: schema.CalculationSetup) -> schema.SimpleResult:
         if setup is None:
             raise ValueError('Invalid calculation setup')
