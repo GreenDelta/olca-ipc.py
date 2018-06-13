@@ -23,7 +23,6 @@ from os import path
 
 import model
 
-
 YAML_DIR = path.abspath(path.dirname(__file__)) + '/../../olca-schema/yaml'
 
 
@@ -62,6 +61,8 @@ def py_type(model_type: str) -> str:
 def print_class(c: model.ClassType, m: model.Model):
     parent = c.super_class if c.super_class is not None else 'object'
     t = '\nclass %s(%s):\n\n' % (c.name, py_type(parent))
+    if c.doc is not None:
+        t += print_docs(c)
     t += '    def __init__(self):\n'
     if c.name == 'Entity':
         t += '        self.id = None  # type: str\n'
@@ -100,7 +101,7 @@ def print_to_json(c: model.ClassType, m: model.Model):
                 t += off + "    json['%s'] = self.%s\n" % (prop.name, attr)
             elif is_enum:
                 t += off + \
-                    "    json['%s'] = self.%s.value\n" % (prop.name, attr)
+                     "    json['%s'] = self.%s.value\n" % (prop.name, attr)
             elif is_list:
                 t += off + "    json['%s'] = []\n" % prop.name
                 t += off + "    for e in self.%s:\n" % attr
@@ -109,10 +110,10 @@ def print_to_json(c: model.ClassType, m: model.Model):
                     t += off + off + "json['%s'].append(e)\n" % prop.name
                 else:
                     t += off + off + \
-                        "json['%s'].append(e.to_json())\n" % prop.name
+                         "json['%s'].append(e.to_json())\n" % prop.name
             else:
                 t += off + \
-                    "    json['%s'] = self.%s.to_json()\n" % (prop.name, attr)
+                     "    json['%s'] = self.%s.to_json()\n" % (prop.name, attr)
         t += off + 'return json\n'
     print(t)
 
@@ -135,7 +136,7 @@ def print_from_json(c: model.ClassType, m: model.Model):
                 t += off + "    self.%s = val\n" % attr
             elif is_enum:
                 t += off + \
-                    "    self.%s = %s(val)\n" % (attr, prop.field_type)
+                     "    self.%s = %s(val)\n" % (attr, prop.field_type)
             elif is_list:
                 t += off + "    self.%s = []\n" % attr
                 t += off + "    for d in val:\n"
@@ -161,10 +162,111 @@ def list_elem_type(list_type: str) -> str:
 
 def print_enum(e: model.EnumType):
     t = 'class %s(Enum):\n' % e.name
+    if e.doc is not None:
+        t += print_docs(e)
     for item in e.items:
         t += "    %s = '%s'\n" % (item.name, item.name)
     t += '\n'
     print(t)
+
+
+def print_docs(c) -> str:
+    off = '    '
+    d = off + '"""'
+    multi_lines = False
+    docs = c.doc
+    if len(docs) == 0:
+        return ''
+    if contains_link(docs):
+        docs = remove_link(docs)
+    if len(docs) < 79:
+        d += docs
+    else:
+        multi_lines = True
+        d += '\n' + off
+        d += format_docs(docs.split(), len(off))
+    if type(c) == model.ClassType:
+        if len(c.properties) > 0 and has_prop_docs(c):
+            multi_lines = True
+            d += print_class_property_docs(c)
+    if multi_lines:
+        d += '\n' + off + '"""\n\n'
+    else:
+        d += '"""\n\n'
+    return d
+
+
+def print_class_property_docs(c: model.ClassType) -> str:
+    off = '    '
+    d = '\n\n'
+    d += off + 'Attributes: '
+    lines = 0
+    for prop in c.properties:
+        comments = prop.doc.split()
+        if len(comments) == 0:
+            continue
+        lines += 1
+        attr = to_snake_case(prop.name)
+        ptype = py_type(prop.field_type)
+        attr_placeholder = off + attr + ' (' + ptype + '): '
+        line_off_len = len(off) + len(attr_placeholder)
+        line_break = '\n'
+        if lines > 1:
+            line_break += '\n'
+        d += line_break + off + attr_placeholder
+        d += format_docs(comments, line_off_len, True)
+    return d
+
+
+def format_docs(docs: list, line_off_len: int, prop_docs=False) -> str:
+    formatted_docs = ''
+    i = 0
+    max_line_len = 79
+    off = '    '
+    multi_lines = False
+    while i < len(docs):
+        word_len = len(docs[i])
+        if line_off_len + word_len > max_line_len:
+            multi_lines = True
+            line_indention = off + off
+            if prop_docs:
+                if multi_lines:
+                    line_indention += off
+                formatted_docs += '\n' + line_indention + docs[i] + ' '
+                line_off_len = len(line_indention) + word_len + 1
+            else:
+                formatted_docs += '\n' + off + docs[i] + ' '
+                line_off_len = len(off) + word_len + 1
+        else:
+            formatted_docs += docs[i] + ' '
+            line_off_len += word_len + 1
+        i += 1
+    return formatted_docs
+
+
+def has_prop_docs(c: model.ClassType) -> bool:
+    has_docs = False
+    for prop in c.properties:
+        if len(prop.doc) > 0:
+            return True
+    return has_docs
+
+
+def contains_link(doc: str) -> bool:
+    return doc.count('</a>') > 0
+
+
+def remove_link(doc: str) -> str:
+    result = doc
+    while result.count('</a>') > 0:
+        link_prefix_idx = result.find('<a')
+        link_close_idx = result.find('>')
+        link_suffix_idx = result.find('</a>')
+        if link_prefix_idx > 0 and link_close_idx > 0 and link_suffix_idx > 0:
+            result = result[:link_prefix_idx - 1] + \
+                     ' ' + result[link_close_idx + 1:link_suffix_idx] + \
+                     result[link_suffix_idx + 4:]
+    return result
 
 
 if __name__ == '__main__':
