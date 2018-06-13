@@ -1,5 +1,5 @@
-olca-ipc.py
-===========
+olca-ipc
+========
 
 openLCA provides an `implementation <https://github.com/GreenDelta/olca-modules/tree/master/olca-ipc>`_
 of an `JSON-RPC <http://www.jsonrpc.org/specification>`_ based protocol for
@@ -35,6 +35,19 @@ port, e.g. ``8080``, to which you connect from an IPC client:
     client = olca.Client(8080)
 
 An instance of the ``olca.Client`` class is then a convenient entry point for
-calling functions of openLCA and processing their results. Please see the
-`package documentation <https://olca-ipc.readthedocs.io/en/latest/>`_ for more
-information and examples.
+calling functions of openLCA and processing their results.
+
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Contents:
+
+    example
+    modules
+
+Indices and tables
+~~~~~~~~~~~~~~~~~~
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
