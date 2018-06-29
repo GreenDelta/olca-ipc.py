@@ -2,7 +2,7 @@ import requests
 
 import olca.schema as schema
 
-from typing import List, Type, TypeVar
+from typing import List, Type, TypeVar, Generator
 
 
 T = TypeVar('T')
@@ -44,7 +44,7 @@ class Client(object):
         result.from_json(resp)
         return result
 
-    def get_descriptors(self, model_type) -> List[schema.Ref]:
+    def get_descriptors(self, model_type) -> Generator[schema.Ref, None, None]:
         """
         Get the list of descriptors of the entities with the given
         model type.
@@ -53,12 +53,10 @@ class Client(object):
         """
         params = {'@type': model_type.__name__}
         result = self.__post('get/descriptors', params)
-        descriptors = []
         for r in result:
             d = schema.Ref()
             d.from_json(r)
-            descriptors.append(d)
-        return descriptors
+            yield d
 
     def get(self, model_type: Type[T], model_id: str) -> T:
         params = {'@type': model_type.__name__, '@id': model_id}
