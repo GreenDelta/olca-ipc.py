@@ -14,6 +14,16 @@ class AllocationType(Enum):
     CAUSAL_ALLOCATION = 'CAUSAL_ALLOCATION'
 
 
+class CalculationType(Enum):
+    """An enumeration of the different calculation methods supported by openLCA."""
+
+    SIMPLE_CALCULATION = 'SIMPLE_CALCULATION'
+    CONTRIBUTION_ANALYSIS = 'CONTRIBUTION_ANALYSIS'
+    UPSTREAM_ANALYSIS = 'UPSTREAM_ANALYSIS'
+    REGIONALIZED_CALCULATION = 'REGIONALIZED_CALCULATION'
+    MONTE_CARLO_SIMULATION = 'MONTE_CARLO_SIMULATION'
+
+
 class FlowPropertyType(Enum):
     """An enumeration of flow property types."""
 
@@ -151,6 +161,9 @@ class CalculationSetup(Entity):
     """A setup for a product system calculation.
 
     Attributes: 
+        calculation_type (CalculationType): The type of calculation that should 
+            be performed. 
+
         product_system (Ref): The product system that should be calculated 
             (required). 
 
@@ -177,6 +190,7 @@ class CalculationSetup(Entity):
 
     def __init__(self):
         super(CalculationSetup, self).__init__()
+        self.calculation_type = None  # type: CalculationType
         self.product_system = None  # type: Ref
         self.impact_method = None  # type: Ref
         self.with_costs = None  # type: bool
@@ -189,6 +203,8 @@ class CalculationSetup(Entity):
 
     def to_json(self) -> dict:
         json = super(CalculationSetup, self).to_json()  # type: dict
+        if self.calculation_type is not None:
+            json['calculationType'] = self.calculation_type.value
         if self.product_system is not None:
             json['productSystem'] = self.product_system.to_json()
         if self.impact_method is not None:
@@ -213,6 +229,9 @@ class CalculationSetup(Entity):
 
     def from_json(self, json: dict):
         super(CalculationSetup, self).from_json(json)
+        val = json.get('calculationType')
+        if val is not None:
+            self.calculation_type = CalculationType(val)
         val = json.get('productSystem')
         if val is not None:
             self.product_system = Ref()
@@ -1290,19 +1309,24 @@ class Ref(RootEntity):
 
     def __init__(self):
         super(Ref, self).__init__()
-        self.category = None  # type: str
+        self.category_path = None  # type: List[str]
 
     def to_json(self) -> dict:
         json = super(Ref, self).to_json()  # type: dict
-        if self.category is not None:
-            json['category'] = self.category
+        if self.category_path is not None:
+            json['categoryPath'] = []
+            for e in self.category_path:
+                json['categoryPath'].append(e)
         return json
 
     def from_json(self, json: dict):
         super(Ref, self).from_json(json)
-        val = json.get('category')
+        val = json.get('categoryPath')
         if val is not None:
-            self.category = val
+            self.category_path = []
+            for d in val:
+                e = d
+                self.category_path.append(e)
 
 
 class Unit(RootEntity):
