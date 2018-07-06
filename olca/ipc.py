@@ -4,7 +4,6 @@ import olca.schema as schema
 
 from typing import List, Type, TypeVar, Generator
 
-
 T = TypeVar('T')
 
 
@@ -77,6 +76,19 @@ class Client(object):
         for d in self.get_descriptors(model_type):
             if d.name == name:
                 return d
+
+    def excel_export(self, result: schema.SimpleResult, path: str):
+        """Export the given result to an Excel file with the given path.
+
+        :param result: The result that should be exported.
+        :param path: The path of the Excel file to which the result should be
+                     written.
+        """
+        params = {
+            '@id': result.id,
+            'path': path
+        }
+        self.__post('export/excel', params)
 
     def dispose(self, entity: schema.Entity):
         """
