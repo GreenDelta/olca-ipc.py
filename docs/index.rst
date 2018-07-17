@@ -43,7 +43,7 @@ calling functions of openLCA and processing their results.
     :caption: Contents:
 
     example
-    modules
+    source/modules
 
 Indices and tables
 ~~~~~~~~~~~~~~~~~~

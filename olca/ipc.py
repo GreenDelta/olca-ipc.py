@@ -1,8 +1,9 @@
-import requests
+import os
 
+import requests
 import olca.schema as schema
 
-from typing import List, Type, TypeVar, Generator
+from typing import Type, TypeVar, Generator
 
 T = TypeVar('T')
 
@@ -84,9 +85,10 @@ class Client(object):
         :param path: The path of the Excel file to which the result should be
                      written.
         """
+        abs_path = os.path.abspath(path)
         params = {
             '@id': result.id,
-            'path': path
+            'path': abs_path
         }
         self.__post('export/excel', params)
 
@@ -102,6 +104,15 @@ class Client(object):
             return
         arg = {'@type': type(entity).__name__, '@id': entity.id}
         self.__post('dispose', arg)
+
+    def shutdown_server(self):
+        """
+        Close the database and shutdown the server.
+
+        This method is probably most useful when running a headless server
+        (a server without openLCA user interface).
+        """
+        self.__post('runtime/shutdown', None)
 
     def __post(self, method: str, params) -> dict:
         req = {
