@@ -271,7 +271,12 @@ class CalculationSetup(Entity):
 
 
 class Exchange(Entity):
-    """An input or output of a process.
+    """
+    An Exchange is an input or output of a [Flow] in a [Process]. The amount of 
+    an exchange is given in a specific unit of a quantity ([FlowProperty]) of 
+    the flow. The allowed units and flow properties that can be used for a flow 
+    in an exchange are defined by the flow property information in that flow 
+    (see also the [FlowPropertyFactor] type). 
 
     Attributes: 
         internal_id (int): The process internal ID of the exchange. This is 
@@ -282,12 +287,19 @@ class Exchange(Entity):
         avoided_product (bool): Indicates whether this exchange is an avoided 
             product. 
 
-        flow (FlowRef): The flow of the exchange. 
+        flow (FlowRef): The reference to the flow of the exchange. 
 
         flow_property (Ref): The quantity in which the amount is given. 
 
         quantitative_reference (bool): Indicates whether the exchange is the 
             quantitative reference of the process. 
+
+        dq_entry (str): A data quality entry like `(1;3;2;5;1)`. The entry is a 
+            vector of data quality values that need to match the data quality 
+            scheme for flow inputs and outputs that is assigned to the 
+            [Process]. In such a scheme the data quality indicators have fixed 
+            positions and the respective values in the `dqEntry` vector map to 
+            these positions. 
 
         comment (str): A general comment about the input or output. 
     """
@@ -304,8 +316,8 @@ class Exchange(Entity):
         self.provider = None  # type: ProcessRef
         self.amount = None  # type: float
         self.amount_formula = None  # type: str
-        self.unit = None  # type: Unit
-        self.pedigree_uncertainty = None  # type: str
+        self.unit = None  # type: Ref
+        self.dq_entry = None  # type: str
         self.uncertainty = None  # type: Uncertainty
         self.comment = None  # type: str
 
@@ -333,8 +345,8 @@ class Exchange(Entity):
             json['amountFormula'] = self.amount_formula
         if self.unit is not None:
             json['unit'] = self.unit.to_json()
-        if self.pedigree_uncertainty is not None:
-            json['pedigreeUncertainty'] = self.pedigree_uncertainty
+        if self.dq_entry is not None:
+            json['dqEntry'] = self.dq_entry
         if self.uncertainty is not None:
             json['uncertainty'] = self.uncertainty.to_json()
         if self.comment is not None:
@@ -378,11 +390,11 @@ class Exchange(Entity):
             self.amount_formula = val
         val = json.get('unit')
         if val is not None:
-            self.unit = Unit()
+            self.unit = Ref()
             self.unit.from_json(val)
-        val = json.get('pedigreeUncertainty')
+        val = json.get('dqEntry')
         if val is not None:
-            self.pedigree_uncertainty = val
+            self.dq_entry = val
         val = json.get('uncertainty')
         if val is not None:
             self.uncertainty = Uncertainty()
@@ -1303,8 +1315,8 @@ class Ref(RootEntity):
 
     Attributes: 
         category_path (List[str]): The full path of the category of the 
-            referenced entity from top to bottom, e.g. `["Elementary flows", 
-            "Emissions to air", "unspecified"]`. 
+            referenced entity from top to bottom, e.g. `"Elementary flows", 
+            "Emissions to air", "unspecified"`. 
     """
 
     def __init__(self):
@@ -1446,7 +1458,7 @@ class Category(CategorizedEntity):
     """
     A category is used for the categorisation of types like processes, flows, 
     etc. The tricky thing is that the `Category` class inherits also from the 
-    `CategorizedEntity` type so that a category can have a category attribute 
+    [CategorizedEntity] type so that a category can have a category attribute 
     which is then the parent category of this category (uff). 
 
     Attributes: 
