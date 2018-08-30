@@ -270,6 +270,85 @@ class CalculationSetup(Entity):
             self.flow_property.from_json(val)
 
 
+class DqIndicator(Entity):
+    """An indicator of a data quality system ([DqSystem])."""
+
+    def __init__(self):
+        super(DqIndicator, self).__init__()
+        self.name = None  # type: str
+        self.position = None  # type: int
+        self.scores = None  # type: List[DqScore]
+
+    def to_json(self) -> dict:
+        json = super(DqIndicator, self).to_json()  # type: dict
+        if self.name is not None:
+            json['name'] = self.name
+        if self.position is not None:
+            json['position'] = self.position
+        if self.scores is not None:
+            json['scores'] = []
+            for e in self.scores:
+                json['scores'].append(e.to_json())
+        return json
+
+    def from_json(self, json: dict):
+        super(DqIndicator, self).from_json(json)
+        val = json.get('name')
+        if val is not None:
+            self.name = val
+        val = json.get('position')
+        if val is not None:
+            self.position = val
+        val = json.get('scores')
+        if val is not None:
+            self.scores = []
+            for d in val:
+                e = DqScore()
+                e.from_json(d)
+                self.scores.append(e)
+
+
+class DqScore(Entity):
+    """
+    An score value of an indicator ([DqIndicator]) in a data quality system 
+    ([DqSystem]). 
+    """
+
+    def __init__(self):
+        super(DqScore, self).__init__()
+        self.position = None  # type: int
+        self.label = None  # type: str
+        self.description = None  # type: str
+        self.uncertainty = None  # type: float
+
+    def to_json(self) -> dict:
+        json = super(DqScore, self).to_json()  # type: dict
+        if self.position is not None:
+            json['position'] = self.position
+        if self.label is not None:
+            json['label'] = self.label
+        if self.description is not None:
+            json['description'] = self.description
+        if self.uncertainty is not None:
+            json['uncertainty'] = self.uncertainty
+        return json
+
+    def from_json(self, json: dict):
+        super(DqScore, self).from_json(json)
+        val = json.get('position')
+        if val is not None:
+            self.position = val
+        val = json.get('label')
+        if val is not None:
+            self.label = val
+        val = json.get('description')
+        if val is not None:
+            self.description = val
+        val = json.get('uncertainty')
+        if val is not None:
+            self.uncertainty = val
+
+
 class Exchange(Entity):
     """
     An Exchange is an input or output of a [Flow] in a [Process]. The amount of 
@@ -1483,6 +1562,45 @@ class Category(CategorizedEntity):
             self.model_type = ModelType(val)
 
 
+class DqSystem(CategorizedEntity):
+    """A data quality system."""
+
+    def __init__(self):
+        super(DqSystem, self).__init__()
+        self.has_uncertainties = None  # type: bool
+        self.source = None  # type: Ref
+        self.indicators = None  # type: List[DqIndicator]
+
+    def to_json(self) -> dict:
+        json = super(DqSystem, self).to_json()  # type: dict
+        if self.has_uncertainties is not None:
+            json['hasUncertainties'] = self.has_uncertainties
+        if self.source is not None:
+            json['source'] = self.source.to_json()
+        if self.indicators is not None:
+            json['indicators'] = []
+            for e in self.indicators:
+                json['indicators'].append(e.to_json())
+        return json
+
+    def from_json(self, json: dict):
+        super(DqSystem, self).from_json(json)
+        val = json.get('hasUncertainties')
+        if val is not None:
+            self.has_uncertainties = val
+        val = json.get('source')
+        if val is not None:
+            self.source = Ref()
+            self.source.from_json(val)
+        val = json.get('indicators')
+        if val is not None:
+            self.indicators = []
+            for d in val:
+                e = DqIndicator()
+                e.from_json(d)
+                self.indicators.append(e)
+
+
 class Flow(CategorizedEntity):
     """
     Everything that can be an input or output of a process (e.g. a substance, a 
@@ -1712,6 +1830,10 @@ class Process(CategorizedEntity):
         self.parameters = None  # type: List[Parameter]
         self.process_documentation = None  # type: ProcessDocumentation
         self.process_type = None  # type: ProcessType
+        self.dq_system = None  # type: Ref
+        self.exchange_dq_system = None  # type: Ref
+        self.social_dq_system = None  # type: Ref
+        self.dq_entry = None  # type: str
 
     def to_json(self) -> dict:
         json = super(Process, self).to_json()  # type: dict
@@ -1735,6 +1857,14 @@ class Process(CategorizedEntity):
             json['processDocumentation'] = self.process_documentation.to_json()
         if self.process_type is not None:
             json['processType'] = self.process_type.value
+        if self.dq_system is not None:
+            json['dqSystem'] = self.dq_system.to_json()
+        if self.exchange_dq_system is not None:
+            json['exchangeDqSystem'] = self.exchange_dq_system.to_json()
+        if self.social_dq_system is not None:
+            json['socialDqSystem'] = self.social_dq_system.to_json()
+        if self.dq_entry is not None:
+            json['dqEntry'] = self.dq_entry
         return json
 
     def from_json(self, json: dict):
@@ -1774,6 +1904,21 @@ class Process(CategorizedEntity):
         val = json.get('processType')
         if val is not None:
             self.process_type = ProcessType(val)
+        val = json.get('dqSystem')
+        if val is not None:
+            self.dq_system = Ref()
+            self.dq_system.from_json(val)
+        val = json.get('exchangeDqSystem')
+        if val is not None:
+            self.exchange_dq_system = Ref()
+            self.exchange_dq_system.from_json(val)
+        val = json.get('socialDqSystem')
+        if val is not None:
+            self.social_dq_system = Ref()
+            self.social_dq_system.from_json(val)
+        val = json.get('dqEntry')
+        if val is not None:
+            self.dq_entry = val
 
 
 class ProcessRef(Ref):
