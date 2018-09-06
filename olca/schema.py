@@ -373,6 +373,14 @@ class Exchange(Entity):
         quantitative_reference (bool): Indicates whether the exchange is the 
             quantitative reference of the process. 
 
+        default_provider (ProcessRef): A default provider is a [Process] that 
+            is linked as the provider of a product input or the waste treatment 
+            provider of a waste output. It is just an optional default setting 
+            which can be also ignored when building product systems in openLCA. 
+            The user is always free to link processes in product systems 
+            ignoring these defaults (but the flows and flow directions have to 
+            match of course). 
+
         dq_entry (str): A data quality entry like `(1;3;2;5;1)`. The entry is a 
             vector of data quality values that need to match the data quality 
             scheme for flow inputs and outputs that is assigned to the 
@@ -392,7 +400,7 @@ class Exchange(Entity):
         self.input = None  # type: bool
         self.quantitative_reference = None  # type: bool
         self.base_uncertainty = None  # type: float
-        self.provider = None  # type: ProcessRef
+        self.default_provider = None  # type: ProcessRef
         self.amount = None  # type: float
         self.amount_formula = None  # type: str
         self.unit = None  # type: Ref
@@ -416,8 +424,8 @@ class Exchange(Entity):
             json['quantitativeReference'] = self.quantitative_reference
         if self.base_uncertainty is not None:
             json['baseUncertainty'] = self.base_uncertainty
-        if self.provider is not None:
-            json['provider'] = self.provider.to_json()
+        if self.default_provider is not None:
+            json['defaultProvider'] = self.default_provider.to_json()
         if self.amount is not None:
             json['amount'] = self.amount
         if self.amount_formula is not None:
@@ -457,10 +465,10 @@ class Exchange(Entity):
         val = json.get('baseUncertainty')
         if val is not None:
             self.base_uncertainty = val
-        val = json.get('provider')
+        val = json.get('defaultProvider')
         if val is not None:
-            self.provider = ProcessRef()
-            self.provider.from_json(val)
+            self.default_provider = ProcessRef()
+            self.default_provider.from_json(val)
         val = json.get('amount')
         if val is not None:
             self.amount = val
