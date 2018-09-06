@@ -380,7 +380,7 @@ class Exchange(Entity):
             positions and the respective values in the `dqEntry` vector map to 
             these positions. 
 
-        comment (str): A general comment about the input or output. 
+        description (str): A general comment about the input or output. 
     """
 
     def __init__(self):
@@ -398,7 +398,7 @@ class Exchange(Entity):
         self.unit = None  # type: Ref
         self.dq_entry = None  # type: str
         self.uncertainty = None  # type: Uncertainty
-        self.comment = None  # type: str
+        self.description = None  # type: str
 
     def to_json(self) -> dict:
         json = super(Exchange, self).to_json()  # type: dict
@@ -428,8 +428,8 @@ class Exchange(Entity):
             json['dqEntry'] = self.dq_entry
         if self.uncertainty is not None:
             json['uncertainty'] = self.uncertainty.to_json()
-        if self.comment is not None:
-            json['comment'] = self.comment
+        if self.description is not None:
+            json['description'] = self.description
         return json
 
     def from_json(self, json: dict):
@@ -478,9 +478,9 @@ class Exchange(Entity):
         if val is not None:
             self.uncertainty = Uncertainty()
             self.uncertainty.from_json(val)
-        val = json.get('comment')
+        val = json.get('description')
         if val is not None:
-            self.comment = val
+            self.description = val
 
 
 class FlowPropertyFactor(Entity):
