@@ -9,7 +9,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='olca-ipc',
-    version='0.0.4',
+    version='0.0.5',
     description='A Python package for calling openLCA functions from Python.',
     long_description=long_description,
     url='https://github.com/GreenDelta/olca-ipc.py',
