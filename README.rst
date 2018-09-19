@@ -36,10 +36,13 @@ port, e.g. ``8080``, to which you connect from an IPC client:
 
 An instance of the ``olca.Client`` class is then a convenient entry point for
 calling functions of openLCA and processing their results. The following
-examples show some typical uses cases.
+examples show some typical uses cases (note that these are just examples
+without input checks, error handling, code structuring, and all the things you
+would normally do).
 
 
-**Create and link data**
+Create and link data
+~~~~~~~~~~~~~~~~~~~~
 
 The ``olca`` package contains a class model with type annotations for the
 `olca-schema <https://github.com/GreenDelta/olca-schema>`_ model that is used
@@ -49,6 +52,9 @@ and link data models as defined in the openLCA schema (e.g. as for
 `processes <http://greendelta.github.io/olca-schema/html/Process.html>`_,
 `flows <http://greendelta.github.io/olca-schema/html/Flow.html>`_, or
 `product systems <http://greendelta.github.io/olca-schema/html/ProductSystem.html>`_).
+(Note that we convert camelCase names like ``calculationType`` of attributes and
+functions to lower_case_names_with_underscores like ``calculation_type`` when
+generating the Python API).
 
 The ``olca.Client`` class provides methods like ``get``, ``find``, ``insert``,
 ``update``, and ``delete`` to work with data. The following example shows how to
@@ -85,6 +91,49 @@ create a new flow and link it to an existing flow property with the name `Mass`:
     # save it in openLCA, you may have to refresh
     # (close & reopen the database to see the new flow)
     client.insert(steel)
+
+
+Running calculations
+~~~~~~~~~~~~~~~~~~~~
+
+openLCA provides different types of calculations which can be selected via the
+``calculation_type`` in a
+`calculation setup <http://greendelta.github.io/olca-schema/html/CalculationSetup.html>`_.
+In the following example, a calculation setup with a product system and impact
+assessment method is created, calculated, and finally exported to Excel:
+
+
+.. code-block:: python
+
+    import olca
+
+    client = olca.Client(8080)
+
+    # create the calculation setup
+    setup = olca.CalculationSetup()
+
+    # define the calculation type here
+    # see http://greendelta.github.io/olca-schema/html/CalculationType.html
+    setup.calculation_type = olca.CalculationType.CONTRIBUTION_ANALYSIS
+
+    # select the product system and LCIA method
+    setup.impact_method = client.find(olca.ImpactMethod, 'TRACI 2.1')
+    setup.product_system = client.find(olca.ProductSystem, 'compost plant, open')
+
+    # amount is the amount of the functional unit (fu) of the system that
+    # should be used in the calculation; unit, flow property, etc. of the fu
+    # can be also defined; by default openLCA will take the settings of the
+    # reference flow of the product system
+    setup.amount = 1.0
+
+    # calculate the result and export it to an Excel file
+    result = client.calculate(setup)
+    client.excel_export(result, 'result.xlsx')
+
+    # the result remains accessible (for exports etc.) until
+    # you dispose it, which you should always do when you do
+    # not need it anymore
+    client.dispose(result)
 
 
 For more information and examples see the
