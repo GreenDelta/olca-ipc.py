@@ -136,5 +136,49 @@ assessment method is created, calculated, and finally exported to Excel:
     client.dispose(result)
 
 
+Monte-Carlo simulations
+~~~~~~~~~~~~~~~~~~~~~~~
+Running Monte-Carlo simulations is similar to normal calculations but instead
+of ``calculate`` you call the ``simulator`` method which will return a reference
+to a simulator which you then use to run calculations (where in each calculation
+the simulator generates new values for the uncertainty distributions in the
+system). You get the result for each iteration and can also export the result of
+all iterations later to Excel. As for the results of the normal calculation, the
+the simulator should be disposed when it is not used anymore:
+
+
+.. code-block:: python
+
+    import olca
+
+    client = olca.Client(8080)
+
+    # creating the calculation setup
+    setup = olca.CalculationSetup()
+    setup.calculation_type = olca.CalculationType.MONTE_CARLO_SIMULATION
+    setup.impact_method = client.find(olca.ImpactMethod, 'TRACI 2.1')
+    setup.product_system = client.find(olca.ProductSystem, 'compost plant')
+    setup.amount = 1.0
+
+    # create the simulator
+    simulator = client.simulator(setup)
+
+    for i in range(0, 10):
+        result = client.next_simulation(simulator)
+        first_impact = result.impact_results[0]
+        print('iteration %i: result for %s = %4.4f' %
+              (i, first_impact.impact_category.name, first_impact.value))
+        # we do not have to dispose the result here (it is not cached
+        # in openLCA); but we need to dispose the simulator later (see below)
+
+    # export the complete result of all simulations
+    client.excel_export(simulator, 'simulation_result.xlsx')
+
+    # the result remains accessible (for exports etc.) until
+    # you dispose it, which you should always do when you do
+    # not need it anymore
+    client.dispose(simulator)
+
+
 For more information and examples see the
 `package documentation <https://olca-ipc.readthedocs.io/en/latest/>`_

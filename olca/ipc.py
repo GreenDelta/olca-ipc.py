@@ -44,6 +44,32 @@ class Client(object):
         result.from_json(resp)
         return result
 
+    def simulator(self, setup: schema.CalculationSetup) -> schema.Ref:
+        """
+        Create a simulator to run Monte-Carlo simulations from the given
+        calculation setup.
+        :param setup: The calculation setup that should be used.
+        :return: A reference to an simulator instance.
+        """
+        if setup is None:
+            raise ValueError('Invalid calculation setup')
+        ref = schema.Ref()
+        ref.from_json(self.__post('simulator', setup.to_json()))
+        return ref
+
+    def next_simulation(self, simulator: schema.Ref) -> schema.SimpleResult:
+        """
+        Runs the next Monte-Carlo simulation with the given simulator reference.
+        It returns the simulation result which is not cached on the openLCA
+        side as the simulator with the single results is cached.
+        """
+        if simulator is None:
+            raise ValueError('No simulator given')
+        resp = self.__post('calculate', simulator.to_json())
+        result = schema.SimpleResult()
+        result.from_json(resp)
+        return result
+
     def get_descriptors(self, model_type) -> Generator[schema.Ref, None, None]:
         """
         Get the list of descriptors of the entities with the given
