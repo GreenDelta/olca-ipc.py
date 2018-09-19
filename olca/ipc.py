@@ -65,7 +65,7 @@ class Client(object):
         """
         if simulator is None:
             raise ValueError('No simulator given')
-        resp = self.__post('calculate', simulator.to_json())
+        resp = self.__post('next/simulation', simulator.to_json())
         result = schema.SimpleResult()
         result.from_json(resp)
         return result
