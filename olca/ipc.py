@@ -91,6 +91,20 @@ class Client(object):
         e.from_json(result)
         return e
 
+    def get_all(self, model_type: Type[T]) -> Generator[T, None, None]:
+        """
+        Returns a generator for all instances of the given type from the
+        database. Note that this will first fetch the complete JSON list from
+        the IPC server and thus should be only used when a small amount of
+        instances is expected as return value.
+        """
+        params = {'@type': model_type.__name__}
+        result = self.__post('get/models', params)
+        for r in result:
+            e = model_type()
+            e.from_json(r)
+            yield e
+
     def find(self, model_type, name: str) -> schema.Ref:
         """Searches for a data set with the given type and name.
 
