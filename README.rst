@@ -136,6 +136,35 @@ assessment method is created, calculated, and finally exported to Excel:
     client.dispose(result)
 
 
+Parameterized calculation setups
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In order to calculate a product system with different parameter sets, you can
+pass a set of parameter redefinitions directly with a calculation setup into
+a calculation. With this, you do not need to modify a product system or the
+parameters in a database in order to calculate it with different parameter
+values:
+
+.. code-block:: python
+
+    # ... same steps as above
+    setup = olca.CalculationSetup()
+    # ...
+    for something in your.parameter_data:
+        redef = olca.ParameterRedef()
+        redef.name = the_parameter_name
+        redef.value = the_parameter_value
+        # redef.context = ... you can also redefine process and LCIA method
+        #                     parameters by providing a parameter context which
+        #                     is a Ref (reference) to the respective process or
+        #                     LCIA method; with no context a global parameter is
+        #                     redefined
+        setup.parameter_redefs.append(redef)
+
+
+As the name says, a parameter redefinition redefines the value of an existing
+global, process, or LCIA method parameter.
+
+
 Monte-Carlo simulations
 ~~~~~~~~~~~~~~~~~~~~~~~
 Running Monte-Carlo simulations is similar to normal calculations but instead
