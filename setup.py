@@ -9,12 +9,13 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='olca-ipc',
-    version='0.0.7',
+    version='0.0.8',
     description='A Python package for calling openLCA functions from Python.',
     long_description=long_description,
     url='https://github.com/GreenDelta/olca-ipc.py',
     packages=['olca'],
     install_requires=['requests'],
+    include_package_data=True,
     keywords=['openLCA', 'life cycle assessment', 'LCA'],
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
