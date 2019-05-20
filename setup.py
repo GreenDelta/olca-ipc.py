@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 from os import path
 
 here = path.abspath(path.dirname(__file__))
@@ -13,7 +13,7 @@ setup(
     description='A Python package for calling openLCA functions from Python.',
     long_description=long_description,
     url='https://github.com/GreenDelta/olca-ipc.py',
-    packages=['olca'],
+    packages=find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
     install_requires=['requests'],
     include_package_data=True,
     keywords=['openLCA', 'life cycle assessment', 'LCA'],
