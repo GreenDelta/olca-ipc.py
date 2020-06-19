@@ -7,11 +7,18 @@ from typing import List
 
 
 class AllocationType(Enum):
-    """Types of allocation methods that can be applied on processes."""
+    """
+    An enumeration type for allocation methods. This type is used to define the 
+    type of an [AllocationFactor], the default allocation method of a 
+    multi-functional [Process], or the allocation method in a 
+    [CalculationSetup]. 
+    """
 
     PHYSICAL_ALLOCATION = 'PHYSICAL_ALLOCATION'
     ECONOMIC_ALLOCATION = 'ECONOMIC_ALLOCATION'
     CAUSAL_ALLOCATION = 'CAUSAL_ALLOCATION'
+    USE_DEFAULT_ALLOCATION = 'USE_DEFAULT_ALLOCATION'
+    NO_ALLOCATION = 'NO_ALLOCATION'
 
 
 class CalculationType(Enum):
@@ -489,6 +496,56 @@ class Exchange(Entity):
         val = json.get('description')
         if val is not None:
             self.description = val
+
+
+class FlowMapRef(Entity):
+    """
+    Describes a the source or target flow of a flow mapping in a `FlowMap`. 
+    Such a flow reference can also optionally specify the unit and flow 
+    property (quantity) for which the mapping is valid. If the unit and 
+    quantity are not given, the mapping is based on the reference unit of the 
+    reference flow property of the respective flow. 
+
+    Attributes: 
+        flow (FlowRef): The reference to the flow data set. 
+
+        flow_property (Ref): An optional reference to a flow property of the 
+            flow for which the mapping is valid. 
+
+        unit (Ref): An optional reference to a unit of the flow for which the 
+            mapping is valid 
+    """
+
+    def __init__(self):
+        super(FlowMapRef, self).__init__()
+        self.flow = None  # type: FlowRef
+        self.flow_property = None  # type: Ref
+        self.unit = None  # type: Ref
+
+    def to_json(self) -> dict:
+        json = super(FlowMapRef, self).to_json()  # type: dict
+        if self.flow is not None:
+            json['flow'] = self.flow.to_json()
+        if self.flow_property is not None:
+            json['flowProperty'] = self.flow_property.to_json()
+        if self.unit is not None:
+            json['unit'] = self.unit.to_json()
+        return json
+
+    def from_json(self, json: dict):
+        super(FlowMapRef, self).from_json(json)
+        val = json.get('flow')
+        if val is not None:
+            self.flow = FlowRef()
+            self.flow.from_json(val)
+        val = json.get('flowProperty')
+        if val is not None:
+            self.flow_property = Ref()
+            self.flow_property.from_json(val)
+        val = json.get('unit')
+        if val is not None:
+            self.unit = Ref()
+            self.unit.from_json(val)
 
 
 class FlowPropertyFactor(Entity):
@@ -1298,6 +1355,101 @@ class CategorizedEntity(RootEntity):
         if val is not None:
             self.category = Ref()
             self.category.from_json(val)
+
+
+class FlowMap(RootEntity):
+    """A crosswalk of flows from a source flow list to a target flow list.
+
+    Attributes: 
+        source (Ref): The reference (id, name, description) of the source flow 
+            list. 
+
+        target (Ref): The reference (id, name, description) of the target flow 
+            list. 
+
+        mappings (List[FlowMapEntry]): A list of flow mappings from flows in a 
+            source flow list to flows in a target flow list. 
+    """
+
+    def __init__(self):
+        super(FlowMap, self).__init__()
+        self.source = None  # type: Ref
+        self.target = None  # type: Ref
+        self.mappings = None  # type: List[FlowMapEntry]
+
+    def to_json(self) -> dict:
+        json = super(FlowMap, self).to_json()  # type: dict
+        if self.source is not None:
+            json['source'] = self.source.to_json()
+        if self.target is not None:
+            json['target'] = self.target.to_json()
+        if self.mappings is not None:
+            json['mappings'] = []
+            for e in self.mappings:
+                json['mappings'].append(e.to_json())
+        return json
+
+    def from_json(self, json: dict):
+        super(FlowMap, self).from_json(json)
+        val = json.get('source')
+        if val is not None:
+            self.source = Ref()
+            self.source.from_json(val)
+        val = json.get('target')
+        if val is not None:
+            self.target = Ref()
+            self.target.from_json(val)
+        val = json.get('mappings')
+        if val is not None:
+            self.mappings = []
+            for d in val:
+                e = FlowMapEntry()
+                e.from_json(d)
+                self.mappings.append(e)
+
+
+class FlowMapEntry(RootEntity):
+    """A mapping from one flow to another.
+
+    Attributes: 
+        from_ (FlowMapRef): The flow, flow property, and unit of the source 
+            flow. 
+
+        to (FlowMapRef): The flow, flow property, and unit of the target flow. 
+
+        conversion_factor (float): The factor to convert the original source 
+            flow to the target flow. 
+    """
+
+    def __init__(self):
+        super(FlowMapEntry, self).__init__()
+        self.from_ = None  # type: FlowMapRef
+        self.to = None  # type: FlowMapRef
+        self.conversion_factor = None  # type: float
+
+    def to_json(self) -> dict:
+        json = super(FlowMapEntry, self).to_json()  # type: dict
+        if self.from_ is not None:
+            json['from'] = self.from_.to_json()
+        if self.to is not None:
+            json['to'] = self.to.to_json()
+        if self.conversion_factor is not None:
+            json['conversionFactor'] = self.conversion_factor
+        return json
+
+    def from_json(self, json: dict):
+        super(FlowMapEntry, self).from_json(json)
+        val = json.get('from')
+        if val is not None:
+            self.from_ = FlowMapRef()
+            self.from_.from_json(val)
+        val = json.get('to')
+        if val is not None:
+            self.to = FlowMapRef()
+            self.to.from_json(val)
+        val = json.get('conversionFactor')
+        if val is not None:
+            self.conversion_factor = val
 
 
 class ImpactCategory(RootEntity):

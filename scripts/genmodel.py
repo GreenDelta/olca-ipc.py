@@ -34,6 +34,9 @@ def to_snake_case(identifier: str) -> str:
             s += char.lower()
         else:
             s += char
+    # if s is a Python key-word, append a `_`
+    if s in ['from', 'in']:
+        s += '_'
     return s
 
 
