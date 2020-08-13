@@ -5,3 +5,5 @@
 /dist/
 /env/
 /.vscode/
+*.pyc
+/html/

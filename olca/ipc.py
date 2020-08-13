@@ -154,6 +154,63 @@ class Client(object):
         """
         self.__post('runtime/shutdown', None)
 
+    def create_product_system(self, process_id: str,
+                              default_providers='prefer',
+                              preferred_type='LCI_RESULT'):
+        """
+        Creates a product system from the process with the given ID.
+
+        Parameters
+        ----------
+
+        process_id: string
+            The ID of the process from which the product system should be
+            generated. This will be the reference process of the product system
+            with upstream and downstream processes added recursively.
+
+        default_providers: {'prefer', 'ignore', 'only'}, optional
+            Indicates how default providers of product inputs and waste outputs
+            should be considered during the linking. `only` means that only
+            product inputs and waste outputs should be linked that have a
+            default provider and that this default provider is used. `prefer`
+            means that a default provider is used during the linking if there
+            are multiple options. `ignore` means that the default providers
+            have no specific role.
+
+        preferred_type : {'LCI_RESULT', 'UNIT_PROCESS'}, optional
+            When there are multiple provider processes available for linking a
+            product input or waste output the `preferred_type` indicates which
+            type of process (LCI results or unit processes) should be preferred
+            during the linking.
+        
+        Returns
+        -------
+
+        olca.schema.Ref
+            A descriptor of the created product system.
+
+        Example
+        -------
+
+        ```
+        import olca
+
+        client = olca.Client(8080)
+        process_id = '4aee0b0c-eb46-37f1-8c7a-7e5b1adfd014'
+        ref = client.create_product_system(process_id)
+        print('Created product system %s' % ref.id)
+        ```
+        """
+
+        r = self.__post('create/product_system', {
+            'processId': process_id,
+            'preferredType': preferred_type,
+            'providerLinking': default_providers,
+        })
+        ref = schema.Ref()
+        ref.from_json(r)
+        return ref
+
     def __post(self, method: str, params) -> dict:
         req = {
             'jsonrpc': '2.0',
