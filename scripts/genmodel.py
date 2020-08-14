@@ -62,10 +62,18 @@ def py_type(model_type: str) -> str:
 
 
 def print_class(c: model.ClassType, m: model.Model):
+    """Prints a class type."""
+
+    # class declaration
     parent = c.super_class if c.super_class is not None else 'object'
-    t = '\nclass %s(%s):\n\n' % (c.name, py_type(parent))
-    if c.doc is not None:
-        t += print_docs(c)
+    t = '\nclass %s(%s):\n' % (c.name, py_type(parent))
+
+    # comment
+    t += '    """\n'
+    t += format_doc(c.doc, 4)
+    t += class_attribute_docs(c)
+    t += '    """\n\n'
+
     t += '    def __init__(self):\n'
     if c.name == 'Entity':
         t += '        self.id: str = \'\'\n'
@@ -157,6 +165,7 @@ def print_from_json(c: model.ClassType, m: model.Model):
 
 
 def list_elem_type(list_type: str) -> str:
+    """Returns the element type of a list type."""
     t = list_type[5:(len(list_type) - 1)]
     if t.startswith('Ref['):
         return 'Ref'
@@ -164,42 +173,26 @@ def list_elem_type(list_type: str) -> str:
 
 
 def print_enum(e: model.EnumType):
+    """Prints an enumeration type."""
+
     t = 'class %s(Enum):\n' % e.name
+
+    # documentation of the enum
     if e.doc is not None:
-        t += print_docs(e)
+        t += '    """\n'
+        t += format_doc(e.doc, 4)
+        t += '\n    """\n\n'
+
+    # enum items
     for item in e.items:
         t += "    %s = '%s'\n" % (item.name, item.name)
     t += '\n'
     print(t)
 
 
-def print_docs(c) -> str:
-    off = '    '
-    d = off + '"""'
-    multi_lines = False
-    docs = c.doc
-    if len(docs) == 0:
-        return ''
-    if contains_link(docs):
-        docs = remove_link(docs)
-    if len(docs) < 79:
-        d += docs
-    else:
-        multi_lines = True
-        d += '\n' + off
-        d += format_docs(docs.split(), len(off))
-    if type(c) == model.ClassType:
-        if len(c.properties) > 0 and has_prop_docs(c):
-            multi_lines = True
-            d += print_class_property_docs(c)
-    if multi_lines:
-        d += '\n' + off + '"""\n\n'
-    else:
-        d += '"""\n\n'
-    return d
-
-
-def print_class_property_docs(c: model.ClassType) -> str:
+def class_attribute_docs(c: model.ClassType) -> str:
+    if len(c.properties) == 0:
+        return '\n'
     off = '    '
     s = '\n\n'
     s += off + 'Attributes\n'
@@ -208,34 +201,12 @@ def print_class_property_docs(c: model.ClassType) -> str:
         attr = to_snake_case(prop.name)
         ptype = py_type(prop.field_type)
         s += '%s%s: %s\n' % (off, attr, ptype)
-        s += format_doc(prop.doc, indent=8) + '\n\n'
-    return s
-
-
-def format_docs(docs: list, line_off_len: int, prop_docs=False) -> str:
-    formatted_docs = ''
-    i = 0
-    max_line_len = 79
-    off = '    '
-    multi_lines = False
-    while i < len(docs):
-        word_len = len(docs[i])
-        if line_off_len + word_len > max_line_len:
-            multi_lines = True
-            line_indention = off + off
-            if prop_docs:
-                if multi_lines:
-                    line_indention += off
-                formatted_docs += '\n' + line_indention + docs[i] + ' '
-                line_off_len = len(line_indention) + word_len + 1
-            else:
-                formatted_docs += '\n' + off + docs[i] + ' '
-                line_off_len = len(off) + word_len + 1
+        doc = format_doc(prop.doc, indent=8)
+        if doc == '':
+            s += '\n'
         else:
-            formatted_docs += docs[i] + ' '
-            line_off_len += word_len + 1
-        i += 1
-    return formatted_docs
+            s += doc + '\n\n'
+    return s
 
 
 def format_doc(doc: str, indent: int = 4) -> str:
