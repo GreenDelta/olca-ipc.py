@@ -4,6 +4,6 @@ rem see https://github.com/pdoc3/pdoc
 
 cd ..
 
-del /s /q doc\*.html
-pdoc --html --force --config latex_math=True --output-dir doc olca
+del /s /q docs\*.html
+pdoc --html --force --config latex_math=True --output-dir docs olca
 cd scripts
