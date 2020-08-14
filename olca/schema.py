@@ -114,17 +114,23 @@ class Entity(object):
 class AllocationFactor(Entity):
     """A single allocation factor in a process.
 
-    Attributes: 
-        product_exchange (Exchange): The output product. 
+    Attributes
+    ----------
+    product_exchange: Exchange
+        The output product.
 
-        allocation_type (AllocationType): The type of allocation. 
+    allocation_type: AllocationType
+        The type of allocation.
 
-        value (float): The value of the allocation factor. 
+    value: float
+        The value of the allocation factor.
 
-        allocated_exchange (Exchange): An input product or elementary flow 
-            exchange which is allocated by this factor. This is only valid for 
-            causal allocation where allocation factors can be assigned to 
-            single exchanges. 
+    allocated_exchange: Exchange
+        An input product or elementary flow exchange which is allocated by this
+        factor. This is only valid for causal allocation where allocation
+        factors can be assigned to single exchanges.
+
+
     """
 
     def __init__(self):
@@ -167,32 +173,41 @@ class AllocationFactor(Entity):
 class CalculationSetup(Entity):
     """A setup for a product system calculation.
 
-    Attributes: 
-        calculation_type (CalculationType): The type of calculation that should 
-            be performed. 
+    Attributes
+    ----------
+    calculation_type: CalculationType
+        The type of calculation that should be performed.
 
-        product_system (Ref): The product system that should be calculated 
-            (required). 
+    product_system: Ref
+        The product system that should be calculated (required).
 
-        impact_method (Ref): The LCIA method for the calculation (optional). 
+    impact_method: Ref
+        The LCIA method for the calculation (optional).
 
-        with_costs (bool): Indicates whether life cycle costs should be also 
-            calculated (optional). 
+    with_costs: bool
+        Indicates whether life cycle costs should be also calculated
+        (optional).
 
-        nw_set (Ref): The normalisation and weighting set for the calculation 
-            (optional). 
+    nw_set: Ref
+        The normalisation and weighting set for the calculation (optional).
 
-        allocation_method (AllocationType): The calculation type to be used in 
-            the calculation (optional). 
+    allocation_method: AllocationType
+        The calculation type to be used in the calculation (optional).
 
-        parameter_redefs (List[ParameterRedef]): A list of parameter 
-            redefinitions to be used in the calculation (optional). 
+    parameter_redefs: List[ParameterRedef]
+        A list of parameter redefinitions to be used in the calculation
+        (optional).
 
-        amount (float): (optional) 
+    amount: float
+        (optional)
 
-        unit (Ref): (optional) 
+    unit: Ref
+        (optional)
 
-        flow_property (Ref): (optional) 
+    flow_property: Ref
+        (optional)
+
+
     """
 
     def __init__(self):
@@ -364,38 +379,64 @@ class Exchange(Entity):
     in an exchange are defined by the flow property information in that flow 
     (see also the [FlowPropertyFactor] type). 
 
-    Attributes: 
-        internal_id (int): The process internal ID of the exchange. This is 
-            used to identify exchanges unambiguously within a process (e.g. 
-            when linking exchanges in a product system where multiple exchanges 
-            with the same flow are allowed). The value should be >= 1. 
+    Attributes
+    ----------
+    internal_id: int
+        The process internal ID of the exchange. This is used to identify
+        exchanges unambiguously within a process (e.g. when linking exchanges
+        in a product system where multiple exchanges with the same flow are
+        allowed). The value should be >= 1.
 
-        avoided_product (bool): Indicates whether this exchange is an avoided 
-            product. 
+    avoided_product: bool
+        Indicates whether this exchange is an avoided product.
 
-        flow (FlowRef): The reference to the flow of the exchange. 
+    flow: FlowRef
+        The reference to the flow of the exchange.
 
-        flow_property (Ref): The quantity in which the amount is given. 
+    flow_property: Ref
+        The quantity in which the amount is given.
 
-        quantitative_reference (bool): Indicates whether the exchange is the 
-            quantitative reference of the process. 
+    input: bool
 
-        default_provider (ProcessRef): A default provider is a [Process] that 
-            is linked as the provider of a product input or the waste treatment 
-            provider of a waste output. It is just an optional default setting 
-            which can be also ignored when building product systems in openLCA. 
-            The user is always free to link processes in product systems 
-            ignoring these defaults (but the flows and flow directions have to 
-            match of course). 
 
-        dq_entry (str): A data quality entry like `(1;3;2;5;1)`. The entry is a 
-            vector of data quality values that need to match the data quality 
-            scheme for flow inputs and outputs that is assigned to the 
-            [Process]. In such a scheme the data quality indicators have fixed 
-            positions and the respective values in the `dqEntry` vector map to 
-            these positions. 
+    quantitative_reference: bool
+        Indicates whether the exchange is the quantitative reference of the
+        process.
 
-        description (str): A general comment about the input or output. 
+    base_uncertainty: float
+
+
+    default_provider: ProcessRef
+        A default provider is a [Process] that is linked as the provider of a
+        product input or the waste treatment provider of a waste output. It is
+        just an optional default setting which can be also ignored when
+        building product systems in openLCA. The user is always free to link
+        processes in product systems ignoring these defaults (but the flows and
+        flow directions have to match of course).
+
+    amount: float
+
+
+    amount_formula: str
+
+
+    unit: Ref
+
+
+    dq_entry: str
+        A data quality entry like `(1;3;2;5;1)`. The entry is a vector of data
+        quality values that need to match the data quality scheme for flow
+        inputs and outputs that is assigned to the [Process]. In such a scheme
+        the data quality indicators have fixed positions and the respective
+        values in the `dqEntry` vector map to these positions.
+
+    uncertainty: Uncertainty
+
+
+    description: str
+        A general comment about the input or output.
+
+
     """
 
     def __init__(self):
@@ -506,14 +547,20 @@ class FlowMapRef(Entity):
     quantity are not given, the mapping is based on the reference unit of the 
     reference flow property of the respective flow. 
 
-    Attributes: 
-        flow (FlowRef): The reference to the flow data set. 
+    Attributes
+    ----------
+    flow: FlowRef
+        The reference to the flow data set.
 
-        flow_property (Ref): An optional reference to a flow property of the 
-            flow for which the mapping is valid. 
+    flow_property: Ref
+        An optional reference to a flow property of the flow for which the
+        mapping is valid.
 
-        unit (Ref): An optional reference to a unit of the flow for which the 
-            mapping is valid 
+    unit: Ref
+        An optional reference to a unit of the flow for which the mapping is
+        valid
+
+
     """
 
     def __init__(self):
@@ -570,15 +617,21 @@ class FlowPropertyFactor(Entity):
     thing to note is that different flow properties can refer to the same unit 
     group (e.g. MJ upper calorific value and MJ lower calorific value.) 
 
-    Attributes: 
-        flow_property (Ref): The flow property (quantity) of the factor. 
+    Attributes
+    ----------
+    flow_property: Ref
+        The flow property (quantity) of the factor.
 
-        conversion_factor (float): The value of the conversion factor. 
+    conversion_factor: float
+        The value of the conversion factor.
 
-        reference_flow_property (bool): Indicates whether the flow property of 
-            the factor is the reference flow property of the flow. The 
-            reference flow property must have a conversion factor of 1.0 and 
-            there should be only one reference flow property. 
+    reference_flow_property: bool
+        Indicates whether the flow property of the factor is the reference flow
+        property of the flow. The reference flow property must have a
+        conversion factor of 1.0 and there should be only one reference flow
+        property.
+
+
     """
 
     def __init__(self):
@@ -615,12 +668,18 @@ class FlowResult(Entity):
     """A result value for a flow; given in the reference unit of the flow.
 
 
-    Attributes: 
-        flow (FlowRef): The flow reference. 
+    Attributes
+    ----------
+    flow: FlowRef
+        The flow reference.
 
-        input (bool): Indicates whether the flow is an input or not. 
+    input: bool
+        Indicates whether the flow is an input or not.
 
-        value (float): The value of the flow amount. 
+    value: float
+        The value of the flow amount.
+
+
     """
 
     def __init__(self):
@@ -656,22 +715,28 @@ class FlowResult(Entity):
 class ImpactFactor(Entity):
     """A single characterisation factor of a LCIA category for a flow.
 
-    Attributes: 
-        flow (FlowRef): The [Flow] of the impact assessment factor. 
+    Attributes
+    ----------
+    flow: FlowRef
+        The [Flow] of the impact assessment factor.
 
-        flow_property (Ref): The quantity of the flow to which the LCIA factor 
-            is related (e.g. Mass). 
+    flow_property: Ref
+        The quantity of the flow to which the LCIA factor is related (e.g.
+        Mass).
 
-        unit (Ref): The flow unit to which the LCIA factor is related (e.g. 
-            kg). 
+    unit: Ref
+        The flow unit to which the LCIA factor is related (e.g. kg).
 
-        value (float): The value of the impact assessment factor. 
+    value: float
+        The value of the impact assessment factor.
 
-        formula (str): A mathematical formula for calculating the value of the 
-            LCIA factor. 
+    formula: str
+        A mathematical formula for calculating the value of the LCIA factor.
 
-        uncertainty (Uncertainty): The uncertainty distribution of the factors' 
-            value. 
+    uncertainty: Uncertainty
+        The uncertainty distribution of the factors' value.
+
+
     """
 
     def __init__(self):
@@ -729,11 +794,15 @@ class ImpactResult(Entity):
     """A result value for an impact assessment category.
 
 
-    Attributes: 
-        impact_category (ImpactCategoryRef): The reference to the impact 
-            assessment category. 
+    Attributes
+    ----------
+    impact_category: ImpactCategoryRef
+        The reference to the impact assessment category.
 
-        value (float): The value of the flow amount. 
+    value: float
+        The value of the flow amount.
+
+
     """
 
     def __init__(self):
@@ -831,14 +900,20 @@ class Parameter(Entity):
 class ParameterRedef(Entity):
     """A redefinition of a parameter in a product system.
 
-    Attributes: 
-        name (str): The parameter name. 
+    Attributes
+    ----------
+    name: str
+        The parameter name.
 
-        value (float): The (new) value of the parameter. 
+    value: float
+        The (new) value of the parameter.
 
-        context (Ref): The context of the paramater (a process or LCIA method). 
-            If no context is provided it is assumed that this is a redefinition 
-            of a global parameter. 
+    context: Ref
+        The context of the paramater (a process or LCIA method). If no context
+        is provided it is assumed that this is a redefinition of a global
+        parameter.
+
+
     """
 
     def __init__(self):
@@ -1042,19 +1117,24 @@ class ProcessDocumentation(Entity):
 class ProcessLink(Entity):
     """A process link is a connection between two processes in a product system.
 
-    Attributes: 
-        provider (Ref): The descriptor of the process that provides a product 
-            or a waste treatment. 
+    Attributes
+    ----------
+    provider: Ref
+        The descriptor of the process that provides a product or a waste
+        treatment.
 
-        flow (Ref): The descriptor of the flow that is exchanged between the 
-            two processes. 
+    flow: Ref
+        The descriptor of the flow that is exchanged between the two processes.
 
-        process (Ref): The descriptor of the process that is linked to the 
-            provider. 
+    process: Ref
+        The descriptor of the process that is linked to the provider.
 
-        exchange (Exchange): The exchange of the linked process (this is useful 
-            if the linked process has multiple exchanges with the same flow 
-            that are linked to different provides, e.g. in an electricity mix). 
+    exchange: Exchange
+        The exchange of the linked process (this is useful if the linked
+        process has multiple exchanges with the same flow that are linked to
+        different provides, e.g. in an electricity mix).
+
+
     """
 
     def __init__(self):
@@ -1102,17 +1182,23 @@ class RootEntity(Entity):
     process. A root entity can be unambiguously identified by its id (the 
     JSON-LD @id field), version, and lastChange fields. 
 
-    Attributes: 
-        name (str): The name of the entity. 
+    Attributes
+    ----------
+    name: str
+        The name of the entity.
 
-        description (str): The description of the entity. 
+    description: str
+        The description of the entity.
 
-        version (str): A version number in MAJOR.MINOR.PATCH format where the 
-            MINOR and PATCH fields are optional and the fields may have leading 
-            zeros (so 01.00.00 is the same as 1.0.0 or 1). 
+    version: str
+        A version number in MAJOR.MINOR.PATCH format where the MINOR and PATCH
+        fields are optional and the fields may have leading zeros (so 01.00.00
+        is the same as 1.0.0 or 1).
 
-        last_change (str): The timestamp when the entity was changed the last 
-            time. 
+    last_change: str
+        The timestamp when the entity was changed the last time.
+
+
     """
 
     def __init__(self):
@@ -1192,43 +1278,54 @@ class Uncertainty(Entity):
     Defines the parameter values of an uncertainty distribution. Depending on 
     the uncertainty distribution type different parameters could be used. 
 
-    Attributes: 
-        distribution_type (UncertaintyType): The uncertainty distribution type 
+    Attributes
+    ----------
+    distribution_type: UncertaintyType
+        The uncertainty distribution type
 
-        mean (float): The arithmetic mean (used for normal distributions). 
+    mean: float
+        The arithmetic mean (used for normal distributions).
 
-        mean_formula (str): A mathematical formula for the arithmetic mean. 
+    mean_formula: str
+        A mathematical formula for the arithmetic mean.
 
-        geom_mean (float): The geometric mean value (used for log-normal 
-            distributions). 
+    geom_mean: float
+        The geometric mean value (used for log-normal distributions).
 
-        geom_mean_formula (str): A mathematical formula for the geometric mean. 
+    geom_mean_formula: str
+        A mathematical formula for the geometric mean.
 
-        minimum (float): The minimum value (used for uniform and triangle 
-            distributions). 
+    minimum: float
+        The minimum value (used for uniform and triangle distributions).
 
-        minimum_formula (str): A mathematical formula for the minimum value. 
+    minimum_formula: str
+        A mathematical formula for the minimum value.
 
-        sd (float): The arithmetic standard deviation (used for normal 
-            distributions). 
+    sd: float
+        The arithmetic standard deviation (used for normal distributions).
 
-        sd_formula (str): A mathematical formula for the arithmetic standard 
-            deviation. 
+    sd_formula: str
+        A mathematical formula for the arithmetic standard deviation.
 
-        geom_sd (float): The geometric standard deviation (used for log-normal 
-            distributions). 
+    geom_sd: float
+        The geometric standard deviation (used for log-normal distributions).
 
-        geom_sd_formula (str): A mathematical formula for the geometric 
-            standard deviation. 
+    geom_sd_formula: str
+        A mathematical formula for the geometric standard deviation.
 
-        mode (float): The most likely value (used for triangle distributions). 
+    mode: float
+        The most likely value (used for triangle distributions).
 
-        mode_formula (str): A mathematical formula for the most likely value. 
+    mode_formula: str
+        A mathematical formula for the most likely value.
 
-        maximum (float): The maximum value (used for uniform and triangle 
-            distributions). 
+    maximum: float
+        The maximum value (used for uniform and triangle distributions).
 
-        maximum_formula (str): A mathematical formula for the maximum value. 
+    maximum_formula: str
+        A mathematical formula for the maximum value.
+
+
     """
 
     def __init__(self):
@@ -1335,8 +1432,12 @@ class Uncertainty(Entity):
 class CategorizedEntity(RootEntity):
     """A root entity which can have a category.
 
-    Attributes: 
-        category (Ref): The category of the entity. 
+    Attributes
+    ----------
+    category: Ref
+        The category of the entity.
+
+
     """
 
     def __init__(self):
@@ -1360,15 +1461,19 @@ class CategorizedEntity(RootEntity):
 class FlowMap(RootEntity):
     """A crosswalk of flows from a source flow list to a target flow list.
 
-    Attributes: 
-        source (Ref): The reference (id, name, description) of the source flow 
-            list. 
+    Attributes
+    ----------
+    source: Ref
+        The reference (id, name, description) of the source flow list.
 
-        target (Ref): The reference (id, name, description) of the target flow 
-            list. 
+    target: Ref
+        The reference (id, name, description) of the target flow list.
 
-        mappings (List[FlowMapEntry]): A list of flow mappings from flows in a 
-            source flow list to flows in a target flow list. 
+    mappings: List[FlowMapEntry]
+        A list of flow mappings from flows in a source flow list to flows in a
+        target flow list.
+
+
     """
 
     def __init__(self):
@@ -1411,14 +1516,18 @@ class FlowMap(RootEntity):
 class FlowMapEntry(RootEntity):
     """A mapping from one flow to another.
 
-    Attributes: 
-        from_ (FlowMapRef): The flow, flow property, and unit of the source 
-            flow. 
+    Attributes
+    ----------
+    from_: FlowMapRef
+        The flow, flow property, and unit of the source flow.
 
-        to (FlowMapRef): The flow, flow property, and unit of the target flow. 
+    to: FlowMapRef
+        The flow, flow property, and unit of the target flow.
 
-        conversion_factor (float): The factor to convert the original source 
-            flow to the target flow. 
+    conversion_factor: float
+        The factor to convert the original source flow to the target flow.
+
+
     """
 
     def __init__(self):
@@ -1457,12 +1566,15 @@ class ImpactCategory(RootEntity):
     A LCIA category of a LCIA method (see ImpactMethod) which groups a set of 
     characterisation factors 
 
-    Attributes: 
-        reference_unit_name (str): The name of the reference unit of the LCIA 
-            category (e.g. kg CO2-eq.). 
+    Attributes
+    ----------
+    reference_unit_name: str
+        The name of the reference unit of the LCIA category (e.g. kg CO2-eq.).
 
-        impact_factors (List[ImpactFactor]): The characterisation factors of 
-            the LCIA category. 
+    impact_factors: List[ImpactFactor]
+        The characterisation factors of the LCIA category.
+
+
     """
 
     def __init__(self):
@@ -1497,15 +1609,21 @@ class ImpactCategory(RootEntity):
 class Location(RootEntity):
     """A location like a country, state, city, etc.
 
-    Attributes: 
-        code (str): The code of the location (e.g. an ISO 2-letter country 
-            code). 
+    Attributes
+    ----------
+    code: str
+        The code of the location (e.g. an ISO 2-letter country code).
 
-        latitude (float): The average latitude of the location. 
+    latitude: float
+        The average latitude of the location.
 
-        longitude (float): The average longitude of the location. 
+    longitude: float
+        The average longitude of the location.
 
-        kml (str): KML data of the location. 
+    kml: str
+        KML data of the location.
+
+
     """
 
     def __init__(self):
@@ -1552,10 +1670,13 @@ class Ref(RootEntity):
     contains some meta-data like name, category path etc. that are useful to 
     display. 
 
-    Attributes: 
-        category_path (List[str]): The full path of the category of the 
-            referenced entity from top to bottom, e.g. `"Elementary flows", 
-            "Emissions to air", "unspecified"`. 
+    Attributes
+    ----------
+    category_path: List[str]
+        The full path of the category of the referenced entity from top to
+        bottom, e.g. `"Elementary flows", "Emissions to air", "unspecified"`.
+
+
     """
 
     def __init__(self):
@@ -1583,18 +1704,23 @@ class Ref(RootEntity):
 class Unit(RootEntity):
     """An unit of measure
 
-    Attributes: 
-        conversion_factor (float): The conversion factor to the reference unit 
-            of the unit group to which this unit belongs. 
+    Attributes
+    ----------
+    conversion_factor: float
+        The conversion factor to the reference unit of the unit group to which
+        this unit belongs.
 
-        reference_unit (bool): Indicates whether the unit is the reference unit 
-            of the unit group to which this unit belongs. If it is the 
-            reference unit the conversion factor must be 1.0. There should be 
-            always only one reference unit in a unit group. The reference unit 
-            is used to convert amounts given in one unit to amounts given in 
-            another unit of the respective unit group. 
+    reference_unit: bool
+        Indicates whether the unit is the reference unit of the unit group to
+        which this unit belongs. If it is the reference unit the conversion
+        factor must be 1.0. There should be always only one reference unit in a
+        unit group. The reference unit is used to convert amounts given in one
+        unit to amounts given in another unit of the respective unit group.
 
-        synonyms (List[str]): A list of synonyms for the unit. 
+    synonyms: List[str]
+        A list of synonyms for the unit.
+
+
     """
 
     def __init__(self):
@@ -1700,9 +1826,12 @@ class Category(CategorizedEntity):
     [CategorizedEntity] type so that a category can have a category attribute 
     which is then the parent category of this category (uff). 
 
-    Attributes: 
-        model_type (ModelType): The type of models that can be linked to the 
-            category. 
+    Attributes
+    ----------
+    model_type: ModelType
+        The type of models that can be linked to the category.
+
+
     """
 
     def __init__(self):
@@ -1766,22 +1895,29 @@ class Flow(CategorizedEntity):
     Everything that can be an input or output of a process (e.g. a substance, a 
     product, a waste, a service etc.) 
 
-    Attributes: 
-        flow_type (FlowType): The type of the flow. Note that this type is more 
-            a descriptor of how the flow is handled in calculations. 
+    Attributes
+    ----------
+    flow_type: FlowType
+        The type of the flow. Note that this type is more a descriptor of how
+        the flow is handled in calculations.
 
-        cas (str): A CAS number of the flow. 
+    cas: str
+        A CAS number of the flow.
 
-        formula (str): A chemical formula of the flow. 
+    formula: str
+        A chemical formula of the flow.
 
-        flow_properties (List[FlowPropertyFactor]): The flow properties 
-            (quantities) in which amounts of the flow can be expressed together 
-            with conversion factors between these flow flow properties. 
+    flow_properties: List[FlowPropertyFactor]
+        The flow properties (quantities) in which amounts of the flow can be
+        expressed together with conversion factors between these flow flow
+        properties.
 
-        location (Ref): The location of the flow. Normally the location of a 
-            flow is defined by the process location where the flow is an input 
-            or output. However, some data formats define a location as a 
-            property of a flow. 
+    location: Ref
+        The location of the flow. Normally the location of a flow is defined by
+        the process location where the flow is an input or output. However,
+        some data formats define a location as a property of a flow.
+
+
     """
 
     def __init__(self):
@@ -1835,11 +1971,16 @@ class Flow(CategorizedEntity):
 class FlowProperty(CategorizedEntity):
     """A flow property is a quantity that can be used to express amounts of a flow.
 
-    Attributes: 
-        flow_property_type (FlowPropertyType): The type of the flow property 
+    Attributes
+    ----------
+    flow_property_type: FlowPropertyType
+        The type of the flow property
 
-        unit_group (Ref): The units of measure that can be used to express 
-            quantities of the flow property. 
+    unit_group: Ref
+        The units of measure that can be used to express quantities of the flow
+        property.
+
+
     """
 
     def __init__(self):
@@ -1869,13 +2010,19 @@ class FlowProperty(CategorizedEntity):
 class FlowRef(Ref):
     """A reference to a [Flow] data set.
 
-    Attributes: 
-        ref_unit (str): The name (symbol) of the reference unit of the flow. 
+    Attributes
+    ----------
+    ref_unit: str
+        The name (symbol) of the reference unit of the flow.
 
-        location (str): The location name or code of the flow. Typically, this 
-            is only used for product flows in databases like ecoinvent. 
+    location: str
+        The location name or code of the flow. Typically, this is only used for
+        product flows in databases like ecoinvent.
 
-        flow_type (FlowType): The type of the flow. 
+    flow_type: FlowType
+        The type of the flow.
+
+
     """
 
     def __init__(self):
@@ -1910,9 +2057,12 @@ class FlowRef(Ref):
 class ImpactCategoryRef(Ref):
     """A reference to a [ImpactCategory] data set.
 
-    Attributes: 
-        ref_unit (str): The name (symbol) of the reference unit of the impact 
-            category. 
+    Attributes
+    ----------
+    ref_unit: str
+        The name (symbol) of the reference unit of the impact category.
+
+
     """
 
     def __init__(self):
@@ -1935,13 +2085,16 @@ class ImpactCategoryRef(Ref):
 class ImpactMethod(CategorizedEntity):
     """A impact assessment method.
 
-    Attributes: 
-        impact_categories (List[ImpactCategoryRef]): The LCIA categories of the 
-            method. 
+    Attributes
+    ----------
+    impact_categories: List[ImpactCategoryRef]
+        The LCIA categories of the method.
 
-        parameters (List[Parameter]): A set of method specific parameters which 
-            can be used in formulas of the characterisation factors in this 
-            method. 
+    parameters: List[Parameter]
+        A set of method specific parameters which can be used in formulas of
+        the characterisation factors in this method.
+
+
     """
 
     def __init__(self):
@@ -2084,10 +2237,15 @@ class Process(CategorizedEntity):
 class ProcessRef(Ref):
     """A reference to a [Process] data set.
 
-    Attributes: 
-        location (str): The location name or code of the process. 
+    Attributes
+    ----------
+    location: str
+        The location name or code of the process.
 
-        process_type (ProcessType): The type of the process. 
+    process_type: ProcessType
+        The type of the process.
+
+
     """
 
     def __init__(self):
@@ -2118,28 +2276,34 @@ class ProductSystem(CategorizedEntity):
     A product system describes the supply chain of a product (the functional 
     unit) ... 
 
-    Attributes: 
-        processes (List[ProcessRef]): The descriptors of all processes that are 
-            contained in the product system. 
+    Attributes
+    ----------
+    processes: List[ProcessRef]
+        The descriptors of all processes that are contained in the product
+        system.
 
-        reference_process (ProcessRef): The descriptor of the process that 
-            provides the flow of the functional unit of the product system. 
+    reference_process: ProcessRef
+        The descriptor of the process that provides the flow of the functional
+        unit of the product system.
 
-        reference_exchange (Exchange): The exchange of the reference processes 
-            (typically the product output) that provides the flow of the 
-            functional unit of the product system. 
+    reference_exchange: Exchange
+        The exchange of the reference processes (typically the product output)
+        that provides the flow of the functional unit of the product system.
 
-        target_amount (float): The flow amount of the functional unit of the 
-            product system. 
+    target_amount: float
+        The flow amount of the functional unit of the product system.
 
-        target_unit (Ref): The unit in which the flow amount of the functional 
-            unit is given. 
+    target_unit: Ref
+        The unit in which the flow amount of the functional unit is given.
 
-        target_flow_property (Ref): The flow property in which the flow amount 
-            of the functional unit is given. 
+    target_flow_property: Ref
+        The flow property in which the flow amount of the functional unit is
+        given.
 
-        process_links (List[ProcessLink]): The process links of the product 
-            system. 
+    process_links: List[ProcessLink]
+        The process links of the product system.
+
+
     """
 
     def __init__(self):
@@ -2259,16 +2423,22 @@ class SocialIndicator(CategorizedEntity):
 class Source(CategorizedEntity):
     """A source is a literature reference.
 
-    Attributes: 
-        doi (str): The digital object identifier of the source (see 
-            http://en.wikipedia.org/wiki/Digital_object_identifier). 
+    Attributes
+    ----------
+    doi: str
+        The digital object identifier of the source (see
+        http://en.wikipedia.org/wiki/Digital_object_identifier).
 
-        text_reference (str): The full text reference of the source. 
+    text_reference: str
+        The full text reference of the source.
 
-        year (int): The publication year of the source. 
+    year: int
+        The publication year of the source.
 
-        external_file (str): A direct link (relative or absolute URL) to the 
-            source file. 
+    external_file: str
+        A direct link (relative or absolute URL) to the source file.
+
+
     """
 
     def __init__(self):
@@ -2309,13 +2479,17 @@ class Source(CategorizedEntity):
 class UnitGroup(CategorizedEntity):
     """A group of units that can be converted into each other.
 
-    Attributes: 
-        default_flow_property (Ref): Some LCA data formats do not have the 
-            concept of flow properties or quantities. This field provides a 
-            default link to a flow property for units that are contained in 
-            this group. 
+    Attributes
+    ----------
+    default_flow_property: Ref
+        Some LCA data formats do not have the concept of flow properties or
+        quantities. This field provides a default link to a flow property for
+        units that are contained in this group.
 
-        units (List[Unit]): The units of the unit group. 
+    units: List[Unit]
+        The units of the unit group.
+
+
     """
 
     def __init__(self):
