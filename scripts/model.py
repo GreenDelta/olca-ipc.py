@@ -1,21 +1,24 @@
 import glob
 import yaml
 
-from typing import List
+from typing import List, Optional
 
 
 class Model:
     def __init__(self):
-        self.classes = []  # type: List[ClassType]
-        self.enums = []    # type: List[EnumType]
+        self.classes: List[ClassType] = []
+        self.enums: List[EnumType] = []
 
     @staticmethod
-    def load_yaml(folder):
+    def load_yaml(folder: str):
         """
-        Loads a model from a directory which contains YAML files that describe
-        the model.
-        :param folder: The directory that contains the YAML files (extension
-            *.yaml)
+        Loads a model from the YAML files in the given folder.
+
+        Parameters
+        ----------
+
+        folder: str
+            The directory that contains the YAML files (extension `*.yaml`).
         """
         m = Model()
         d = folder if folder.endswith('/') or folder.endswith('\\') else \
@@ -72,7 +75,7 @@ class Model:
             return 1 + calc_depth(super_class)
 
         depths = {}
-        for c in self.classes:            
+        for c in self.classes:
             depths[c.name] = calc_depth(c.name)
 
         self.classes.sort(key=lambda c: c.name)
@@ -80,11 +83,12 @@ class Model:
 
 
 class ClassType:
-    def __init__(self, name=None, super_class=None, doc=None):
-        self.name = name
-        self.super_class = super_class
-        self.doc = doc
-        self.example = None
+
+    def __init__(self, name='', super_class=None, doc=None):
+        self.name = name  # type: str
+        self.super_class = super_class  # type: Optional[str]
+        self.doc = doc  # type: Optional[str]
+        self.example = None  # type: Optional[str]
         self.properties = []  # type: List[Property]
 
     @staticmethod
@@ -135,10 +139,10 @@ class Property:
 
 
 class EnumType:
-    def __init__(self, name=None, doc=None):
-        self.name = name
-        self.doc = doc
-        self.items = []
+    def __init__(self, name='', doc=None):
+        self.name: str = name
+        self.doc: Optional[str] = doc
+        self.items: List[EnumItem] = []
 
     @staticmethod
     def load_yaml(yaml_model):
@@ -155,5 +159,5 @@ class EnumType:
 
 
 class EnumItem:
-    def __init__(self, name=None):
-        self.name = name
+    def __init__(self, name=''):
+        self.name: str = name

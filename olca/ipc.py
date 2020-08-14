@@ -10,27 +10,66 @@ T = TypeVar('T')
 
 class Client(object):
     """
-    An instance of Client holds a connection and provides a set of methods in
-    order to communicate with an openLCA IPC server.
+    A client to communicate with an openLCA IPC server.
+
+    An openLCA IPC server is always connected to a database and operations
+    that are executed via this client are thus executed on that database.
+
+    Parameters
+    ----------
+
+    port: int, optional
+        The port of the server connection; optional, defaults to 8080.
     """
 
-    def __init__(self, port):
+    def __init__(self, port: int = 8080):
         self.url = 'http://localhost:%i' % port
         self.next_id = 1
 
     def insert(self, model: schema.RootEntity):
+        """
+        Inserts the given model into the database of the IPC server.
+
+        Example
+        -------
+        ```
+        import olca
+
+        flow = olca.Flow()
+        flow.name = 'CO2'
+        flow.id = str(uuid.uuid4())
+        prop = olca.FlowPropertyFactor()
+        prop.flow_property = olca.ref(
+            olca.FlowProperty,
+            '93a60a56-a3c8-11da-a746-0800200b9a66',
+            'Mass'
+        )
+        prop.conversion_factor = 1.0
+        prop.reference_flow_property = True
+        flow.flow_properties = [prop]
+        response = olca.Client().insert(flow)
+        print(response)
+        ```
+
+        """
         if model is None:
             return
         json = model.to_json()
         return self.__post('insert/model', json)
 
     def update(self, model: schema.RootEntity):
+        """
+        Update the given model in the database of the IPC server.
+        """
         if model is None:
             return
         json = model.to_json()
         return self.__post('update/model', json)
 
     def delete(self, model: schema.RootEntity):
+        """
+        Delete the given model from the database of the IPC server.
+        """
         if model is None:
             return
         json = model.to_json()
@@ -46,10 +85,19 @@ class Client(object):
 
     def simulator(self, setup: schema.CalculationSetup) -> schema.Ref:
         """
-        Create a simulator to run Monte-Carlo simulations from the given
-        calculation setup.
-        :param setup: The calculation setup that should be used.
-        :return: A reference to an simulator instance.
+        Create a simulator to run Monte-Carlo simulations for the given setup.
+
+        Parameters
+        ----------
+
+        setup: olca.schema.CalculationSetup
+            The calculation setup that should be used.
+
+        Returns
+        -------
+
+        olca.schema.Ref
+            A reference to an simulator instance.
         """
         if setup is None:
             raise ValueError('Invalid calculation setup')
@@ -163,7 +211,7 @@ class Client(object):
         Parameters
         ----------
 
-        process_id: string
+        process_id: str
             The ID of the process from which the product system should be
             generated. This will be the reference process of the product system
             with upstream and downstream processes added recursively.

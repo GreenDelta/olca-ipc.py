@@ -21,7 +21,7 @@ enumerations to the console:
 
 from os import path
 
-import model
+from .model import *
 
 YAML_DIR = path.abspath(path.dirname(__file__)) + '/../../olca-schema/yaml'
 
@@ -61,7 +61,7 @@ def py_type(model_type: str) -> str:
     return model_type
 
 
-def print_class(c: model.ClassType, m: model.Model):
+def print_class(c: ClassType, m: Model):
     parent = c.super_class if c.super_class is not None else 'object'
     t = '\nclass %s(%s):\n\n' % (c.name, py_type(parent))
     if c.doc is not None:
@@ -163,7 +163,7 @@ def list_elem_type(list_type: str) -> str:
     return t
 
 
-def print_enum(e: model.EnumType):
+def print_enum(e: EnumType):
     t = 'class %s(Enum):\n' % e.name
     if e.doc is not None:
         t += print_docs(e)
@@ -188,7 +188,7 @@ def print_docs(c) -> str:
         multi_lines = True
         d += '\n' + off
         d += format_docs(docs.split(), len(off))
-    if type(c) == model.ClassType:
+    if type(c) == ClassType:
         if len(c.properties) > 0 and has_prop_docs(c):
             multi_lines = True
             d += print_class_property_docs(c)
@@ -199,7 +199,7 @@ def print_docs(c) -> str:
     return d
 
 
-def print_class_property_docs(c: model.ClassType) -> str:
+def print_class_property_docs(c: ClassType) -> str:
     off = '    '
     d = '\n\n'
     d += off + 'Attributes: '
@@ -280,7 +280,7 @@ if __name__ == '__main__':
     print('from enum import Enum')
     print('from typing import List\n')
 
-    m = model.Model.load_yaml(YAML_DIR)  # type: model.Model
+    m = Model.load_yaml(YAML_DIR)  # type: Model
     for enum in m.enums:
         print_enum(enum)
     for clazz in m.classes:
