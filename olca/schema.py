@@ -2641,9 +2641,8 @@ class Source(CategorizedEntity):
 
     Attributes
     ----------
-    doi: str
-        The digital object identifier of the source (see
-        http://en.wikipedia.org/wiki/Digital_object_identifier).
+    url: str
+        A URL that points to the source.
 
     text_reference: str
         The full text reference of the source.
@@ -2658,15 +2657,15 @@ class Source(CategorizedEntity):
 
     def __init__(self):
         super(Source, self).__init__()
-        self.doi: Optional[str] = None
+        self.url: Optional[str] = None
         self.text_reference: Optional[str] = None
         self.year: Optional[int] = None
         self.external_file: Optional[str] = None
 
     def to_json(self) -> dict:
         json: dict = super(Source, self).to_json()
-        if self.doi is not None:
-            json['doi'] = self.doi
+        if self.url is not None:
+            json['url'] = self.url
         if self.text_reference is not None:
             json['textReference'] = self.text_reference
         if self.year is not None:
@@ -2677,9 +2676,9 @@ class Source(CategorizedEntity):
 
     def from_json(self, json: dict):
         super(Source, self).from_json(json)
-        val = json.get('doi')
+        val = json.get('url')
         if val is not None:
-            self.doi = val
+            self.url = val
         val = json.get('textReference')
         if val is not None:
             self.text_reference = val
