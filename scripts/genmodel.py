@@ -246,31 +246,6 @@ def format_doc(doc: str, indent: int = 4) -> str:
     return text
 
 
-def has_prop_docs(c: model.ClassType) -> bool:
-    has_docs = False
-    for prop in c.properties:
-        if len(prop.doc) > 0:
-            return True
-    return has_docs
-
-
-def contains_link(doc: str) -> bool:
-    return doc.count('</a>') > 0
-
-
-def remove_link(doc: str) -> str:
-    result = doc
-    while result.count('</a>') > 0:
-        link_prefix_idx = result.find('<a')
-        link_close_idx = result.find('>')
-        link_suffix_idx = result.find('</a>')
-        if link_prefix_idx > 0 and link_close_idx > 0 and link_suffix_idx > 0:
-            result = result[:link_prefix_idx - 1] + \
-                     ' ' + result[link_close_idx + 1:link_suffix_idx] + \
-                     result[link_suffix_idx + 4:]
-    return result
-
-
 if __name__ == '__main__':
     print('# This module contains a Python API of the JSON-LD based')
     print('# openLCA data exchange model.package schema.')
