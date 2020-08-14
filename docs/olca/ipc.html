@@ -105,6 +105,37 @@ class Client(object):
         return self.__post(&#39;delete/model&#39;, json)
 
     def calculate(self, setup: schema.CalculationSetup) -&gt; schema.SimpleResult:
+        &#34;&#34;&#34;
+        Calculates a result for the given calculation setup.
+
+        Parameters
+        ----------
+
+        setup: olca.schema.CalculationSetup
+            The setup of the calculation.
+
+        Example
+        -------
+        ```
+        client = olca.Client()
+        setup = olca.CalculationSetup()
+        setup.calculation_type = olca.CalculationType.UPSTREAM_ANALYSIS
+        setup.product_system = olca.ref(
+            olca.ProductSystem,
+            &#39;91c2c4a5-2d9d-482e-8c8c-678d7e1b9f55&#39;
+        )
+        setup.impact_method = olca.ref(
+            olca.ImpactMethod,
+            &#39;d2c781ce-21b4-3218-8fca-78133f2c8d4d&#39;
+        )
+        setup.amount = 1.0
+        result = client.calculate(setup)
+        # do something with the result
+        # you should always dispose the result when you
+        # do not need it anymore to avoid memory leaks.
+        client.dispose(result)
+        ```
+        &#34;&#34;&#34;
         if setup is None:
             raise ValueError(&#39;Invalid calculation setup&#39;)
         resp = self.__post(&#39;calculate&#39;, setup.to_json())
@@ -211,16 +242,21 @@ class Client(object):
 
     def dispose(self, entity: schema.Entity):
         &#34;&#34;&#34;
-        Removes the given entity from the memory of the IPC server.  This is
-        required for calculation results that are hold on the server for
+        Removes the given entity from the memory of the IPC server.
+
+        This is required for calculation results that are hold on the server for
         further processing.
 
-        :param entity: The entity that should be disposed.
+        Parameters
+        ----------
+
+        entity: olca.schema.Entity
+            The entity that should be disposed.
         &#34;&#34;&#34;
         if entity is None:
             return
         arg = {&#39;@type&#39;: type(entity).__name__, &#39;@id&#39;: entity.id}
-        self.__post(&#39;dispose&#39;, arg)
+        return self.__post(&#39;dispose&#39;, arg)
 
     def shutdown_server(self):
         &#34;&#34;&#34;
@@ -401,6 +437,37 @@ that are executed via this client are thus executed on that database.</p>
         return self.__post(&#39;delete/model&#39;, json)
 
     def calculate(self, setup: schema.CalculationSetup) -&gt; schema.SimpleResult:
+        &#34;&#34;&#34;
+        Calculates a result for the given calculation setup.
+
+        Parameters
+        ----------
+
+        setup: olca.schema.CalculationSetup
+            The setup of the calculation.
+
+        Example
+        -------
+        ```
+        client = olca.Client()
+        setup = olca.CalculationSetup()
+        setup.calculation_type = olca.CalculationType.UPSTREAM_ANALYSIS
+        setup.product_system = olca.ref(
+            olca.ProductSystem,
+            &#39;91c2c4a5-2d9d-482e-8c8c-678d7e1b9f55&#39;
+        )
+        setup.impact_method = olca.ref(
+            olca.ImpactMethod,
+            &#39;d2c781ce-21b4-3218-8fca-78133f2c8d4d&#39;
+        )
+        setup.amount = 1.0
+        result = client.calculate(setup)
+        # do something with the result
+        # you should always dispose the result when you
+        # do not need it anymore to avoid memory leaks.
+        client.dispose(result)
+        ```
+        &#34;&#34;&#34;
         if setup is None:
             raise ValueError(&#39;Invalid calculation setup&#39;)
         resp = self.__post(&#39;calculate&#39;, setup.to_json())
@@ -507,16 +574,21 @@ that are executed via this client are thus executed on that database.</p>
 
     def dispose(self, entity: schema.Entity):
         &#34;&#34;&#34;
-        Removes the given entity from the memory of the IPC server.  This is
-        required for calculation results that are hold on the server for
+        Removes the given entity from the memory of the IPC server.
+
+        This is required for calculation results that are hold on the server for
         further processing.
 
-        :param entity: The entity that should be disposed.
+        Parameters
+        ----------
+
+        entity: olca.schema.Entity
+            The entity that should be disposed.
         &#34;&#34;&#34;
         if entity is None:
             return
         arg = {&#39;@type&#39;: type(entity).__name__, &#39;@id&#39;: entity.id}
-        self.__post(&#39;dispose&#39;, arg)
+        return self.__post(&#39;dispose&#39;, arg)
 
     def shutdown_server(self):
         &#34;&#34;&#34;
@@ -608,12 +680,67 @@ that are executed via this client are thus executed on that database.</p>
 <span>def <span class="ident">calculate</span></span>(<span>self, setup: <a title="olca.schema.CalculationSetup" href="schema.html#olca.schema.CalculationSetup">CalculationSetup</a>) ‑> <a title="olca.schema.SimpleResult" href="schema.html#olca.schema.SimpleResult">SimpleResult</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Calculates a result for the given calculation setup.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>setup</code></strong> :&ensp;<code><a title="olca.schema.CalculationSetup" href="schema.html#olca.schema.CalculationSetup">CalculationSetup</a></code></dt>
+<dd>The setup of the calculation.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>client = olca.Client()
+setup = olca.CalculationSetup()
+setup.calculation_type = olca.CalculationType.UPSTREAM_ANALYSIS
+setup.product_system = olca.ref(
+    olca.ProductSystem,
+    '91c2c4a5-2d9d-482e-8c8c-678d7e1b9f55'
+)
+setup.impact_method = olca.ref(
+    olca.ImpactMethod,
+    'd2c781ce-21b4-3218-8fca-78133f2c8d4d'
+)
+setup.amount = 1.0
+result = client.calculate(setup)
+# do something with the result
+# you should always dispose the result when you
+# do not need it anymore to avoid memory leaks.
+client.dispose(result)
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def calculate(self, setup: schema.CalculationSetup) -&gt; schema.SimpleResult:
+    &#34;&#34;&#34;
+    Calculates a result for the given calculation setup.
+
+    Parameters
+    ----------
+
+    setup: olca.schema.CalculationSetup
+        The setup of the calculation.
+
+    Example
+    -------
+    ```
+    client = olca.Client()
+    setup = olca.CalculationSetup()
+    setup.calculation_type = olca.CalculationType.UPSTREAM_ANALYSIS
+    setup.product_system = olca.ref(
+        olca.ProductSystem,
+        &#39;91c2c4a5-2d9d-482e-8c8c-678d7e1b9f55&#39;
+    )
+    setup.impact_method = olca.ref(
+        olca.ImpactMethod,
+        &#39;d2c781ce-21b4-3218-8fca-78133f2c8d4d&#39;
+    )
+    setup.amount = 1.0
+    result = client.calculate(setup)
+    # do something with the result
+    # you should always dispose the result when you
+    # do not need it anymore to avoid memory leaks.
+    client.dispose(result)
+    ```
+    &#34;&#34;&#34;
     if setup is None:
         raise ValueError(&#39;Invalid calculation setup&#39;)
     resp = self.__post(&#39;calculate&#39;, setup.to_json())
@@ -745,27 +872,35 @@ print('Created product system %s' % ref.id)
 <span>def <span class="ident">dispose</span></span>(<span>self, entity: <a title="olca.schema.Entity" href="schema.html#olca.schema.Entity">Entity</a>)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Removes the given entity from the memory of the IPC server.
-This is
-required for calculation results that are hold on the server for
+<div class="desc"><p>Removes the given entity from the memory of the IPC server.</p>
+<p>This is required for calculation results that are hold on the server for
 further processing.</p>
-<p>:param entity: The entity that should be disposed.</p></div>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>entity</code></strong> :&ensp;<code><a title="olca.schema.Entity" href="schema.html#olca.schema.Entity">Entity</a></code></dt>
+<dd>The entity that should be disposed.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def dispose(self, entity: schema.Entity):
     &#34;&#34;&#34;
-    Removes the given entity from the memory of the IPC server.  This is
-    required for calculation results that are hold on the server for
+    Removes the given entity from the memory of the IPC server.
+
+    This is required for calculation results that are hold on the server for
     further processing.
 
-    :param entity: The entity that should be disposed.
+    Parameters
+    ----------
+
+    entity: olca.schema.Entity
+        The entity that should be disposed.
     &#34;&#34;&#34;
     if entity is None:
         return
     arg = {&#39;@type&#39;: type(entity).__name__, &#39;@id&#39;: entity.id}
-    self.__post(&#39;dispose&#39;, arg)</code></pre>
+    return self.__post(&#39;dispose&#39;, arg)</code></pre>
 </details>
 </dd>
 <dt id="olca.ipc.Client.excel_export"><code class="name flex">

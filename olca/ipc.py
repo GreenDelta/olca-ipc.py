@@ -76,6 +76,37 @@ class Client(object):
         return self.__post('delete/model', json)
 
     def calculate(self, setup: schema.CalculationSetup) -> schema.SimpleResult:
+        """
+        Calculates a result for the given calculation setup.
+
+        Parameters
+        ----------
+
+        setup: olca.schema.CalculationSetup
+            The setup of the calculation.
+
+        Example
+        -------
+        ```
+        client = olca.Client()
+        setup = olca.CalculationSetup()
+        setup.calculation_type = olca.CalculationType.UPSTREAM_ANALYSIS
+        setup.product_system = olca.ref(
+            olca.ProductSystem,
+            '91c2c4a5-2d9d-482e-8c8c-678d7e1b9f55'
+        )
+        setup.impact_method = olca.ref(
+            olca.ImpactMethod,
+            'd2c781ce-21b4-3218-8fca-78133f2c8d4d'
+        )
+        setup.amount = 1.0
+        result = client.calculate(setup)
+        # do something with the result
+        # you should always dispose the result when you
+        # do not need it anymore to avoid memory leaks.
+        client.dispose(result)
+        ```
+        """
         if setup is None:
             raise ValueError('Invalid calculation setup')
         resp = self.__post('calculate', setup.to_json())
@@ -182,16 +213,21 @@ class Client(object):
 
     def dispose(self, entity: schema.Entity):
         """
-        Removes the given entity from the memory of the IPC server.  This is
-        required for calculation results that are hold on the server for
+        Removes the given entity from the memory of the IPC server.
+
+        This is required for calculation results that are hold on the server for
         further processing.
 
-        :param entity: The entity that should be disposed.
+        Parameters
+        ----------
+
+        entity: olca.schema.Entity
+            The entity that should be disposed.
         """
         if entity is None:
             return
         arg = {'@type': type(entity).__name__, '@id': entity.id}
-        self.__post('dispose', arg)
+        return self.__post('dispose', arg)
 
     def shutdown_server(self):
         """
