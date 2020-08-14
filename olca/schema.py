@@ -3,7 +3,7 @@
 # For more information see http://greendelta.github.io/olca-schema/
 
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 
 class AllocationType(Enum):
@@ -95,8 +95,8 @@ class Entity(object):
     """The most generic type of the openLCA data model."""
 
     def __init__(self):
-        self.id = None  # type: str
-        self.olca_type = None  # type: str
+        self.id: str = ''
+        self.olca_type: str = ''
 
     def to_json(self) -> dict:
         o_type = self.olca_type
@@ -135,13 +135,13 @@ class AllocationFactor(Entity):
 
     def __init__(self):
         super(AllocationFactor, self).__init__()
-        self.product_exchange = None  # type: Exchange
-        self.allocation_type = None  # type: AllocationType
-        self.value = None  # type: float
-        self.allocated_exchange = None  # type: Exchange
+        self.product_exchange: Optional[Exchange] = None
+        self.allocation_type: Optional[AllocationType] = None
+        self.value: Optional[float] = None
+        self.allocated_exchange: Optional[Exchange] = None
 
     def to_json(self) -> dict:
-        json = super(AllocationFactor, self).to_json()  # type: dict
+        json: dict = super(AllocationFactor, self).to_json()
         if self.product_exchange is not None:
             json['productExchange'] = self.product_exchange.to_json()
         if self.allocation_type is not None:
@@ -212,19 +212,19 @@ class CalculationSetup(Entity):
 
     def __init__(self):
         super(CalculationSetup, self).__init__()
-        self.calculation_type = None  # type: CalculationType
-        self.product_system = None  # type: Ref
-        self.impact_method = None  # type: Ref
-        self.with_costs = None  # type: bool
-        self.nw_set = None  # type: Ref
-        self.allocation_method = None  # type: AllocationType
-        self.parameter_redefs = None  # type: List[ParameterRedef]
-        self.amount = None  # type: float
-        self.unit = None  # type: Ref
-        self.flow_property = None  # type: Ref
+        self.calculation_type: Optional[CalculationType] = None
+        self.product_system: Optional[Ref] = None
+        self.impact_method: Optional[Ref] = None
+        self.with_costs: Optional[bool] = None
+        self.nw_set: Optional[Ref] = None
+        self.allocation_method: Optional[AllocationType] = None
+        self.parameter_redefs: Optional[List[ParameterRedef]] = None
+        self.amount: Optional[float] = None
+        self.unit: Optional[Ref] = None
+        self.flow_property: Optional[Ref] = None
 
     def to_json(self) -> dict:
-        json = super(CalculationSetup, self).to_json()  # type: dict
+        json: dict = super(CalculationSetup, self).to_json()
         if self.calculation_type is not None:
             json['calculationType'] = self.calculation_type.value
         if self.product_system is not None:
@@ -297,12 +297,12 @@ class DqIndicator(Entity):
 
     def __init__(self):
         super(DqIndicator, self).__init__()
-        self.name = None  # type: str
-        self.position = None  # type: int
-        self.scores = None  # type: List[DqScore]
+        self.name: Optional[str] = None
+        self.position: Optional[int] = None
+        self.scores: Optional[List[DqScore]] = None
 
     def to_json(self) -> dict:
-        json = super(DqIndicator, self).to_json()  # type: dict
+        json: dict = super(DqIndicator, self).to_json()
         if self.name is not None:
             json['name'] = self.name
         if self.position is not None:
@@ -338,13 +338,13 @@ class DqScore(Entity):
 
     def __init__(self):
         super(DqScore, self).__init__()
-        self.position = None  # type: int
-        self.label = None  # type: str
-        self.description = None  # type: str
-        self.uncertainty = None  # type: float
+        self.position: Optional[int] = None
+        self.label: Optional[str] = None
+        self.description: Optional[str] = None
+        self.uncertainty: Optional[float] = None
 
     def to_json(self) -> dict:
-        json = super(DqScore, self).to_json()  # type: dict
+        json: dict = super(DqScore, self).to_json()
         if self.position is not None:
             json['position'] = self.position
         if self.label is not None:
@@ -441,23 +441,23 @@ class Exchange(Entity):
 
     def __init__(self):
         super(Exchange, self).__init__()
-        self.internal_id = None  # type: int
-        self.avoided_product = None  # type: bool
-        self.flow = None  # type: FlowRef
-        self.flow_property = None  # type: Ref
-        self.input = None  # type: bool
-        self.quantitative_reference = None  # type: bool
-        self.base_uncertainty = None  # type: float
-        self.default_provider = None  # type: ProcessRef
-        self.amount = None  # type: float
-        self.amount_formula = None  # type: str
-        self.unit = None  # type: Ref
-        self.dq_entry = None  # type: str
-        self.uncertainty = None  # type: Uncertainty
-        self.description = None  # type: str
+        self.internal_id: Optional[int] = None
+        self.avoided_product: Optional[bool] = None
+        self.flow: Optional[FlowRef] = None
+        self.flow_property: Optional[Ref] = None
+        self.input: Optional[bool] = None
+        self.quantitative_reference: Optional[bool] = None
+        self.base_uncertainty: Optional[float] = None
+        self.default_provider: Optional[ProcessRef] = None
+        self.amount: Optional[float] = None
+        self.amount_formula: Optional[str] = None
+        self.unit: Optional[Ref] = None
+        self.dq_entry: Optional[str] = None
+        self.uncertainty: Optional[Uncertainty] = None
+        self.description: Optional[str] = None
 
     def to_json(self) -> dict:
-        json = super(Exchange, self).to_json()  # type: dict
+        json: dict = super(Exchange, self).to_json()
         if self.internal_id is not None:
             json['internalId'] = self.internal_id
         if self.avoided_product is not None:
@@ -565,12 +565,12 @@ class FlowMapRef(Entity):
 
     def __init__(self):
         super(FlowMapRef, self).__init__()
-        self.flow = None  # type: FlowRef
-        self.flow_property = None  # type: Ref
-        self.unit = None  # type: Ref
+        self.flow: Optional[FlowRef] = None
+        self.flow_property: Optional[Ref] = None
+        self.unit: Optional[Ref] = None
 
     def to_json(self) -> dict:
-        json = super(FlowMapRef, self).to_json()  # type: dict
+        json: dict = super(FlowMapRef, self).to_json()
         if self.flow is not None:
             json['flow'] = self.flow.to_json()
         if self.flow_property is not None:
@@ -636,12 +636,12 @@ class FlowPropertyFactor(Entity):
 
     def __init__(self):
         super(FlowPropertyFactor, self).__init__()
-        self.flow_property = None  # type: Ref
-        self.conversion_factor = None  # type: float
-        self.reference_flow_property = None  # type: bool
+        self.flow_property: Optional[Ref] = None
+        self.conversion_factor: Optional[float] = None
+        self.reference_flow_property: Optional[bool] = None
 
     def to_json(self) -> dict:
-        json = super(FlowPropertyFactor, self).to_json()  # type: dict
+        json: dict = super(FlowPropertyFactor, self).to_json()
         if self.flow_property is not None:
             json['flowProperty'] = self.flow_property.to_json()
         if self.conversion_factor is not None:
@@ -684,12 +684,12 @@ class FlowResult(Entity):
 
     def __init__(self):
         super(FlowResult, self).__init__()
-        self.flow = None  # type: FlowRef
-        self.input = None  # type: bool
-        self.value = None  # type: float
+        self.flow: Optional[FlowRef] = None
+        self.input: Optional[bool] = None
+        self.value: Optional[float] = None
 
     def to_json(self) -> dict:
-        json = super(FlowResult, self).to_json()  # type: dict
+        json: dict = super(FlowResult, self).to_json()
         if self.flow is not None:
             json['flow'] = self.flow.to_json()
         if self.input is not None:
@@ -741,15 +741,15 @@ class ImpactFactor(Entity):
 
     def __init__(self):
         super(ImpactFactor, self).__init__()
-        self.flow = None  # type: FlowRef
-        self.flow_property = None  # type: Ref
-        self.unit = None  # type: Ref
-        self.value = None  # type: float
-        self.formula = None  # type: str
-        self.uncertainty = None  # type: Uncertainty
+        self.flow: Optional[FlowRef] = None
+        self.flow_property: Optional[Ref] = None
+        self.unit: Optional[Ref] = None
+        self.value: Optional[float] = None
+        self.formula: Optional[str] = None
+        self.uncertainty: Optional[Uncertainty] = None
 
     def to_json(self) -> dict:
-        json = super(ImpactFactor, self).to_json()  # type: dict
+        json: dict = super(ImpactFactor, self).to_json()
         if self.flow is not None:
             json['flow'] = self.flow.to_json()
         if self.flow_property is not None:
@@ -807,11 +807,11 @@ class ImpactResult(Entity):
 
     def __init__(self):
         super(ImpactResult, self).__init__()
-        self.impact_category = None  # type: ImpactCategoryRef
-        self.value = None  # type: float
+        self.impact_category: Optional[ImpactCategoryRef] = None
+        self.value: Optional[float] = None
 
     def to_json(self) -> dict:
-        json = super(ImpactResult, self).to_json()  # type: dict
+        json: dict = super(ImpactResult, self).to_json()
         if self.impact_category is not None:
             json['impactCategory'] = self.impact_category.to_json()
         if self.value is not None:
@@ -833,18 +833,18 @@ class Parameter(Entity):
 
     def __init__(self):
         super(Parameter, self).__init__()
-        self.name = None  # type: str
-        self.description = None  # type: str
-        self.parameter_scope = None  # type: ParameterScope
-        self.input_parameter = None  # type: bool
-        self.value = None  # type: float
-        self.formula = None  # type: str
-        self.external_source = None  # type: str
-        self.source_type = None  # type: str
-        self.uncertainty = None  # type: Uncertainty
+        self.name: Optional[str] = None
+        self.description: Optional[str] = None
+        self.parameter_scope: Optional[ParameterScope] = None
+        self.input_parameter: Optional[bool] = None
+        self.value: Optional[float] = None
+        self.formula: Optional[str] = None
+        self.external_source: Optional[str] = None
+        self.source_type: Optional[str] = None
+        self.uncertainty: Optional[Uncertainty] = None
 
     def to_json(self) -> dict:
-        json = super(Parameter, self).to_json()  # type: dict
+        json: dict = super(Parameter, self).to_json()
         if self.name is not None:
             json['name'] = self.name
         if self.description is not None:
@@ -918,12 +918,12 @@ class ParameterRedef(Entity):
 
     def __init__(self):
         super(ParameterRedef, self).__init__()
-        self.name = None  # type: str
-        self.value = None  # type: float
-        self.context = None  # type: Ref
+        self.name: Optional[str] = None
+        self.value: Optional[float] = None
+        self.context: Optional[Ref] = None
 
     def to_json(self) -> dict:
-        json = super(ParameterRedef, self).to_json()  # type: dict
+        json: dict = super(ParameterRedef, self).to_json()
         if self.name is not None:
             json['name'] = self.name
         if self.value is not None:
@@ -950,33 +950,33 @@ class ProcessDocumentation(Entity):
 
     def __init__(self):
         super(ProcessDocumentation, self).__init__()
-        self.time_description = None  # type: str
-        self.valid_until = None  # type: str
-        self.valid_from = None  # type: str
-        self.technology_description = None  # type: str
-        self.data_collection_description = None  # type: str
-        self.completeness_description = None  # type: str
-        self.data_selection_description = None  # type: str
-        self.review_details = None  # type: str
-        self.data_treatment_description = None  # type: str
-        self.inventory_method_description = None  # type: str
-        self.modeling_constants_description = None  # type: str
-        self.reviewer = None  # type: Ref
-        self.sampling_description = None  # type: str
-        self.sources = None  # type: List[Ref]
-        self.restrictions_description = None  # type: str
-        self.copyright = None  # type: bool
-        self.creation_date = None  # type: str
-        self.data_documentor = None  # type: Ref
-        self.data_generator = None  # type: Ref
-        self.data_set_owner = None  # type: Ref
-        self.intended_application = None  # type: str
-        self.project_description = None  # type: str
-        self.publication = None  # type: Ref
-        self.geography_description = None  # type: str
+        self.time_description: Optional[str] = None
+        self.valid_until: Optional[str] = None
+        self.valid_from: Optional[str] = None
+        self.technology_description: Optional[str] = None
+        self.data_collection_description: Optional[str] = None
+        self.completeness_description: Optional[str] = None
+        self.data_selection_description: Optional[str] = None
+        self.review_details: Optional[str] = None
+        self.data_treatment_description: Optional[str] = None
+        self.inventory_method_description: Optional[str] = None
+        self.modeling_constants_description: Optional[str] = None
+        self.reviewer: Optional[Ref] = None
+        self.sampling_description: Optional[str] = None
+        self.sources: Optional[List[Ref]] = None
+        self.restrictions_description: Optional[str] = None
+        self.copyright: Optional[bool] = None
+        self.creation_date: Optional[str] = None
+        self.data_documentor: Optional[Ref] = None
+        self.data_generator: Optional[Ref] = None
+        self.data_set_owner: Optional[Ref] = None
+        self.intended_application: Optional[str] = None
+        self.project_description: Optional[str] = None
+        self.publication: Optional[Ref] = None
+        self.geography_description: Optional[str] = None
 
     def to_json(self) -> dict:
-        json = super(ProcessDocumentation, self).to_json()  # type: dict
+        json: dict = super(ProcessDocumentation, self).to_json()
         if self.time_description is not None:
             json['timeDescription'] = self.time_description
         if self.valid_until is not None:
@@ -1139,13 +1139,13 @@ class ProcessLink(Entity):
 
     def __init__(self):
         super(ProcessLink, self).__init__()
-        self.provider = None  # type: Ref
-        self.flow = None  # type: Ref
-        self.process = None  # type: Ref
-        self.exchange = None  # type: Exchange
+        self.provider: Optional[Ref] = None
+        self.flow: Optional[Ref] = None
+        self.process: Optional[Ref] = None
+        self.exchange: Optional[Exchange] = None
 
     def to_json(self) -> dict:
-        json = super(ProcessLink, self).to_json()  # type: dict
+        json: dict = super(ProcessLink, self).to_json()
         if self.provider is not None:
             json['provider'] = self.provider.to_json()
         if self.flow is not None:
@@ -1203,13 +1203,13 @@ class RootEntity(Entity):
 
     def __init__(self):
         super(RootEntity, self).__init__()
-        self.name = None  # type: str
-        self.description = None  # type: str
-        self.version = None  # type: str
-        self.last_change = None  # type: str
+        self.name: Optional[str] = None
+        self.description: Optional[str] = None
+        self.version: Optional[str] = None
+        self.last_change: Optional[str] = None
 
     def to_json(self) -> dict:
-        json = super(RootEntity, self).to_json()  # type: dict
+        json: dict = super(RootEntity, self).to_json()
         if self.name is not None:
             json['name'] = self.name
         if self.description is not None:
@@ -1240,11 +1240,11 @@ class SimpleResult(Entity):
 
     def __init__(self):
         super(SimpleResult, self).__init__()
-        self.flow_results = None  # type: List[FlowResult]
-        self.impact_results = None  # type: List[ImpactResult]
+        self.flow_results: Optional[List[FlowResult]] = None
+        self.impact_results: Optional[List[ImpactResult]] = None
 
     def to_json(self) -> dict:
-        json = super(SimpleResult, self).to_json()  # type: dict
+        json: dict = super(SimpleResult, self).to_json()
         if self.flow_results is not None:
             json['flowResults'] = []
             for e in self.flow_results:
@@ -1330,24 +1330,24 @@ class Uncertainty(Entity):
 
     def __init__(self):
         super(Uncertainty, self).__init__()
-        self.distribution_type = None  # type: UncertaintyType
-        self.mean = None  # type: float
-        self.mean_formula = None  # type: str
-        self.geom_mean = None  # type: float
-        self.geom_mean_formula = None  # type: str
-        self.minimum = None  # type: float
-        self.minimum_formula = None  # type: str
-        self.sd = None  # type: float
-        self.sd_formula = None  # type: str
-        self.geom_sd = None  # type: float
-        self.geom_sd_formula = None  # type: str
-        self.mode = None  # type: float
-        self.mode_formula = None  # type: str
-        self.maximum = None  # type: float
-        self.maximum_formula = None  # type: str
+        self.distribution_type: Optional[UncertaintyType] = None
+        self.mean: Optional[float] = None
+        self.mean_formula: Optional[str] = None
+        self.geom_mean: Optional[float] = None
+        self.geom_mean_formula: Optional[str] = None
+        self.minimum: Optional[float] = None
+        self.minimum_formula: Optional[str] = None
+        self.sd: Optional[float] = None
+        self.sd_formula: Optional[str] = None
+        self.geom_sd: Optional[float] = None
+        self.geom_sd_formula: Optional[str] = None
+        self.mode: Optional[float] = None
+        self.mode_formula: Optional[str] = None
+        self.maximum: Optional[float] = None
+        self.maximum_formula: Optional[str] = None
 
     def to_json(self) -> dict:
-        json = super(Uncertainty, self).to_json()  # type: dict
+        json: dict = super(Uncertainty, self).to_json()
         if self.distribution_type is not None:
             json['distributionType'] = self.distribution_type.value
         if self.mean is not None:
@@ -1442,10 +1442,10 @@ class CategorizedEntity(RootEntity):
 
     def __init__(self):
         super(CategorizedEntity, self).__init__()
-        self.category = None  # type: Ref
+        self.category: Optional[Ref] = None
 
     def to_json(self) -> dict:
-        json = super(CategorizedEntity, self).to_json()  # type: dict
+        json: dict = super(CategorizedEntity, self).to_json()
         if self.category is not None:
             json['category'] = self.category.to_json()
         return json
@@ -1478,12 +1478,12 @@ class FlowMap(RootEntity):
 
     def __init__(self):
         super(FlowMap, self).__init__()
-        self.source = None  # type: Ref
-        self.target = None  # type: Ref
-        self.mappings = None  # type: List[FlowMapEntry]
+        self.source: Optional[Ref] = None
+        self.target: Optional[Ref] = None
+        self.mappings: Optional[List[FlowMapEntry]] = None
 
     def to_json(self) -> dict:
-        json = super(FlowMap, self).to_json()  # type: dict
+        json: dict = super(FlowMap, self).to_json()
         if self.source is not None:
             json['source'] = self.source.to_json()
         if self.target is not None:
@@ -1532,12 +1532,12 @@ class FlowMapEntry(RootEntity):
 
     def __init__(self):
         super(FlowMapEntry, self).__init__()
-        self.from_ = None  # type: FlowMapRef
-        self.to = None  # type: FlowMapRef
-        self.conversion_factor = None  # type: float
+        self.from_: Optional[FlowMapRef] = None
+        self.to: Optional[FlowMapRef] = None
+        self.conversion_factor: Optional[float] = None
 
     def to_json(self) -> dict:
-        json = super(FlowMapEntry, self).to_json()  # type: dict
+        json: dict = super(FlowMapEntry, self).to_json()
         if self.from_ is not None:
             json['from'] = self.from_.to_json()
         if self.to is not None:
@@ -1579,11 +1579,11 @@ class ImpactCategory(RootEntity):
 
     def __init__(self):
         super(ImpactCategory, self).__init__()
-        self.reference_unit_name = None  # type: str
-        self.impact_factors = None  # type: List[ImpactFactor]
+        self.reference_unit_name: Optional[str] = None
+        self.impact_factors: Optional[List[ImpactFactor]] = None
 
     def to_json(self) -> dict:
-        json = super(ImpactCategory, self).to_json()  # type: dict
+        json: dict = super(ImpactCategory, self).to_json()
         if self.reference_unit_name is not None:
             json['referenceUnitName'] = self.reference_unit_name
         if self.impact_factors is not None:
@@ -1628,13 +1628,13 @@ class Location(RootEntity):
 
     def __init__(self):
         super(Location, self).__init__()
-        self.code = None  # type: str
-        self.latitude = None  # type: float
-        self.longitude = None  # type: float
-        self.kml = None  # type: str
+        self.code: Optional[str] = None
+        self.latitude: Optional[float] = None
+        self.longitude: Optional[float] = None
+        self.kml: Optional[str] = None
 
     def to_json(self) -> dict:
-        json = super(Location, self).to_json()  # type: dict
+        json: dict = super(Location, self).to_json()
         if self.code is not None:
             json['code'] = self.code
         if self.latitude is not None:
@@ -1681,10 +1681,10 @@ class Ref(RootEntity):
 
     def __init__(self):
         super(Ref, self).__init__()
-        self.category_path = None  # type: List[str]
+        self.category_path: Optional[List[str]] = None
 
     def to_json(self) -> dict:
-        json = super(Ref, self).to_json()  # type: dict
+        json: dict = super(Ref, self).to_json()
         if self.category_path is not None:
             json['categoryPath'] = []
             for e in self.category_path:
@@ -1725,12 +1725,12 @@ class Unit(RootEntity):
 
     def __init__(self):
         super(Unit, self).__init__()
-        self.conversion_factor = None  # type: float
-        self.reference_unit = None  # type: bool
-        self.synonyms = None  # type: List[str]
+        self.conversion_factor: Optional[float] = None
+        self.reference_unit: Optional[bool] = None
+        self.synonyms: Optional[List[str]] = None
 
     def to_json(self) -> dict:
-        json = super(Unit, self).to_json()  # type: dict
+        json: dict = super(Unit, self).to_json()
         if self.conversion_factor is not None:
             json['conversionFactor'] = self.conversion_factor
         if self.reference_unit is not None:
@@ -1762,17 +1762,17 @@ class Actor(CategorizedEntity):
 
     def __init__(self):
         super(Actor, self).__init__()
-        self.address = None  # type: str
-        self.city = None  # type: str
-        self.country = None  # type: str
-        self.email = None  # type: str
-        self.telefax = None  # type: str
-        self.telephone = None  # type: str
-        self.website = None  # type: str
-        self.zip_code = None  # type: str
+        self.address: Optional[str] = None
+        self.city: Optional[str] = None
+        self.country: Optional[str] = None
+        self.email: Optional[str] = None
+        self.telefax: Optional[str] = None
+        self.telephone: Optional[str] = None
+        self.website: Optional[str] = None
+        self.zip_code: Optional[str] = None
 
     def to_json(self) -> dict:
-        json = super(Actor, self).to_json()  # type: dict
+        json: dict = super(Actor, self).to_json()
         if self.address is not None:
             json['address'] = self.address
         if self.city is not None:
@@ -1836,10 +1836,10 @@ class Category(CategorizedEntity):
 
     def __init__(self):
         super(Category, self).__init__()
-        self.model_type = None  # type: ModelType
+        self.model_type: Optional[ModelType] = None
 
     def to_json(self) -> dict:
-        json = super(Category, self).to_json()  # type: dict
+        json: dict = super(Category, self).to_json()
         if self.model_type is not None:
             json['modelType'] = self.model_type.value
         return json
@@ -1856,12 +1856,12 @@ class DqSystem(CategorizedEntity):
 
     def __init__(self):
         super(DqSystem, self).__init__()
-        self.has_uncertainties = None  # type: bool
-        self.source = None  # type: Ref
-        self.indicators = None  # type: List[DqIndicator]
+        self.has_uncertainties: Optional[bool] = None
+        self.source: Optional[Ref] = None
+        self.indicators: Optional[List[DqIndicator]] = None
 
     def to_json(self) -> dict:
-        json = super(DqSystem, self).to_json()  # type: dict
+        json: dict = super(DqSystem, self).to_json()
         if self.has_uncertainties is not None:
             json['hasUncertainties'] = self.has_uncertainties
         if self.source is not None:
@@ -1922,14 +1922,14 @@ class Flow(CategorizedEntity):
 
     def __init__(self):
         super(Flow, self).__init__()
-        self.flow_type = None  # type: FlowType
-        self.cas = None  # type: str
-        self.formula = None  # type: str
-        self.flow_properties = None  # type: List[FlowPropertyFactor]
-        self.location = None  # type: Ref
+        self.flow_type: Optional[FlowType] = None
+        self.cas: Optional[str] = None
+        self.formula: Optional[str] = None
+        self.flow_properties: Optional[List[FlowPropertyFactor]] = None
+        self.location: Optional[Ref] = None
 
     def to_json(self) -> dict:
-        json = super(Flow, self).to_json()  # type: dict
+        json: dict = super(Flow, self).to_json()
         if self.flow_type is not None:
             json['flowType'] = self.flow_type.value
         if self.cas is not None:
@@ -1985,11 +1985,11 @@ class FlowProperty(CategorizedEntity):
 
     def __init__(self):
         super(FlowProperty, self).__init__()
-        self.flow_property_type = None  # type: FlowPropertyType
-        self.unit_group = None  # type: Ref
+        self.flow_property_type: Optional[FlowPropertyType] = None
+        self.unit_group: Optional[Ref] = None
 
     def to_json(self) -> dict:
-        json = super(FlowProperty, self).to_json()  # type: dict
+        json: dict = super(FlowProperty, self).to_json()
         if self.flow_property_type is not None:
             json['flowPropertyType'] = self.flow_property_type.value
         if self.unit_group is not None:
@@ -2027,12 +2027,12 @@ class FlowRef(Ref):
 
     def __init__(self):
         super(FlowRef, self).__init__()
-        self.ref_unit = None  # type: str
-        self.location = None  # type: str
-        self.flow_type = None  # type: FlowType
+        self.ref_unit: Optional[str] = None
+        self.location: Optional[str] = None
+        self.flow_type: Optional[FlowType] = None
 
     def to_json(self) -> dict:
-        json = super(FlowRef, self).to_json()  # type: dict
+        json: dict = super(FlowRef, self).to_json()
         if self.ref_unit is not None:
             json['refUnit'] = self.ref_unit
         if self.location is not None:
@@ -2067,10 +2067,10 @@ class ImpactCategoryRef(Ref):
 
     def __init__(self):
         super(ImpactCategoryRef, self).__init__()
-        self.ref_unit = None  # type: str
+        self.ref_unit: Optional[str] = None
 
     def to_json(self) -> dict:
-        json = super(ImpactCategoryRef, self).to_json()  # type: dict
+        json: dict = super(ImpactCategoryRef, self).to_json()
         if self.ref_unit is not None:
             json['refUnit'] = self.ref_unit
         return json
@@ -2099,11 +2099,11 @@ class ImpactMethod(CategorizedEntity):
 
     def __init__(self):
         super(ImpactMethod, self).__init__()
-        self.impact_categories = None  # type: List[ImpactCategoryRef]
-        self.parameters = None  # type: List[Parameter]
+        self.impact_categories: Optional[List[ImpactCategoryRef]] = None
+        self.parameters: Optional[List[Parameter]] = None
 
     def to_json(self) -> dict:
-        json = super(ImpactMethod, self).to_json()  # type: dict
+        json: dict = super(ImpactMethod, self).to_json()
         if self.impact_categories is not None:
             json['impactCategories'] = []
             for e in self.impact_categories:
@@ -2136,20 +2136,20 @@ class Process(CategorizedEntity):
 
     def __init__(self):
         super(Process, self).__init__()
-        self.default_allocation_method = None  # type: AllocationType
-        self.allocation_factors = None  # type: List[AllocationFactor]
-        self.exchanges = None  # type: List[Exchange]
-        self.location = None  # type: Location
-        self.parameters = None  # type: List[Parameter]
-        self.process_documentation = None  # type: ProcessDocumentation
-        self.process_type = None  # type: ProcessType
-        self.dq_system = None  # type: Ref
-        self.exchange_dq_system = None  # type: Ref
-        self.social_dq_system = None  # type: Ref
-        self.dq_entry = None  # type: str
+        self.default_allocation_method: Optional[AllocationType] = None
+        self.allocation_factors: Optional[List[AllocationFactor]] = None
+        self.exchanges: Optional[List[Exchange]] = None
+        self.location: Optional[Location] = None
+        self.parameters: Optional[List[Parameter]] = None
+        self.process_documentation: Optional[ProcessDocumentation] = None
+        self.process_type: Optional[ProcessType] = None
+        self.dq_system: Optional[Ref] = None
+        self.exchange_dq_system: Optional[Ref] = None
+        self.social_dq_system: Optional[Ref] = None
+        self.dq_entry: Optional[str] = None
 
     def to_json(self) -> dict:
-        json = super(Process, self).to_json()  # type: dict
+        json: dict = super(Process, self).to_json()
         if self.default_allocation_method is not None:
             json['defaultAllocationMethod'] = self.default_allocation_method.value
         if self.allocation_factors is not None:
@@ -2250,11 +2250,11 @@ class ProcessRef(Ref):
 
     def __init__(self):
         super(ProcessRef, self).__init__()
-        self.location = None  # type: str
-        self.process_type = None  # type: ProcessType
+        self.location: Optional[str] = None
+        self.process_type: Optional[ProcessType] = None
 
     def to_json(self) -> dict:
-        json = super(ProcessRef, self).to_json()  # type: dict
+        json: dict = super(ProcessRef, self).to_json()
         if self.location is not None:
             json['location'] = self.location
         if self.process_type is not None:
@@ -2308,16 +2308,16 @@ class ProductSystem(CategorizedEntity):
 
     def __init__(self):
         super(ProductSystem, self).__init__()
-        self.processes = None  # type: List[ProcessRef]
-        self.reference_process = None  # type: ProcessRef
-        self.reference_exchange = None  # type: Exchange
-        self.target_amount = None  # type: float
-        self.target_unit = None  # type: Ref
-        self.target_flow_property = None  # type: Ref
-        self.process_links = None  # type: List[ProcessLink]
+        self.processes: Optional[List[ProcessRef]] = None
+        self.reference_process: Optional[ProcessRef] = None
+        self.reference_exchange: Optional[Exchange] = None
+        self.target_amount: Optional[float] = None
+        self.target_unit: Optional[Ref] = None
+        self.target_flow_property: Optional[Ref] = None
+        self.process_links: Optional[List[ProcessLink]] = None
 
     def to_json(self) -> dict:
-        json = super(ProductSystem, self).to_json()  # type: dict
+        json: dict = super(ProductSystem, self).to_json()
         if self.processes is not None:
             json['processes'] = []
             for e in self.processes:
@@ -2379,14 +2379,14 @@ class SocialIndicator(CategorizedEntity):
 
     def __init__(self):
         super(SocialIndicator, self).__init__()
-        self.activity_variable = None  # type: str
-        self.activity_quantity = None  # type: Ref
-        self.activity_unit = None  # type: Ref
-        self.unit_of_measurement = None  # type: str
-        self.evaluation_scheme = None  # type: str
+        self.activity_variable: Optional[str] = None
+        self.activity_quantity: Optional[Ref] = None
+        self.activity_unit: Optional[Ref] = None
+        self.unit_of_measurement: Optional[str] = None
+        self.evaluation_scheme: Optional[str] = None
 
     def to_json(self) -> dict:
-        json = super(SocialIndicator, self).to_json()  # type: dict
+        json: dict = super(SocialIndicator, self).to_json()
         if self.activity_variable is not None:
             json['activityVariable'] = self.activity_variable
         if self.activity_quantity is not None:
@@ -2443,13 +2443,13 @@ class Source(CategorizedEntity):
 
     def __init__(self):
         super(Source, self).__init__()
-        self.doi = None  # type: str
-        self.text_reference = None  # type: str
-        self.year = None  # type: int
-        self.external_file = None  # type: str
+        self.doi: Optional[str] = None
+        self.text_reference: Optional[str] = None
+        self.year: Optional[int] = None
+        self.external_file: Optional[str] = None
 
     def to_json(self) -> dict:
-        json = super(Source, self).to_json()  # type: dict
+        json: dict = super(Source, self).to_json()
         if self.doi is not None:
             json['doi'] = self.doi
         if self.text_reference is not None:
@@ -2494,11 +2494,11 @@ class UnitGroup(CategorizedEntity):
 
     def __init__(self):
         super(UnitGroup, self).__init__()
-        self.default_flow_property = None  # type: Ref
-        self.units = None  # type: List[Unit]
+        self.default_flow_property: Optional[Ref] = None
+        self.units: Optional[List[Unit]] = None
 
     def to_json(self) -> dict:
-        json = super(UnitGroup, self).to_json()  # type: dict
+        json: dict = super(UnitGroup, self).to_json()
         if self.default_flow_property is not None:
             json['defaultFlowProperty'] = self.default_flow_property.to_json()
         if self.units is not None:

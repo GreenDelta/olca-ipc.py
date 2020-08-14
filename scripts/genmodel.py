@@ -68,14 +68,14 @@ def print_class(c: model.ClassType, m: model.Model):
         t += print_docs(c)
     t += '    def __init__(self):\n'
     if c.name == 'Entity':
-        t += '        self.id = None  # type: str\n'
-        t += '        self.olca_type = None  # type: str\n'
+        t += '        self.id: str = \'\'\n'
+        t += '        self.olca_type: str = \'\'\n'
     else:
         t += '        super(%s, self).__init__()\n' % c.name
     for prop in c.properties:
         attr = to_snake_case(prop.name)
         ptype = py_type(prop.field_type)
-        t += '        self.%s = None  # type: %s\n' % (attr, ptype)
+        t += '        self.%s: Optional[%s] = None\n' % (attr, ptype)
     print(t)
     print_to_json(c, m)
     print_from_json(c, m)
@@ -93,7 +93,7 @@ def print_to_json(c: model.ClassType, m: model.Model):
         t += off + "    json['@id'] = self.id\n"
         t += off + 'return json\n'
     else:
-        t += off + 'json = super(%s, self).to_json()  # type: dict\n' % c.name
+        t += off + 'json: dict = super(%s, self).to_json()\n' % c.name
         for prop in c.properties:
             attr = to_snake_case(prop.name)
             t += off + 'if self.%s is not None:\n' % attr
@@ -306,7 +306,7 @@ if __name__ == '__main__':
     print('# For more information see '
           'http://greendelta.github.io/olca-schema/\n')
     print('from enum import Enum')
-    print('from typing import List\n')
+    print('from typing import List, Optional\n')
 
     m = model.Model.load_yaml(YAML_DIR)  # type: model.Model
     for enum in m.enums:
