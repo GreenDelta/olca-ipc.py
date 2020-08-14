@@ -210,4 +210,4 @@ the simulator should be disposed when it is not used anymore:
 
 
 For more information and examples see the
-`package documentation <https://olca-ipc.readthedocs.io/en/latest/>`_
+`package documentation <https://greendelta.github.io/olca-ipc.py/olca/>`_
