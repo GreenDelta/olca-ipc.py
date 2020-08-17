@@ -158,6 +158,39 @@ class Client(object):
 
         olca.schema.Ref
             A reference to an simulator instance.
+
+        Example
+        -------
+        ```python
+        import olca
+
+        client = olca.Client()
+        # creating the calculation setup
+        setup = olca.CalculationSetup()
+        setup.calculation_type = olca.CalculationType.MONTE_CARLO_SIMULATION
+        setup.impact_method = client.find(olca.ImpactMethod, &#39;TRACI [v2.1, February 2014]&#39;)
+        setup.product_system = client.find(olca.ProductSystem, &#39;compost plant, open&#39;)
+        setup.amount = 1.0
+
+        # create the simulator
+        simulator = client.simulator(setup)
+
+        for i in range(0, 10):
+            result = client.next_simulation(simulator)
+            first_impact = result.impact_results[0]
+            print(&#39;iteration %i: result for %s = %4.4f&#39; %
+                  (i, first_impact.impact_category.name, first_impact.value))
+            # we do not have to dispose the result here (it is not cached
+            # in openLCA); but we need to dispose the simulator later (see below)
+
+        # export the complete result of all simulations
+        client.excel_export(simulator, &#39;simulation_result.xlsx&#39;)
+
+        # the result remains accessible (for exports etc.) until
+        # you dispose it, which you should always do when you do
+        # not need it anymore
+        client.dispose(simulator)
+        ```
         &#34;&#34;&#34;
         if setup is None:
             raise ValueError(&#39;Invalid calculation setup&#39;)
@@ -168,8 +201,16 @@ class Client(object):
     def next_simulation(self, simulator: schema.Ref) -&gt; schema.SimpleResult:
         &#34;&#34;&#34;
         Runs the next Monte-Carlo simulation with the given simulator reference.
-        It returns the simulation result which is not cached on the openLCA
-        side as the simulator with the single results is cached.
+        It returns the result of the simulation. Note that this result is not
+        cached (the simulator is cached).
+        See [the simulator example](#olca.ipc.Client.simulator).
+
+        Parameters
+        ----------
+        simulator: olca.schema.Ref
+            The reference to the simulator which is called to run the next
+            simulation step.
+
         &#34;&#34;&#34;
         if simulator is None:
             raise ValueError(&#39;No simulator given&#39;)
@@ -251,7 +292,25 @@ class Client(object):
         ----------
 
         entity: olca.schema.Entity
-            The entity that should be disposed.
+            The entity that should be disposed (typically a result).
+
+        Example
+        -------
+        ```python
+        client = olca.Client()
+        setup = olca.CalculationSetup()
+        setup.calculation_type = olca.CalculationType.UPSTREAM_ANALYSIS
+        setup.product_system = olca.ref(
+          olca.ProductSystem,
+          &#39;7d1cbce0-b5b3-47ba-95b5-014ab3c7f569&#39;
+        )
+        setup.amount = 1.0
+        result = client.calculate(setup)
+        # do something with the result
+        # ...
+        response = client.dispose(result)
+        print(response)  # should print `ok`
+        ```
         &#34;&#34;&#34;
         if entity is None:
             return
@@ -324,6 +383,49 @@ class Client(object):
         ref.from_json(r)
         return ref
 
+    def lci_total_requirements(self, result: schema.SimpleResult) -&gt; dict:
+        &#34;&#34;&#34;
+        Returns the total requirements of the given result.
+
+        The total requirements are the product amounts that are required to
+        fulfill the demand of the product system. As our technology matrix
+        \\(A\\) is indexed symmetrically (means rows and columns refer to the
+        same process-product pair) our product amounts are on the diagonal of
+        the technology matrix and the total requirements can be calculated by
+        the following equation where \\(s\\) is the scaling vector (
+        \\(\\odot\\) denotes element-wise multiplication):
+
+        $$t = diag(A) \odot s$$
+
+        Parameters
+        ----------
+        result: olca.schema.SimpleResult
+            The simple result from which the total requirements should be
+            returned.
+
+        Example
+        -------
+        ```python
+        import olca
+
+        client = olca.Client()
+        setup = olca.CalculationSetup()
+        setup.calculation_type = olca.CalculationType.UPSTREAM_ANALYSIS
+        setup.product_system = olca.ref(
+            olca.ProductSystem,
+            &#39;7d1cbce0-b5b3-47ba-95b5-014ab3c7f569&#39;
+        )
+        setup.amount = 1.0
+        result = client.calculate(setup)
+        print(client.lci_total_requirements(result))
+        client.dispose(result)
+        ```
+        &#34;&#34;&#34;
+
+        return self.__post(&#39;get/inventory/total_requirements&#39;, {
+            &#39;resultId&#39;: result.id
+        })
+
     def __post(self, method: str, params) -&gt; dict:
         req = {
             &#39;jsonrpc&#39;: &#39;2.0&#39;,
@@ -335,7 +437,8 @@ class Client(object):
         resp = requests.post(self.url, json=req).json()  # type: dict
         err = resp.get(&#39;error&#39;)  # type: dict
         if err is not None:
-            raise Exception(&#39;%i: %s&#39; % (err.get(&#39;code&#39;), err.get(&#39;message&#39;)))
+            msg = &#39;%i: %s&#39; % (err.get(&#39;code&#39;), err.get(&#39;message&#39;))
+            raise Exception(msg)
         result = resp.get(&#39;result&#39;)
         if result is None:
             raise Exception(
@@ -490,6 +593,39 @@ that are executed via this client are thus executed on that database.</p>
 
         olca.schema.Ref
             A reference to an simulator instance.
+
+        Example
+        -------
+        ```python
+        import olca
+
+        client = olca.Client()
+        # creating the calculation setup
+        setup = olca.CalculationSetup()
+        setup.calculation_type = olca.CalculationType.MONTE_CARLO_SIMULATION
+        setup.impact_method = client.find(olca.ImpactMethod, &#39;TRACI [v2.1, February 2014]&#39;)
+        setup.product_system = client.find(olca.ProductSystem, &#39;compost plant, open&#39;)
+        setup.amount = 1.0
+
+        # create the simulator
+        simulator = client.simulator(setup)
+
+        for i in range(0, 10):
+            result = client.next_simulation(simulator)
+            first_impact = result.impact_results[0]
+            print(&#39;iteration %i: result for %s = %4.4f&#39; %
+                  (i, first_impact.impact_category.name, first_impact.value))
+            # we do not have to dispose the result here (it is not cached
+            # in openLCA); but we need to dispose the simulator later (see below)
+
+        # export the complete result of all simulations
+        client.excel_export(simulator, &#39;simulation_result.xlsx&#39;)
+
+        # the result remains accessible (for exports etc.) until
+        # you dispose it, which you should always do when you do
+        # not need it anymore
+        client.dispose(simulator)
+        ```
         &#34;&#34;&#34;
         if setup is None:
             raise ValueError(&#39;Invalid calculation setup&#39;)
@@ -500,8 +636,16 @@ that are executed via this client are thus executed on that database.</p>
     def next_simulation(self, simulator: schema.Ref) -&gt; schema.SimpleResult:
         &#34;&#34;&#34;
         Runs the next Monte-Carlo simulation with the given simulator reference.
-        It returns the simulation result which is not cached on the openLCA
-        side as the simulator with the single results is cached.
+        It returns the result of the simulation. Note that this result is not
+        cached (the simulator is cached).
+        See [the simulator example](#olca.ipc.Client.simulator).
+
+        Parameters
+        ----------
+        simulator: olca.schema.Ref
+            The reference to the simulator which is called to run the next
+            simulation step.
+
         &#34;&#34;&#34;
         if simulator is None:
             raise ValueError(&#39;No simulator given&#39;)
@@ -583,7 +727,25 @@ that are executed via this client are thus executed on that database.</p>
         ----------
 
         entity: olca.schema.Entity
-            The entity that should be disposed.
+            The entity that should be disposed (typically a result).
+
+        Example
+        -------
+        ```python
+        client = olca.Client()
+        setup = olca.CalculationSetup()
+        setup.calculation_type = olca.CalculationType.UPSTREAM_ANALYSIS
+        setup.product_system = olca.ref(
+          olca.ProductSystem,
+          &#39;7d1cbce0-b5b3-47ba-95b5-014ab3c7f569&#39;
+        )
+        setup.amount = 1.0
+        result = client.calculate(setup)
+        # do something with the result
+        # ...
+        response = client.dispose(result)
+        print(response)  # should print `ok`
+        ```
         &#34;&#34;&#34;
         if entity is None:
             return
@@ -656,6 +818,49 @@ that are executed via this client are thus executed on that database.</p>
         ref.from_json(r)
         return ref
 
+    def lci_total_requirements(self, result: schema.SimpleResult) -&gt; dict:
+        &#34;&#34;&#34;
+        Returns the total requirements of the given result.
+
+        The total requirements are the product amounts that are required to
+        fulfill the demand of the product system. As our technology matrix
+        \\(A\\) is indexed symmetrically (means rows and columns refer to the
+        same process-product pair) our product amounts are on the diagonal of
+        the technology matrix and the total requirements can be calculated by
+        the following equation where \\(s\\) is the scaling vector (
+        \\(\\odot\\) denotes element-wise multiplication):
+
+        $$t = diag(A) \odot s$$
+
+        Parameters
+        ----------
+        result: olca.schema.SimpleResult
+            The simple result from which the total requirements should be
+            returned.
+
+        Example
+        -------
+        ```python
+        import olca
+
+        client = olca.Client()
+        setup = olca.CalculationSetup()
+        setup.calculation_type = olca.CalculationType.UPSTREAM_ANALYSIS
+        setup.product_system = olca.ref(
+            olca.ProductSystem,
+            &#39;7d1cbce0-b5b3-47ba-95b5-014ab3c7f569&#39;
+        )
+        setup.amount = 1.0
+        result = client.calculate(setup)
+        print(client.lci_total_requirements(result))
+        client.dispose(result)
+        ```
+        &#34;&#34;&#34;
+
+        return self.__post(&#39;get/inventory/total_requirements&#39;, {
+            &#39;resultId&#39;: result.id
+        })
+
     def __post(self, method: str, params) -&gt; dict:
         req = {
             &#39;jsonrpc&#39;: &#39;2.0&#39;,
@@ -667,7 +872,8 @@ that are executed via this client are thus executed on that database.</p>
         resp = requests.post(self.url, json=req).json()  # type: dict
         err = resp.get(&#39;error&#39;)  # type: dict
         if err is not None:
-            raise Exception(&#39;%i: %s&#39; % (err.get(&#39;code&#39;), err.get(&#39;message&#39;)))
+            msg = &#39;%i: %s&#39; % (err.get(&#39;code&#39;), err.get(&#39;message&#39;))
+            raise Exception(msg)
         result = resp.get(&#39;result&#39;)
         if result is None:
             raise Exception(
@@ -878,8 +1084,23 @@ further processing.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>entity</code></strong> :&ensp;<code><a title="olca.schema.Entity" href="schema.html#olca.schema.Entity">Entity</a></code></dt>
-<dd>The entity that should be disposed.</dd>
-</dl></div>
+<dd>The entity that should be disposed (typically a result).</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="python">client = olca.Client()
+setup = olca.CalculationSetup()
+setup.calculation_type = olca.CalculationType.UPSTREAM_ANALYSIS
+setup.product_system = olca.ref(
+  olca.ProductSystem,
+  '7d1cbce0-b5b3-47ba-95b5-014ab3c7f569'
+)
+setup.amount = 1.0
+result = client.calculate(setup)
+# do something with the result
+# ...
+response = client.dispose(result)
+print(response)  # should print `ok`
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -895,7 +1116,25 @@ further processing.</p>
     ----------
 
     entity: olca.schema.Entity
-        The entity that should be disposed.
+        The entity that should be disposed (typically a result).
+
+    Example
+    -------
+    ```python
+    client = olca.Client()
+    setup = olca.CalculationSetup()
+    setup.calculation_type = olca.CalculationType.UPSTREAM_ANALYSIS
+    setup.product_system = olca.ref(
+      olca.ProductSystem,
+      &#39;7d1cbce0-b5b3-47ba-95b5-014ab3c7f569&#39;
+    )
+    setup.amount = 1.0
+    result = client.calculate(setup)
+    # do something with the result
+    # ...
+    response = client.dispose(result)
+    print(response)  # should print `ok`
+    ```
     &#34;&#34;&#34;
     if entity is None:
         return
@@ -1088,13 +1327,102 @@ print(response)
     return self.__post(&#39;insert/model&#39;, json)</code></pre>
 </details>
 </dd>
+<dt id="olca.ipc.Client.lci_total_requirements"><code class="name flex">
+<span>def <span class="ident">lci_total_requirements</span></span>(<span>self, result: <a title="olca.schema.SimpleResult" href="schema.html#olca.schema.SimpleResult">SimpleResult</a>) ‑> dict</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the total requirements of the given result.</p>
+<p>The total requirements are the product amounts that are required to
+fulfill the demand of the product system. As our technology matrix
+<span><span class="MathJax_Preview">A</span><script type="math/tex">A</script></span> is indexed symmetrically (means rows and columns refer to the
+same process-product pair) our product amounts are on the diagonal of
+the technology matrix and the total requirements can be calculated by
+the following equation where <span><span class="MathJax_Preview">s</span><script type="math/tex">s</script></span> is the scaling vector (
+<span><span class="MathJax_Preview">\odot</span><script type="math/tex">\odot</script></span> denotes element-wise multiplication):</p>
+<p><span><span class="MathJax_Preview">t = diag(A) \odot s</span><script type="math/tex; mode=display">t = diag(A) \odot s</script></span></p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>result</code></strong> :&ensp;<code><a title="olca.schema.SimpleResult" href="schema.html#olca.schema.SimpleResult">SimpleResult</a></code></dt>
+<dd>The simple result from which the total requirements should be
+returned.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="python">import olca
+
+client = olca.Client()
+setup = olca.CalculationSetup()
+setup.calculation_type = olca.CalculationType.UPSTREAM_ANALYSIS
+setup.product_system = olca.ref(
+    olca.ProductSystem,
+    '7d1cbce0-b5b3-47ba-95b5-014ab3c7f569'
+)
+setup.amount = 1.0
+result = client.calculate(setup)
+print(client.lci_total_requirements(result))
+client.dispose(result)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def lci_total_requirements(self, result: schema.SimpleResult) -&gt; dict:
+    &#34;&#34;&#34;
+    Returns the total requirements of the given result.
+
+    The total requirements are the product amounts that are required to
+    fulfill the demand of the product system. As our technology matrix
+    \\(A\\) is indexed symmetrically (means rows and columns refer to the
+    same process-product pair) our product amounts are on the diagonal of
+    the technology matrix and the total requirements can be calculated by
+    the following equation where \\(s\\) is the scaling vector (
+    \\(\\odot\\) denotes element-wise multiplication):
+
+    $$t = diag(A) \odot s$$
+
+    Parameters
+    ----------
+    result: olca.schema.SimpleResult
+        The simple result from which the total requirements should be
+        returned.
+
+    Example
+    -------
+    ```python
+    import olca
+
+    client = olca.Client()
+    setup = olca.CalculationSetup()
+    setup.calculation_type = olca.CalculationType.UPSTREAM_ANALYSIS
+    setup.product_system = olca.ref(
+        olca.ProductSystem,
+        &#39;7d1cbce0-b5b3-47ba-95b5-014ab3c7f569&#39;
+    )
+    setup.amount = 1.0
+    result = client.calculate(setup)
+    print(client.lci_total_requirements(result))
+    client.dispose(result)
+    ```
+    &#34;&#34;&#34;
+
+    return self.__post(&#39;get/inventory/total_requirements&#39;, {
+        &#39;resultId&#39;: result.id
+    })</code></pre>
+</details>
+</dd>
 <dt id="olca.ipc.Client.next_simulation"><code class="name flex">
 <span>def <span class="ident">next_simulation</span></span>(<span>self, simulator: <a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>) ‑> <a title="olca.schema.SimpleResult" href="schema.html#olca.schema.SimpleResult">SimpleResult</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Runs the next Monte-Carlo simulation with the given simulator reference.
-It returns the simulation result which is not cached on the openLCA
-side as the simulator with the single results is cached.</p></div>
+It returns the result of the simulation. Note that this result is not
+cached (the simulator is cached).
+See <a href="#olca.ipc.Client.simulator">the simulator example</a>.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>simulator</code></strong> :&ensp;<code><a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a></code></dt>
+<dd>The reference to the simulator which is called to run the next
+simulation step.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1102,8 +1430,16 @@ side as the simulator with the single results is cached.</p></div>
 <pre><code class="python">def next_simulation(self, simulator: schema.Ref) -&gt; schema.SimpleResult:
     &#34;&#34;&#34;
     Runs the next Monte-Carlo simulation with the given simulator reference.
-    It returns the simulation result which is not cached on the openLCA
-    side as the simulator with the single results is cached.
+    It returns the result of the simulation. Note that this result is not
+    cached (the simulator is cached).
+    See [the simulator example](#olca.ipc.Client.simulator).
+
+    Parameters
+    ----------
+    simulator: olca.schema.Ref
+        The reference to the simulator which is called to run the next
+        simulation step.
+
     &#34;&#34;&#34;
     if simulator is None:
         raise ValueError(&#39;No simulator given&#39;)
@@ -1148,7 +1484,37 @@ side as the simulator with the single results is cached.</p></div>
 <dl>
 <dt><code><a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a></code></dt>
 <dd>A reference to an simulator instance.</dd>
-</dl></div>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="python">import olca
+
+client = olca.Client()
+# creating the calculation setup
+setup = olca.CalculationSetup()
+setup.calculation_type = olca.CalculationType.MONTE_CARLO_SIMULATION
+setup.impact_method = client.find(olca.ImpactMethod, 'TRACI [v2.1, February 2014]')
+setup.product_system = client.find(olca.ProductSystem, 'compost plant, open')
+setup.amount = 1.0
+
+# create the simulator
+simulator = client.simulator(setup)
+
+for i in range(0, 10):
+    result = client.next_simulation(simulator)
+    first_impact = result.impact_results[0]
+    print('iteration %i: result for %s = %4.4f' %
+          (i, first_impact.impact_category.name, first_impact.value))
+    # we do not have to dispose the result here (it is not cached
+    # in openLCA); but we need to dispose the simulator later (see below)
+
+# export the complete result of all simulations
+client.excel_export(simulator, 'simulation_result.xlsx')
+
+# the result remains accessible (for exports etc.) until
+# you dispose it, which you should always do when you do
+# not need it anymore
+client.dispose(simulator)
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1168,6 +1534,39 @@ side as the simulator with the single results is cached.</p></div>
 
     olca.schema.Ref
         A reference to an simulator instance.
+
+    Example
+    -------
+    ```python
+    import olca
+
+    client = olca.Client()
+    # creating the calculation setup
+    setup = olca.CalculationSetup()
+    setup.calculation_type = olca.CalculationType.MONTE_CARLO_SIMULATION
+    setup.impact_method = client.find(olca.ImpactMethod, &#39;TRACI [v2.1, February 2014]&#39;)
+    setup.product_system = client.find(olca.ProductSystem, &#39;compost plant, open&#39;)
+    setup.amount = 1.0
+
+    # create the simulator
+    simulator = client.simulator(setup)
+
+    for i in range(0, 10):
+        result = client.next_simulation(simulator)
+        first_impact = result.impact_results[0]
+        print(&#39;iteration %i: result for %s = %4.4f&#39; %
+              (i, first_impact.impact_category.name, first_impact.value))
+        # we do not have to dispose the result here (it is not cached
+        # in openLCA); but we need to dispose the simulator later (see below)
+
+    # export the complete result of all simulations
+    client.excel_export(simulator, &#39;simulation_result.xlsx&#39;)
+
+    # the result remains accessible (for exports etc.) until
+    # you dispose it, which you should always do when you do
+    # not need it anymore
+    client.dispose(simulator)
+    ```
     &#34;&#34;&#34;
     if setup is None:
         raise ValueError(&#39;Invalid calculation setup&#39;)
@@ -1226,6 +1625,7 @@ side as the simulator with the single results is cached.</p></div>
 <li><code><a title="olca.ipc.Client.get_all" href="#olca.ipc.Client.get_all">get_all</a></code></li>
 <li><code><a title="olca.ipc.Client.get_descriptors" href="#olca.ipc.Client.get_descriptors">get_descriptors</a></code></li>
 <li><code><a title="olca.ipc.Client.insert" href="#olca.ipc.Client.insert">insert</a></code></li>
+<li><code><a title="olca.ipc.Client.lci_total_requirements" href="#olca.ipc.Client.lci_total_requirements">lci_total_requirements</a></code></li>
 <li><code><a title="olca.ipc.Client.next_simulation" href="#olca.ipc.Client.next_simulation">next_simulation</a></code></li>
 <li><code><a title="olca.ipc.Client.shutdown_server" href="#olca.ipc.Client.shutdown_server">shutdown_server</a></code></li>
 <li><code><a title="olca.ipc.Client.simulator" href="#olca.ipc.Client.simulator">simulator</a></code></li>
