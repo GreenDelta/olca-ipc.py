@@ -86,7 +86,8 @@ def print_class(c: model.ClassType, m: model.Model):
         t += '        self.%s: Optional[%s] = None\n' % (attr, ptype)
     print(t)
     print_to_json(c, m)
-    print_from_json(c, m)
+    print_read_json(c, m)
+    print_from_json(c)
 
 
 def print_to_json(c: model.ClassType, m: model.Model):
@@ -129,13 +130,22 @@ def print_to_json(c: model.ClassType, m: model.Model):
     print(t)
 
 
-def print_from_json(c: model.ClassType, m: model.Model):
-    t = '    def from_json(self, json: dict):\n'
+def print_from_json(c: model.ClassType):
+    t = '    @staticmethod\n'
+    t += '    def from_json(json: dict):\n'
+    t += '        instance = %s()\n' % c.name
+    t += '        instance.read_json(json)\n'
+    t += '        return instance\n'
+    print(t)
+
+
+def print_read_json(c: model.ClassType, m: model.Model):
+    t = '    def read_json(self, json: dict):\n'
     off = '        '
     if len(c.properties) == 0:
         t += off + "self.id = json.get('@id')\n"
     else:
-        t += off + 'super(%s, self).from_json(json)\n' % c.name
+        t += off + 'super(%s, self).read_json(json)\n' % c.name
         for prop in c.properties:
             attr = to_snake_case(prop.name)
             is_primitive = prop.field_type[0].islower()
@@ -156,11 +166,11 @@ def print_from_json(c: model.ClassType, m: model.Model):
                     t += off + off + 'e = d\n'
                 else:
                     t += off + off + 'e = %s()\n' % list_type
-                    t += off + off + 'e.from_json(d)\n'
+                    t += off + off + 'e.read_json(d)\n'
                 t += off + off + 'self.%s.append(e)\n' % attr
             else:
                 t += off + "    self.%s = %s()\n" % (attr, py_type(prop.field_type))
-                t += off + "    self.%s.from_json(val)\n" % attr
+                t += off + "    self.%s.read_json(val)\n" % attr
     print(t)
 
 

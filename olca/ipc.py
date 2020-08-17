@@ -3,7 +3,7 @@ import os
 import requests
 import olca.schema as schema
 
-from typing import Type, TypeVar, Generator
+from typing import Generator, List, Type, TypeVar
 
 T = TypeVar('T')
 
@@ -110,9 +110,7 @@ class Client(object):
         if setup is None:
             raise ValueError('Invalid calculation setup')
         resp = self.__post('calculate', setup.to_json())
-        result = schema.SimpleResult()
-        result.from_json(resp)
-        return result
+        return schema.SimpleResult.from_json(resp)
 
     def simulator(self, setup: schema.CalculationSetup) -> schema.Ref:
         """
@@ -165,9 +163,8 @@ class Client(object):
         """
         if setup is None:
             raise ValueError('Invalid calculation setup')
-        ref = schema.Ref()
-        ref.from_json(self.__post('simulator', setup.to_json()))
-        return ref
+        r = self.__post('simulator', setup.to_json())
+        return schema.Ref.from_json(r)
 
     def next_simulation(self, simulator: schema.Ref) -> schema.SimpleResult:
         """
@@ -186,9 +183,7 @@ class Client(object):
         if simulator is None:
             raise ValueError('No simulator given')
         resp = self.__post('next/simulation', simulator.to_json())
-        result = schema.SimpleResult()
-        result.from_json(resp)
-        return result
+        return schema.SimpleResult.from_json(resp)
 
     def get_descriptors(self, model_type) -> Generator[schema.Ref, None, None]:
         """
@@ -200,16 +195,12 @@ class Client(object):
         params = {'@type': model_type.__name__}
         result = self.__post('get/descriptors', params)
         for r in result:
-            d = schema.Ref()
-            d.from_json(r)
-            yield d
+            yield schema.Ref.from_json(r)
 
     def get(self, model_type: Type[T], model_id: str) -> T:
         params = {'@type': model_type.__name__, '@id': model_id}
         result = self.__post('get/model', params)
-        e = model_type()
-        e.from_json(result)
-        return e
+        return model_type.from_json(result)
 
     def get_all(self, model_type: Type[T]) -> Generator[T, None, None]:
         """
@@ -221,9 +212,7 @@ class Client(object):
         params = {'@type': model_type.__name__}
         result = self.__post('get/models', params)
         for r in result:
-            e = model_type()
-            e.from_json(r)
-            yield e
+            yield model_type.from_json(r)
 
     def find(self, model_type, name: str) -> schema.Ref:
         """Searches for a data set with the given type and name.
@@ -350,9 +339,64 @@ class Client(object):
             'preferredType': preferred_type,
             'providerLinking': default_providers,
         })
-        ref = schema.Ref()
-        ref.from_json(r)
-        return ref
+        return schema.Ref.from_json(r)
+
+    def lci_inputs(self, result: schema.SimpleResult) -> List[schema.FlowResult]:
+        """
+        Returns the inputs of the given inventory result.
+
+        Example
+        -------
+        ```python
+        result = client.calculate(setup)
+        # print the first input
+        print(client.lci_inputs(result)[0])
+        client.dispose(result)
+        ```
+        """
+        raw = self.__post('get/inventory/inputs', {
+            'resultId': result.id,
+        })
+        return [schema.FlowResult.from_json(it) for it in raw]
+
+    def lci_outputs(self, result: schema.SimpleResult) -> list:
+        """
+        Returns the outputs of the given inventory result.
+
+        Example
+        -------
+        ```python
+        result = client.calculate(setup)
+        # print the first output
+        print(client.lci_outputs(result)[0])
+        client.dispose(result)
+        ```
+        """
+        raw = self.__post('get/inventory/outputs', {
+            'resultId': result.id,
+        })
+        return [schema.FlowResult.from_json(it) for it in raw]
+
+    def lci_location_contributions(self, result: schema.SimpleResult,
+                                   flow: schema.Ref) -> dict:
+        """
+        Get the contributions of the locations
+
+        Parameters
+        ----------
+        TODO: describe the parameters
+
+        Example
+        -------
+        ```
+        # TODO: give an example
+        result = client.get_location_contributions(...)
+        ```
+        """
+
+        return self.__post('get/inventory/contributions/locations', {
+            # TODO: set parameters
+        })
 
     def lci_total_requirements(self, result: schema.SimpleResult) -> list:
         """
@@ -397,7 +441,7 @@ class Client(object):
             'resultId': result.id
         })
 
-    def __post(self, method: str, params) -> dict:
+    def __post(self, method: str, params):
         req = {
             'jsonrpc': '2.0',
             'id': self.next_id,

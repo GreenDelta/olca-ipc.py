@@ -119,8 +119,14 @@ class Entity(object):
             json['@id'] = self.id
         return json
 
-    def from_json(self, json: dict):
+    def read_json(self, json: dict):
         self.id = json.get('@id')
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Entity()
+        instance.read_json(json)
+        return instance
 
 
 class AllocationFactor(Entity):
@@ -164,12 +170,12 @@ class AllocationFactor(Entity):
             json['allocatedExchange'] = self.allocated_exchange.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(AllocationFactor, self).from_json(json)
+    def read_json(self, json: dict):
+        super(AllocationFactor, self).read_json(json)
         val = json.get('productExchange')
         if val is not None:
             self.product_exchange = Exchange()
-            self.product_exchange.from_json(val)
+            self.product_exchange.read_json(val)
         val = json.get('allocationType')
         if val is not None:
             self.allocation_type = AllocationType(val)
@@ -179,7 +185,13 @@ class AllocationFactor(Entity):
         val = json.get('allocatedExchange')
         if val is not None:
             self.allocated_exchange = Exchange()
-            self.allocated_exchange.from_json(val)
+            self.allocated_exchange.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = AllocationFactor()
+        instance.read_json(json)
+        return instance
 
 
 class CalculationSetup(Entity):
@@ -261,26 +273,26 @@ class CalculationSetup(Entity):
             json['flowProperty'] = self.flow_property.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(CalculationSetup, self).from_json(json)
+    def read_json(self, json: dict):
+        super(CalculationSetup, self).read_json(json)
         val = json.get('calculationType')
         if val is not None:
             self.calculation_type = CalculationType(val)
         val = json.get('productSystem')
         if val is not None:
             self.product_system = Ref()
-            self.product_system.from_json(val)
+            self.product_system.read_json(val)
         val = json.get('impactMethod')
         if val is not None:
             self.impact_method = Ref()
-            self.impact_method.from_json(val)
+            self.impact_method.read_json(val)
         val = json.get('withCosts')
         if val is not None:
             self.with_costs = val
         val = json.get('nwSet')
         if val is not None:
             self.nw_set = Ref()
-            self.nw_set.from_json(val)
+            self.nw_set.read_json(val)
         val = json.get('allocationMethod')
         if val is not None:
             self.allocation_method = AllocationType(val)
@@ -289,7 +301,7 @@ class CalculationSetup(Entity):
             self.parameter_redefs = []
             for d in val:
                 e = ParameterRedef()
-                e.from_json(d)
+                e.read_json(d)
                 self.parameter_redefs.append(e)
         val = json.get('amount')
         if val is not None:
@@ -297,11 +309,17 @@ class CalculationSetup(Entity):
         val = json.get('unit')
         if val is not None:
             self.unit = Ref()
-            self.unit.from_json(val)
+            self.unit.read_json(val)
         val = json.get('flowProperty')
         if val is not None:
             self.flow_property = Ref()
-            self.flow_property.from_json(val)
+            self.flow_property.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = CalculationSetup()
+        instance.read_json(json)
+        return instance
 
 
 class DqIndicator(Entity):
@@ -336,8 +354,8 @@ class DqIndicator(Entity):
                 json['scores'].append(e.to_json())
         return json
 
-    def from_json(self, json: dict):
-        super(DqIndicator, self).from_json(json)
+    def read_json(self, json: dict):
+        super(DqIndicator, self).read_json(json)
         val = json.get('name')
         if val is not None:
             self.name = val
@@ -349,8 +367,14 @@ class DqIndicator(Entity):
             self.scores = []
             for d in val:
                 e = DqScore()
-                e.from_json(d)
+                e.read_json(d)
                 self.scores.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = DqIndicator()
+        instance.read_json(json)
+        return instance
 
 
 class DqScore(Entity):
@@ -389,8 +413,8 @@ class DqScore(Entity):
             json['uncertainty'] = self.uncertainty
         return json
 
-    def from_json(self, json: dict):
-        super(DqScore, self).from_json(json)
+    def read_json(self, json: dict):
+        super(DqScore, self).read_json(json)
         val = json.get('position')
         if val is not None:
             self.position = val
@@ -403,6 +427,12 @@ class DqScore(Entity):
         val = json.get('uncertainty')
         if val is not None:
             self.uncertainty = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = DqScore()
+        instance.read_json(json)
+        return instance
 
 
 class Exchange(Entity):
@@ -515,8 +545,8 @@ class Exchange(Entity):
             json['description'] = self.description
         return json
 
-    def from_json(self, json: dict):
-        super(Exchange, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Exchange, self).read_json(json)
         val = json.get('internalId')
         if val is not None:
             self.internal_id = val
@@ -526,11 +556,11 @@ class Exchange(Entity):
         val = json.get('flow')
         if val is not None:
             self.flow = FlowRef()
-            self.flow.from_json(val)
+            self.flow.read_json(val)
         val = json.get('flowProperty')
         if val is not None:
             self.flow_property = Ref()
-            self.flow_property.from_json(val)
+            self.flow_property.read_json(val)
         val = json.get('input')
         if val is not None:
             self.input = val
@@ -543,7 +573,7 @@ class Exchange(Entity):
         val = json.get('defaultProvider')
         if val is not None:
             self.default_provider = ProcessRef()
-            self.default_provider.from_json(val)
+            self.default_provider.read_json(val)
         val = json.get('amount')
         if val is not None:
             self.amount = val
@@ -553,17 +583,23 @@ class Exchange(Entity):
         val = json.get('unit')
         if val is not None:
             self.unit = Ref()
-            self.unit.from_json(val)
+            self.unit.read_json(val)
         val = json.get('dqEntry')
         if val is not None:
             self.dq_entry = val
         val = json.get('uncertainty')
         if val is not None:
             self.uncertainty = Uncertainty()
-            self.uncertainty.from_json(val)
+            self.uncertainty.read_json(val)
         val = json.get('description')
         if val is not None:
             self.description = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Exchange()
+        instance.read_json(json)
+        return instance
 
 
 class FlowMapRef(Entity):
@@ -605,20 +641,26 @@ class FlowMapRef(Entity):
             json['unit'] = self.unit.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(FlowMapRef, self).from_json(json)
+    def read_json(self, json: dict):
+        super(FlowMapRef, self).read_json(json)
         val = json.get('flow')
         if val is not None:
             self.flow = FlowRef()
-            self.flow.from_json(val)
+            self.flow.read_json(val)
         val = json.get('flowProperty')
         if val is not None:
             self.flow_property = Ref()
-            self.flow_property.from_json(val)
+            self.flow_property.read_json(val)
         val = json.get('unit')
         if val is not None:
             self.unit = Ref()
-            self.unit.from_json(val)
+            self.unit.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = FlowMapRef()
+        instance.read_json(json)
+        return instance
 
 
 class FlowPropertyFactor(Entity):
@@ -677,18 +719,24 @@ class FlowPropertyFactor(Entity):
             json['referenceFlowProperty'] = self.reference_flow_property
         return json
 
-    def from_json(self, json: dict):
-        super(FlowPropertyFactor, self).from_json(json)
+    def read_json(self, json: dict):
+        super(FlowPropertyFactor, self).read_json(json)
         val = json.get('flowProperty')
         if val is not None:
             self.flow_property = Ref()
-            self.flow_property.from_json(val)
+            self.flow_property.read_json(val)
         val = json.get('conversionFactor')
         if val is not None:
             self.conversion_factor = val
         val = json.get('referenceFlowProperty')
         if val is not None:
             self.reference_flow_property = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = FlowPropertyFactor()
+        instance.read_json(json)
+        return instance
 
 
 class FlowResult(Entity):
@@ -724,18 +772,24 @@ class FlowResult(Entity):
             json['value'] = self.value
         return json
 
-    def from_json(self, json: dict):
-        super(FlowResult, self).from_json(json)
+    def read_json(self, json: dict):
+        super(FlowResult, self).read_json(json)
         val = json.get('flow')
         if val is not None:
             self.flow = FlowRef()
-            self.flow.from_json(val)
+            self.flow.read_json(val)
         val = json.get('input')
         if val is not None:
             self.input = val
         val = json.get('value')
         if val is not None:
             self.value = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = FlowResult()
+        instance.read_json(json)
+        return instance
 
 
 class ImpactFactor(Entity):
@@ -790,20 +844,20 @@ class ImpactFactor(Entity):
             json['uncertainty'] = self.uncertainty.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(ImpactFactor, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ImpactFactor, self).read_json(json)
         val = json.get('flow')
         if val is not None:
             self.flow = FlowRef()
-            self.flow.from_json(val)
+            self.flow.read_json(val)
         val = json.get('flowProperty')
         if val is not None:
             self.flow_property = Ref()
-            self.flow_property.from_json(val)
+            self.flow_property.read_json(val)
         val = json.get('unit')
         if val is not None:
             self.unit = Ref()
-            self.unit.from_json(val)
+            self.unit.read_json(val)
         val = json.get('value')
         if val is not None:
             self.value = val
@@ -813,7 +867,13 @@ class ImpactFactor(Entity):
         val = json.get('uncertainty')
         if val is not None:
             self.uncertainty = Uncertainty()
-            self.uncertainty.from_json(val)
+            self.uncertainty.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ImpactFactor()
+        instance.read_json(json)
+        return instance
 
 
 class ImpactResult(Entity):
@@ -843,15 +903,21 @@ class ImpactResult(Entity):
             json['value'] = self.value
         return json
 
-    def from_json(self, json: dict):
-        super(ImpactResult, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ImpactResult, self).read_json(json)
         val = json.get('impactCategory')
         if val is not None:
             self.impact_category = ImpactCategoryRef()
-            self.impact_category.from_json(val)
+            self.impact_category.read_json(val)
         val = json.get('value')
         if val is not None:
             self.value = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ImpactResult()
+        instance.read_json(json)
+        return instance
 
 
 class Parameter(Entity):
@@ -928,8 +994,8 @@ class Parameter(Entity):
             json['uncertainty'] = self.uncertainty.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(Parameter, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Parameter, self).read_json(json)
         val = json.get('name')
         if val is not None:
             self.name = val
@@ -957,7 +1023,13 @@ class Parameter(Entity):
         val = json.get('uncertainty')
         if val is not None:
             self.uncertainty = Uncertainty()
-            self.uncertainty.from_json(val)
+            self.uncertainty.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Parameter()
+        instance.read_json(json)
+        return instance
 
 
 class ParameterRedef(Entity):
@@ -995,8 +1067,8 @@ class ParameterRedef(Entity):
             json['context'] = self.context.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(ParameterRedef, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ParameterRedef, self).read_json(json)
         val = json.get('name')
         if val is not None:
             self.name = val
@@ -1006,7 +1078,13 @@ class ParameterRedef(Entity):
         val = json.get('context')
         if val is not None:
             self.context = Ref()
-            self.context.from_json(val)
+            self.context.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ParameterRedef()
+        instance.read_json(json)
+        return instance
 
 
 class ProcessDocumentation(Entity):
@@ -1146,8 +1224,8 @@ class ProcessDocumentation(Entity):
             json['geographyDescription'] = self.geography_description
         return json
 
-    def from_json(self, json: dict):
-        super(ProcessDocumentation, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ProcessDocumentation, self).read_json(json)
         val = json.get('timeDescription')
         if val is not None:
             self.time_description = val
@@ -1184,7 +1262,7 @@ class ProcessDocumentation(Entity):
         val = json.get('reviewer')
         if val is not None:
             self.reviewer = Ref()
-            self.reviewer.from_json(val)
+            self.reviewer.read_json(val)
         val = json.get('samplingDescription')
         if val is not None:
             self.sampling_description = val
@@ -1193,7 +1271,7 @@ class ProcessDocumentation(Entity):
             self.sources = []
             for d in val:
                 e = Ref()
-                e.from_json(d)
+                e.read_json(d)
                 self.sources.append(e)
         val = json.get('restrictionsDescription')
         if val is not None:
@@ -1207,15 +1285,15 @@ class ProcessDocumentation(Entity):
         val = json.get('dataDocumentor')
         if val is not None:
             self.data_documentor = Ref()
-            self.data_documentor.from_json(val)
+            self.data_documentor.read_json(val)
         val = json.get('dataGenerator')
         if val is not None:
             self.data_generator = Ref()
-            self.data_generator.from_json(val)
+            self.data_generator.read_json(val)
         val = json.get('dataSetOwner')
         if val is not None:
             self.data_set_owner = Ref()
-            self.data_set_owner.from_json(val)
+            self.data_set_owner.read_json(val)
         val = json.get('intendedApplication')
         if val is not None:
             self.intended_application = val
@@ -1225,10 +1303,16 @@ class ProcessDocumentation(Entity):
         val = json.get('publication')
         if val is not None:
             self.publication = Ref()
-            self.publication.from_json(val)
+            self.publication.read_json(val)
         val = json.get('geographyDescription')
         if val is not None:
             self.geography_description = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ProcessDocumentation()
+        instance.read_json(json)
+        return instance
 
 
 class ProcessLink(Entity):
@@ -1273,24 +1357,30 @@ class ProcessLink(Entity):
             json['exchange'] = self.exchange.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(ProcessLink, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ProcessLink, self).read_json(json)
         val = json.get('provider')
         if val is not None:
             self.provider = Ref()
-            self.provider.from_json(val)
+            self.provider.read_json(val)
         val = json.get('flow')
         if val is not None:
             self.flow = Ref()
-            self.flow.from_json(val)
+            self.flow.read_json(val)
         val = json.get('process')
         if val is not None:
             self.process = Ref()
-            self.process.from_json(val)
+            self.process.read_json(val)
         val = json.get('exchange')
         if val is not None:
             self.exchange = Exchange()
-            self.exchange.from_json(val)
+            self.exchange.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ProcessLink()
+        instance.read_json(json)
+        return instance
 
 
 class RootEntity(Entity):
@@ -1336,8 +1426,8 @@ class RootEntity(Entity):
             json['lastChange'] = self.last_change
         return json
 
-    def from_json(self, json: dict):
-        super(RootEntity, self).from_json(json)
+    def read_json(self, json: dict):
+        super(RootEntity, self).read_json(json)
         val = json.get('name')
         if val is not None:
             self.name = val
@@ -1350,6 +1440,12 @@ class RootEntity(Entity):
         val = json.get('lastChange')
         if val is not None:
             self.last_change = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = RootEntity()
+        instance.read_json(json)
+        return instance
 
 
 class SimpleResult(Entity):
@@ -1381,22 +1477,28 @@ class SimpleResult(Entity):
                 json['impactResults'].append(e.to_json())
         return json
 
-    def from_json(self, json: dict):
-        super(SimpleResult, self).from_json(json)
+    def read_json(self, json: dict):
+        super(SimpleResult, self).read_json(json)
         val = json.get('flowResults')
         if val is not None:
             self.flow_results = []
             for d in val:
                 e = FlowResult()
-                e.from_json(d)
+                e.read_json(d)
                 self.flow_results.append(e)
         val = json.get('impactResults')
         if val is not None:
             self.impact_results = []
             for d in val:
                 e = ImpactResult()
-                e.from_json(d)
+                e.read_json(d)
                 self.impact_results.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = SimpleResult()
+        instance.read_json(json)
+        return instance
 
 
 class Uncertainty(Entity):
@@ -1505,8 +1607,8 @@ class Uncertainty(Entity):
             json['maximumFormula'] = self.maximum_formula
         return json
 
-    def from_json(self, json: dict):
-        super(Uncertainty, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Uncertainty, self).read_json(json)
         val = json.get('distributionType')
         if val is not None:
             self.distribution_type = UncertaintyType(val)
@@ -1553,6 +1655,12 @@ class Uncertainty(Entity):
         if val is not None:
             self.maximum_formula = val
 
+    @staticmethod
+    def from_json(json: dict):
+        instance = Uncertainty()
+        instance.read_json(json)
+        return instance
+
 
 class CategorizedEntity(RootEntity):
     """
@@ -1575,12 +1683,18 @@ class CategorizedEntity(RootEntity):
             json['category'] = self.category.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(CategorizedEntity, self).from_json(json)
+    def read_json(self, json: dict):
+        super(CategorizedEntity, self).read_json(json)
         val = json.get('category')
         if val is not None:
             self.category = Ref()
-            self.category.from_json(val)
+            self.category.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = CategorizedEntity()
+        instance.read_json(json)
+        return instance
 
 
 class FlowMap(RootEntity):
@@ -1619,23 +1733,29 @@ class FlowMap(RootEntity):
                 json['mappings'].append(e.to_json())
         return json
 
-    def from_json(self, json: dict):
-        super(FlowMap, self).from_json(json)
+    def read_json(self, json: dict):
+        super(FlowMap, self).read_json(json)
         val = json.get('source')
         if val is not None:
             self.source = Ref()
-            self.source.from_json(val)
+            self.source.read_json(val)
         val = json.get('target')
         if val is not None:
             self.target = Ref()
-            self.target.from_json(val)
+            self.target.read_json(val)
         val = json.get('mappings')
         if val is not None:
             self.mappings = []
             for d in val:
                 e = FlowMapEntry()
-                e.from_json(d)
+                e.read_json(d)
                 self.mappings.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = FlowMap()
+        instance.read_json(json)
+        return instance
 
 
 class FlowMapEntry(RootEntity):
@@ -1671,19 +1791,25 @@ class FlowMapEntry(RootEntity):
             json['conversionFactor'] = self.conversion_factor
         return json
 
-    def from_json(self, json: dict):
-        super(FlowMapEntry, self).from_json(json)
+    def read_json(self, json: dict):
+        super(FlowMapEntry, self).read_json(json)
         val = json.get('from')
         if val is not None:
             self.from_ = FlowMapRef()
-            self.from_.from_json(val)
+            self.from_.read_json(val)
         val = json.get('to')
         if val is not None:
             self.to = FlowMapRef()
-            self.to.from_json(val)
+            self.to.read_json(val)
         val = json.get('conversionFactor')
         if val is not None:
             self.conversion_factor = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = FlowMapEntry()
+        instance.read_json(json)
+        return instance
 
 
 class ImpactCategory(RootEntity):
@@ -1716,8 +1842,8 @@ class ImpactCategory(RootEntity):
                 json['impactFactors'].append(e.to_json())
         return json
 
-    def from_json(self, json: dict):
-        super(ImpactCategory, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ImpactCategory, self).read_json(json)
         val = json.get('referenceUnitName')
         if val is not None:
             self.reference_unit_name = val
@@ -1726,8 +1852,14 @@ class ImpactCategory(RootEntity):
             self.impact_factors = []
             for d in val:
                 e = ImpactFactor()
-                e.from_json(d)
+                e.read_json(d)
                 self.impact_factors.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ImpactCategory()
+        instance.read_json(json)
+        return instance
 
 
 class Location(RootEntity):
@@ -1769,8 +1901,8 @@ class Location(RootEntity):
             json['kml'] = self.kml
         return json
 
-    def from_json(self, json: dict):
-        super(Location, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Location, self).read_json(json)
         val = json.get('code')
         if val is not None:
             self.code = val
@@ -1783,6 +1915,12 @@ class Location(RootEntity):
         val = json.get('kml')
         if val is not None:
             self.kml = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Location()
+        instance.read_json(json)
+        return instance
 
 
 class Ref(RootEntity):
@@ -1814,14 +1952,20 @@ class Ref(RootEntity):
                 json['categoryPath'].append(e)
         return json
 
-    def from_json(self, json: dict):
-        super(Ref, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Ref, self).read_json(json)
         val = json.get('categoryPath')
         if val is not None:
             self.category_path = []
             for d in val:
                 e = d
                 self.category_path.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Ref()
+        instance.read_json(json)
+        return instance
 
 
 class Unit(RootEntity):
@@ -1864,8 +2008,8 @@ class Unit(RootEntity):
                 json['synonyms'].append(e)
         return json
 
-    def from_json(self, json: dict):
-        super(Unit, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Unit, self).read_json(json)
         val = json.get('conversionFactor')
         if val is not None:
             self.conversion_factor = val
@@ -1878,6 +2022,12 @@ class Unit(RootEntity):
             for d in val:
                 e = d
                 self.synonyms.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Unit()
+        instance.read_json(json)
+        return instance
 
 
 class Actor(CategorizedEntity):
@@ -1935,8 +2085,8 @@ class Actor(CategorizedEntity):
             json['zipCode'] = self.zip_code
         return json
 
-    def from_json(self, json: dict):
-        super(Actor, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Actor, self).read_json(json)
         val = json.get('address')
         if val is not None:
             self.address = val
@@ -1961,6 +2111,12 @@ class Actor(CategorizedEntity):
         val = json.get('zipCode')
         if val is not None:
             self.zip_code = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Actor()
+        instance.read_json(json)
+        return instance
 
 
 class Category(CategorizedEntity):
@@ -1987,11 +2143,17 @@ class Category(CategorizedEntity):
             json['modelType'] = self.model_type.value
         return json
 
-    def from_json(self, json: dict):
-        super(Category, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Category, self).read_json(json)
         val = json.get('modelType')
         if val is not None:
             self.model_type = ModelType(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Category()
+        instance.read_json(json)
+        return instance
 
 
 class DqSystem(CategorizedEntity):
@@ -2026,22 +2188,28 @@ class DqSystem(CategorizedEntity):
                 json['indicators'].append(e.to_json())
         return json
 
-    def from_json(self, json: dict):
-        super(DqSystem, self).from_json(json)
+    def read_json(self, json: dict):
+        super(DqSystem, self).read_json(json)
         val = json.get('hasUncertainties')
         if val is not None:
             self.has_uncertainties = val
         val = json.get('source')
         if val is not None:
             self.source = Ref()
-            self.source.from_json(val)
+            self.source.read_json(val)
         val = json.get('indicators')
         if val is not None:
             self.indicators = []
             for d in val:
                 e = DqIndicator()
-                e.from_json(d)
+                e.read_json(d)
                 self.indicators.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = DqSystem()
+        instance.read_json(json)
+        return instance
 
 
 class Flow(CategorizedEntity):
@@ -2097,8 +2265,8 @@ class Flow(CategorizedEntity):
             json['location'] = self.location.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(Flow, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Flow, self).read_json(json)
         val = json.get('flowType')
         if val is not None:
             self.flow_type = FlowType(val)
@@ -2113,12 +2281,18 @@ class Flow(CategorizedEntity):
             self.flow_properties = []
             for d in val:
                 e = FlowPropertyFactor()
-                e.from_json(d)
+                e.read_json(d)
                 self.flow_properties.append(e)
         val = json.get('location')
         if val is not None:
             self.location = Ref()
-            self.location.from_json(val)
+            self.location.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Flow()
+        instance.read_json(json)
+        return instance
 
 
 class FlowProperty(CategorizedEntity):
@@ -2150,15 +2324,21 @@ class FlowProperty(CategorizedEntity):
             json['unitGroup'] = self.unit_group.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(FlowProperty, self).from_json(json)
+    def read_json(self, json: dict):
+        super(FlowProperty, self).read_json(json)
         val = json.get('flowPropertyType')
         if val is not None:
             self.flow_property_type = FlowPropertyType(val)
         val = json.get('unitGroup')
         if val is not None:
             self.unit_group = Ref()
-            self.unit_group.from_json(val)
+            self.unit_group.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = FlowProperty()
+        instance.read_json(json)
+        return instance
 
 
 class FlowRef(Ref):
@@ -2195,8 +2375,8 @@ class FlowRef(Ref):
             json['flowType'] = self.flow_type.value
         return json
 
-    def from_json(self, json: dict):
-        super(FlowRef, self).from_json(json)
+    def read_json(self, json: dict):
+        super(FlowRef, self).read_json(json)
         val = json.get('refUnit')
         if val is not None:
             self.ref_unit = val
@@ -2206,6 +2386,12 @@ class FlowRef(Ref):
         val = json.get('flowType')
         if val is not None:
             self.flow_type = FlowType(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = FlowRef()
+        instance.read_json(json)
+        return instance
 
 
 class ImpactCategoryRef(Ref):
@@ -2229,11 +2415,17 @@ class ImpactCategoryRef(Ref):
             json['refUnit'] = self.ref_unit
         return json
 
-    def from_json(self, json: dict):
-        super(ImpactCategoryRef, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ImpactCategoryRef, self).read_json(json)
         val = json.get('refUnit')
         if val is not None:
             self.ref_unit = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ImpactCategoryRef()
+        instance.read_json(json)
+        return instance
 
 
 class ImpactMethod(CategorizedEntity):
@@ -2268,22 +2460,28 @@ class ImpactMethod(CategorizedEntity):
                 json['parameters'].append(e.to_json())
         return json
 
-    def from_json(self, json: dict):
-        super(ImpactMethod, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ImpactMethod, self).read_json(json)
         val = json.get('impactCategories')
         if val is not None:
             self.impact_categories = []
             for d in val:
                 e = ImpactCategoryRef()
-                e.from_json(d)
+                e.read_json(d)
                 self.impact_categories.append(e)
         val = json.get('parameters')
         if val is not None:
             self.parameters = []
             for d in val:
                 e = Parameter()
-                e.from_json(d)
+                e.read_json(d)
                 self.parameters.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ImpactMethod()
+        instance.read_json(json)
+        return instance
 
 
 class Process(CategorizedEntity):
@@ -2375,8 +2573,8 @@ class Process(CategorizedEntity):
             json['dqEntry'] = self.dq_entry
         return json
 
-    def from_json(self, json: dict):
-        super(Process, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Process, self).read_json(json)
         val = json.get('defaultAllocationMethod')
         if val is not None:
             self.default_allocation_method = AllocationType(val)
@@ -2385,48 +2583,54 @@ class Process(CategorizedEntity):
             self.allocation_factors = []
             for d in val:
                 e = AllocationFactor()
-                e.from_json(d)
+                e.read_json(d)
                 self.allocation_factors.append(e)
         val = json.get('exchanges')
         if val is not None:
             self.exchanges = []
             for d in val:
                 e = Exchange()
-                e.from_json(d)
+                e.read_json(d)
                 self.exchanges.append(e)
         val = json.get('location')
         if val is not None:
             self.location = Location()
-            self.location.from_json(val)
+            self.location.read_json(val)
         val = json.get('parameters')
         if val is not None:
             self.parameters = []
             for d in val:
                 e = Parameter()
-                e.from_json(d)
+                e.read_json(d)
                 self.parameters.append(e)
         val = json.get('processDocumentation')
         if val is not None:
             self.process_documentation = ProcessDocumentation()
-            self.process_documentation.from_json(val)
+            self.process_documentation.read_json(val)
         val = json.get('processType')
         if val is not None:
             self.process_type = ProcessType(val)
         val = json.get('dqSystem')
         if val is not None:
             self.dq_system = Ref()
-            self.dq_system.from_json(val)
+            self.dq_system.read_json(val)
         val = json.get('exchangeDqSystem')
         if val is not None:
             self.exchange_dq_system = Ref()
-            self.exchange_dq_system.from_json(val)
+            self.exchange_dq_system.read_json(val)
         val = json.get('socialDqSystem')
         if val is not None:
             self.social_dq_system = Ref()
-            self.social_dq_system.from_json(val)
+            self.social_dq_system.read_json(val)
         val = json.get('dqEntry')
         if val is not None:
             self.dq_entry = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Process()
+        instance.read_json(json)
+        return instance
 
 
 class ProcessRef(Ref):
@@ -2456,14 +2660,20 @@ class ProcessRef(Ref):
             json['processType'] = self.process_type.value
         return json
 
-    def from_json(self, json: dict):
-        super(ProcessRef, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ProcessRef, self).read_json(json)
         val = json.get('location')
         if val is not None:
             self.location = val
         val = json.get('processType')
         if val is not None:
             self.process_type = ProcessType(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ProcessRef()
+        instance.read_json(json)
+        return instance
 
 
 class ProductSystem(CategorizedEntity):
@@ -2532,41 +2742,47 @@ class ProductSystem(CategorizedEntity):
                 json['processLinks'].append(e.to_json())
         return json
 
-    def from_json(self, json: dict):
-        super(ProductSystem, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ProductSystem, self).read_json(json)
         val = json.get('processes')
         if val is not None:
             self.processes = []
             for d in val:
                 e = ProcessRef()
-                e.from_json(d)
+                e.read_json(d)
                 self.processes.append(e)
         val = json.get('referenceProcess')
         if val is not None:
             self.reference_process = ProcessRef()
-            self.reference_process.from_json(val)
+            self.reference_process.read_json(val)
         val = json.get('referenceExchange')
         if val is not None:
             self.reference_exchange = Exchange()
-            self.reference_exchange.from_json(val)
+            self.reference_exchange.read_json(val)
         val = json.get('targetAmount')
         if val is not None:
             self.target_amount = val
         val = json.get('targetUnit')
         if val is not None:
             self.target_unit = Ref()
-            self.target_unit.from_json(val)
+            self.target_unit.read_json(val)
         val = json.get('targetFlowProperty')
         if val is not None:
             self.target_flow_property = Ref()
-            self.target_flow_property.from_json(val)
+            self.target_flow_property.read_json(val)
         val = json.get('processLinks')
         if val is not None:
             self.process_links = []
             for d in val:
                 e = ProcessLink()
-                e.from_json(d)
+                e.read_json(d)
                 self.process_links.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ProductSystem()
+        instance.read_json(json)
+        return instance
 
 
 class SocialIndicator(CategorizedEntity):
@@ -2614,25 +2830,31 @@ class SocialIndicator(CategorizedEntity):
             json['evaluationScheme'] = self.evaluation_scheme
         return json
 
-    def from_json(self, json: dict):
-        super(SocialIndicator, self).from_json(json)
+    def read_json(self, json: dict):
+        super(SocialIndicator, self).read_json(json)
         val = json.get('activityVariable')
         if val is not None:
             self.activity_variable = val
         val = json.get('activityQuantity')
         if val is not None:
             self.activity_quantity = Ref()
-            self.activity_quantity.from_json(val)
+            self.activity_quantity.read_json(val)
         val = json.get('activityUnit')
         if val is not None:
             self.activity_unit = Ref()
-            self.activity_unit.from_json(val)
+            self.activity_unit.read_json(val)
         val = json.get('unitOfMeasurement')
         if val is not None:
             self.unit_of_measurement = val
         val = json.get('evaluationScheme')
         if val is not None:
             self.evaluation_scheme = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = SocialIndicator()
+        instance.read_json(json)
+        return instance
 
 
 class Source(CategorizedEntity):
@@ -2674,8 +2896,8 @@ class Source(CategorizedEntity):
             json['externalFile'] = self.external_file
         return json
 
-    def from_json(self, json: dict):
-        super(Source, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Source, self).read_json(json)
         val = json.get('url')
         if val is not None:
             self.url = val
@@ -2688,6 +2910,12 @@ class Source(CategorizedEntity):
         val = json.get('externalFile')
         if val is not None:
             self.external_file = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Source()
+        instance.read_json(json)
+        return instance
 
 
 class UnitGroup(CategorizedEntity):
@@ -2721,16 +2949,22 @@ class UnitGroup(CategorizedEntity):
                 json['units'].append(e.to_json())
         return json
 
-    def from_json(self, json: dict):
-        super(UnitGroup, self).from_json(json)
+    def read_json(self, json: dict):
+        super(UnitGroup, self).read_json(json)
         val = json.get('defaultFlowProperty')
         if val is not None:
             self.default_flow_property = Ref()
-            self.default_flow_property.from_json(val)
+            self.default_flow_property.read_json(val)
         val = json.get('units')
         if val is not None:
             self.units = []
             for d in val:
                 e = Unit()
-                e.from_json(d)
+                e.read_json(d)
                 self.units.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = UnitGroup()
+        instance.read_json(json)
+        return instance
