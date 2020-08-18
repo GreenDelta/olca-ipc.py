@@ -32,9 +32,125 @@
 import requests
 import olca.schema as schema
 
-from typing import Type, TypeVar, Generator
+from typing import Iterator, List, Type, TypeVar
 
 T = TypeVar(&#39;T&#39;)
+
+
+class ProductResult(schema.Entity):
+    &#34;&#34;&#34;
+    The ProductResult type is not an olca-schema type but a return
+    type of the IPC protocol. However, it implements the same interface
+    as the olca.schema.Entity type.
+
+    Attributes:
+    -----------
+    process: olca.schema.Ref
+
+    product: olca.schema.Ref
+
+    amount: float
+
+    &#34;&#34;&#34;
+
+    def __init__(self):
+        process: Optional[Ref] = None
+        product: Optional[Ref] = None
+        amount: Optional[float] = None
+
+    def to_json(self) -&gt; dict:
+        json: dict = super(ProductResult, self).to_json()
+        if self.process is not None:
+            json[&#39;process&#39;] = self.process.to_json()
+        if self.product is not None:
+            json[&#39;product&#39;] = self.product.to_json()
+        if self.amount is not None:
+            json[&#39;amount&#39;] = self.amount
+        return json
+
+    def read_json(self, json: dict):
+        super(ProductResult, self).read_json(json)
+        val = json.get(&#39;process&#39;)
+        if val is not None:
+            self.process = schema.Ref.from_json(val)
+        val = json.get(&#39;product&#39;)
+        if val is not None:
+            self.product = schema.Ref.from_json(val)
+        val = json.get(&#39;amount&#39;)
+        if val is not None:
+            self.amount = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ProductResult()
+        instance.read_json(json)
+        return instance
+
+
+class ContributionItem(schema.Entity):
+    &#34;&#34;&#34;
+    The ContributionItem type is not an olca-schema type but a return
+    type of the IPC protocol. However, it implements the same interface
+    as the olca.schema.Entity type.
+
+    Attributes:
+    -----------
+    item: olca.schema.Ref
+
+    amount: float
+
+    share: float
+
+    rest: bool
+
+    unit: str
+
+    &#34;&#34;&#34;
+
+    def __init__(self):
+        item: Optional[Ref] = None
+        amount: Optional[float] = None
+        share: Optional[float] = None
+        rest: Optional[bool] = None
+        unit: Optional[str] = None
+
+    def to_json(self) -&gt; dict:
+        json: dict = super(ContributionItem, self).to_json()
+        if self.item is not None:
+            json[&#39;item&#39;] = self.item.to_json()
+        if self.amount is not None:
+            json[&#39;amount&#39;] = self.amount
+        if self.share is not None:
+            json[&#39;share&#39;] = self.share
+        if self.rest is not None:
+            json[&#39;rest&#39;] = self.rest
+        if self.unit is not None:
+            json[&#39;unit&#39;] = self.unit
+        return json
+
+    def read_json(self, json: dict):
+        super(ContributionItem, self).read_json(json)
+        val = json.get(&#39;item&#39;)
+        if val is not None:
+            self.item = schema.Ref.from_json(val)
+        val = json.get(&#39;amount&#39;)
+        if val is not None:
+            self.amount = val
+        val = json.get(&#39;share&#39;)
+        if val is not None:
+            self.share = val
+        val = json.get(&#39;rest&#39;)
+        if val is not None:
+            self.rest = val
+        val = json.get(&#39;unit&#39;)
+        if val is not None:
+            self.unit = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ContributionItem()
+        instance.read_json(json)
+        return instance
 
 
 class Client(object):
@@ -139,9 +255,7 @@ class Client(object):
         if setup is None:
             raise ValueError(&#39;Invalid calculation setup&#39;)
         resp = self.__post(&#39;calculate&#39;, setup.to_json())
-        result = schema.SimpleResult()
-        result.from_json(resp)
-        return result
+        return schema.SimpleResult.from_json(resp)
 
     def simulator(self, setup: schema.CalculationSetup) -&gt; schema.Ref:
         &#34;&#34;&#34;
@@ -194,9 +308,8 @@ class Client(object):
         &#34;&#34;&#34;
         if setup is None:
             raise ValueError(&#39;Invalid calculation setup&#39;)
-        ref = schema.Ref()
-        ref.from_json(self.__post(&#39;simulator&#39;, setup.to_json()))
-        return ref
+        r = self.__post(&#39;simulator&#39;, setup.to_json())
+        return schema.Ref.from_json(r)
 
     def next_simulation(self, simulator: schema.Ref) -&gt; schema.SimpleResult:
         &#34;&#34;&#34;
@@ -215,32 +328,33 @@ class Client(object):
         if simulator is None:
             raise ValueError(&#39;No simulator given&#39;)
         resp = self.__post(&#39;next/simulation&#39;, simulator.to_json())
-        result = schema.SimpleResult()
-        result.from_json(resp)
-        return result
+        return schema.SimpleResult.from_json(resp)
 
-    def get_descriptors(self, model_type) -&gt; Generator[schema.Ref, None, None]:
+    def get_descriptors(self, model_type: Type[T]) -&gt; Iterator[schema.Ref]:
         &#34;&#34;&#34;
-        Get the list of descriptors of the entities with the given
-        model type.
-        :param model_type: A class, e.g. olca.Flow
-        :return: A list of descriptors.
+        Get the list of descriptors of the entities with the given model type.
+
+        Parameters
+        ----------
+        model_type: T
+            A class, e.g. olca.Flow
+
+        Returns
+        -------
+        Iterator[schema.Ref]
+            An iterator with Ref objects.
         &#34;&#34;&#34;
         params = {&#39;@type&#39;: model_type.__name__}
         result = self.__post(&#39;get/descriptors&#39;, params)
         for r in result:
-            d = schema.Ref()
-            d.from_json(r)
-            yield d
+            yield schema.Ref.from_json(r)
 
     def get(self, model_type: Type[T], model_id: str) -&gt; T:
         params = {&#39;@type&#39;: model_type.__name__, &#39;@id&#39;: model_id}
         result = self.__post(&#39;get/model&#39;, params)
-        e = model_type()
-        e.from_json(result)
-        return e
+        return model_type.from_json(result)
 
-    def get_all(self, model_type: Type[T]) -&gt; Generator[T, None, None]:
+    def get_all(self, model_type: Type[T]) -&gt; Iterator[T]:
         &#34;&#34;&#34;
         Returns a generator for all instances of the given type from the
         database. Note that this will first fetch the complete JSON list from
@@ -250,9 +364,7 @@ class Client(object):
         params = {&#39;@type&#39;: model_type.__name__}
         result = self.__post(&#39;get/models&#39;, params)
         for r in result:
-            e = model_type()
-            e.from_json(r)
-            yield e
+            yield model_type.from_json(r)
 
     def find(self, model_type, name: str) -&gt; schema.Ref:
         &#34;&#34;&#34;Searches for a data set with the given type and name.
@@ -354,7 +466,7 @@ class Client(object):
             product input or waste output the `preferred_type` indicates which
             type of process (LCI results or unit processes) should be preferred
             during the linking.
-        
+
         Returns
         -------
 
@@ -379,11 +491,83 @@ class Client(object):
             &#39;preferredType&#39;: preferred_type,
             &#39;providerLinking&#39;: default_providers,
         })
-        ref = schema.Ref()
-        ref.from_json(r)
-        return ref
+        return schema.Ref.from_json(r)
 
-    def lci_total_requirements(self, result: schema.SimpleResult) -&gt; dict:
+    def lci_inputs(self, result: schema.SimpleResult) -&gt; List[schema.FlowResult]:
+        &#34;&#34;&#34;
+        Returns the inputs of the given inventory result.
+
+        Example
+        -------
+        ```python
+        result = client.calculate(setup)
+        # print the first input
+        print(client.lci_inputs(result)[0])
+        client.dispose(result)
+        ```
+        &#34;&#34;&#34;
+        raw = self.__post(&#39;get/inventory/inputs&#39;, {
+            &#39;resultId&#39;: result.id,
+        })
+        return [schema.FlowResult.from_json(it) for it in raw]
+
+    def lci_outputs(self, result: schema.SimpleResult) -&gt; list:
+        &#34;&#34;&#34;
+        Returns the outputs of the given inventory result.
+
+        Example
+        -------
+        ```python
+        result = client.calculate(setup)
+        # print the first output
+        print(client.lci_outputs(result)[0])
+        client.dispose(result)
+        ```
+        &#34;&#34;&#34;
+        raw = self.__post(&#39;get/inventory/outputs&#39;, {
+            &#39;resultId&#39;: result.id,
+        })
+        return [schema.FlowResult.from_json(it) for it in raw]
+
+    def lci_location_contributions(self, result: schema.SimpleResult,
+                                   flow: schema.Ref) -&gt; List[ContributionItem]:
+        &#34;&#34;&#34;
+        Get the contributions of the result of the given flow by location.
+
+        Parameters
+        ----------
+        result: olca.schema.SimpleResult
+            The result which needs to be at least a contribution result.
+
+        flow: olca.schema.Ref
+            The (reference of the) flow for which the calculations should be
+            calculated.
+
+        Returns
+        -------
+        List[ContributionItem]
+            The contributions to the flow result by location.
+
+        Example
+        -------
+        ```python
+        # ...
+        result = client.calculate(setup)
+        # select the first output of the LCI result
+        output = client.lci_outputs(result)[0]
+        # calculate the location contributions of the flow of that output
+        cons = client.lci_location_contributions(result, output.flow)
+        # ...
+        client.dispose(result)
+        ```
+        &#34;&#34;&#34;
+        raw = self.__post(&#39;get/inventory/contributions/locations&#39;, {
+            &#39;resultId&#39;: result.id,
+            &#39;flow&#39;: flow.to_json(),
+        })
+        return [ContributionItem.from_json(it) for it in raw]
+
+    def lci_total_requirements(self, result: schema.SimpleResult) -&gt; List[ProductResult]:
         &#34;&#34;&#34;
         Returns the total requirements of the given result.
 
@@ -417,16 +601,148 @@ class Client(object):
         )
         setup.amount = 1.0
         result = client.calculate(setup)
-        print(client.lci_total_requirements(result))
+        print(client.lci_total_requirements(result)[0])
         client.dispose(result)
         ```
         &#34;&#34;&#34;
 
-        return self.__post(&#39;get/inventory/total_requirements&#39;, {
+        raw = self.__post(&#39;get/inventory/total_requirements&#39;, {
             &#39;resultId&#39;: result.id
         })
+        return [ProductResult.from_json(it) for it in raw]
 
-    def __post(self, method: str, params) -&gt; dict:
+    def lcia(self, result: schema.SimpleResult) -&gt; List[schema.ImpactResult]:
+        &#34;&#34;&#34;
+        Returns the LCIA result of the given result.
+
+        Parameters
+        ----------
+        result: olca.schema.SimpleResult
+            The result from which the LCIA result should be returned.
+
+        Example
+        -------
+        ```python
+        # ...
+        result = client.calculate(setup)
+        lcia = client.lcia(result)
+        # ...
+        client.dispose(result)
+        ```
+        &#34;&#34;&#34;
+
+        raw = self.__post(&#39;get/impacts&#39;, {
+            &#39;resultId&#39;: result.id,
+        })
+        return [schema.ImpactResult.from_json(it) for it in raw]
+
+    def lcia_flow_contributions(self, result: schema.SimpleResult,
+                                impact: schema.Ref) -&gt; List[ContributionItem]:
+        &#34;&#34;&#34;
+        Get the flow contributions to the result of the given impact category.
+
+        Parameters
+        ----------
+        result: olca.schema.SimpleResult
+            The result.
+
+        impact: olca.schema.Ref
+            The (reference to the) LCIA category.
+
+        Example
+        -------
+        ```python
+        # ...
+        result = client.calculate(setup)
+        # select the first LCIA result
+        impact_result = client.lcia(result)[0]
+        # get the flow contributions to the LCIA category of that result
+        cons = client.lcia_flow_contributions(
+            result, impact_result.impact_category)
+        # ...
+        client.dispose(result)
+        ```
+        &#34;&#34;&#34;
+
+        raw = self.__post(&#39;get/impacts/contributions/flows&#39;, {
+            &#39;resultId&#39;: result.id,
+            &#39;impactCategory&#39;: impact.to_json(),
+        })
+        return [ContributionItem.from_json(it) for it in raw]
+
+    def lcia_location_contributions(self, result: schema.SimpleResult,
+                                    impact: schema.Ref) -&gt; List[ContributionItem]:
+        &#34;&#34;&#34;
+        Get the contributions to the result of the given impact category by
+        locations.
+
+        Parameters
+        ----------
+        result: olca.schema.SimpleResult
+            The result.
+
+        impact: olca.schema.Ref
+            The (reference to the) LCIA category.
+
+
+        Example
+        -------
+        ```python
+        # ...
+        result = client.calculate(setup)
+        # select the first LCIA result
+        impact_result = client.lcia(result)[0]
+        # get the flow contributions to the LCIA category of that result
+        cons = client.lcia_location_contributions(
+            result, impact_result.impact_category)
+        # ...
+        client.dispose(result)
+        ```
+        &#34;&#34;&#34;
+
+        raw = self.__post(&#39;get/impacts/contributions/locations&#39;, {
+            &#39;resultId&#39;: result.id,
+            &#39;impactCategory&#39;: impact.to_json(),
+        })
+        return [ContributionItem.from_json(it) for it in raw]
+
+    def lcia_process_contributions(self, result: schema.SimpleResult,
+                                   impact: schema.Ref) -&gt; List[ContributionItem]:
+        &#34;&#34;&#34;
+        Get the contributions to the result of the given impact category by
+        processes.
+
+        Parameters
+        ----------
+        result: olca.schema.SimpleResult
+            The result.
+
+        impact: olca.schema.Ref
+            The (reference to the) LCIA category.
+
+
+        Example
+        -------
+        ```python
+        # ...
+        result = client.calculate(setup)
+        # select the first LCIA result
+        impact_result = client.lcia(result)[0]
+        # get the flow contributions to the LCIA category of that result
+        cons = client.lcia_process_contributions(
+            result, impact_result.impact_category)
+        # ...
+        client.dispose(result)
+        ```
+        &#34;&#34;&#34;
+
+        raw = self.__post(&#39;get/impacts/contributions/processes&#39;, {
+            &#39;resultId&#39;: result.id,
+            &#39;impactCategory&#39;: impact.to_json(),
+        })
+        return [ContributionItem.from_json(it) for it in raw]
+
+    def __post(self, method: str, params):
         req = {
             &#39;jsonrpc&#39;: &#39;2.0&#39;,
             &#39;id&#39;: self.next_id,
@@ -574,9 +890,7 @@ that are executed via this client are thus executed on that database.</p>
         if setup is None:
             raise ValueError(&#39;Invalid calculation setup&#39;)
         resp = self.__post(&#39;calculate&#39;, setup.to_json())
-        result = schema.SimpleResult()
-        result.from_json(resp)
-        return result
+        return schema.SimpleResult.from_json(resp)
 
     def simulator(self, setup: schema.CalculationSetup) -&gt; schema.Ref:
         &#34;&#34;&#34;
@@ -629,9 +943,8 @@ that are executed via this client are thus executed on that database.</p>
         &#34;&#34;&#34;
         if setup is None:
             raise ValueError(&#39;Invalid calculation setup&#39;)
-        ref = schema.Ref()
-        ref.from_json(self.__post(&#39;simulator&#39;, setup.to_json()))
-        return ref
+        r = self.__post(&#39;simulator&#39;, setup.to_json())
+        return schema.Ref.from_json(r)
 
     def next_simulation(self, simulator: schema.Ref) -&gt; schema.SimpleResult:
         &#34;&#34;&#34;
@@ -650,32 +963,33 @@ that are executed via this client are thus executed on that database.</p>
         if simulator is None:
             raise ValueError(&#39;No simulator given&#39;)
         resp = self.__post(&#39;next/simulation&#39;, simulator.to_json())
-        result = schema.SimpleResult()
-        result.from_json(resp)
-        return result
+        return schema.SimpleResult.from_json(resp)
 
-    def get_descriptors(self, model_type) -&gt; Generator[schema.Ref, None, None]:
+    def get_descriptors(self, model_type: Type[T]) -&gt; Iterator[schema.Ref]:
         &#34;&#34;&#34;
-        Get the list of descriptors of the entities with the given
-        model type.
-        :param model_type: A class, e.g. olca.Flow
-        :return: A list of descriptors.
+        Get the list of descriptors of the entities with the given model type.
+
+        Parameters
+        ----------
+        model_type: T
+            A class, e.g. olca.Flow
+
+        Returns
+        -------
+        Iterator[schema.Ref]
+            An iterator with Ref objects.
         &#34;&#34;&#34;
         params = {&#39;@type&#39;: model_type.__name__}
         result = self.__post(&#39;get/descriptors&#39;, params)
         for r in result:
-            d = schema.Ref()
-            d.from_json(r)
-            yield d
+            yield schema.Ref.from_json(r)
 
     def get(self, model_type: Type[T], model_id: str) -&gt; T:
         params = {&#39;@type&#39;: model_type.__name__, &#39;@id&#39;: model_id}
         result = self.__post(&#39;get/model&#39;, params)
-        e = model_type()
-        e.from_json(result)
-        return e
+        return model_type.from_json(result)
 
-    def get_all(self, model_type: Type[T]) -&gt; Generator[T, None, None]:
+    def get_all(self, model_type: Type[T]) -&gt; Iterator[T]:
         &#34;&#34;&#34;
         Returns a generator for all instances of the given type from the
         database. Note that this will first fetch the complete JSON list from
@@ -685,9 +999,7 @@ that are executed via this client are thus executed on that database.</p>
         params = {&#39;@type&#39;: model_type.__name__}
         result = self.__post(&#39;get/models&#39;, params)
         for r in result:
-            e = model_type()
-            e.from_json(r)
-            yield e
+            yield model_type.from_json(r)
 
     def find(self, model_type, name: str) -&gt; schema.Ref:
         &#34;&#34;&#34;Searches for a data set with the given type and name.
@@ -789,7 +1101,7 @@ that are executed via this client are thus executed on that database.</p>
             product input or waste output the `preferred_type` indicates which
             type of process (LCI results or unit processes) should be preferred
             during the linking.
-        
+
         Returns
         -------
 
@@ -814,11 +1126,83 @@ that are executed via this client are thus executed on that database.</p>
             &#39;preferredType&#39;: preferred_type,
             &#39;providerLinking&#39;: default_providers,
         })
-        ref = schema.Ref()
-        ref.from_json(r)
-        return ref
+        return schema.Ref.from_json(r)
 
-    def lci_total_requirements(self, result: schema.SimpleResult) -&gt; dict:
+    def lci_inputs(self, result: schema.SimpleResult) -&gt; List[schema.FlowResult]:
+        &#34;&#34;&#34;
+        Returns the inputs of the given inventory result.
+
+        Example
+        -------
+        ```python
+        result = client.calculate(setup)
+        # print the first input
+        print(client.lci_inputs(result)[0])
+        client.dispose(result)
+        ```
+        &#34;&#34;&#34;
+        raw = self.__post(&#39;get/inventory/inputs&#39;, {
+            &#39;resultId&#39;: result.id,
+        })
+        return [schema.FlowResult.from_json(it) for it in raw]
+
+    def lci_outputs(self, result: schema.SimpleResult) -&gt; list:
+        &#34;&#34;&#34;
+        Returns the outputs of the given inventory result.
+
+        Example
+        -------
+        ```python
+        result = client.calculate(setup)
+        # print the first output
+        print(client.lci_outputs(result)[0])
+        client.dispose(result)
+        ```
+        &#34;&#34;&#34;
+        raw = self.__post(&#39;get/inventory/outputs&#39;, {
+            &#39;resultId&#39;: result.id,
+        })
+        return [schema.FlowResult.from_json(it) for it in raw]
+
+    def lci_location_contributions(self, result: schema.SimpleResult,
+                                   flow: schema.Ref) -&gt; List[ContributionItem]:
+        &#34;&#34;&#34;
+        Get the contributions of the result of the given flow by location.
+
+        Parameters
+        ----------
+        result: olca.schema.SimpleResult
+            The result which needs to be at least a contribution result.
+
+        flow: olca.schema.Ref
+            The (reference of the) flow for which the calculations should be
+            calculated.
+
+        Returns
+        -------
+        List[ContributionItem]
+            The contributions to the flow result by location.
+
+        Example
+        -------
+        ```python
+        # ...
+        result = client.calculate(setup)
+        # select the first output of the LCI result
+        output = client.lci_outputs(result)[0]
+        # calculate the location contributions of the flow of that output
+        cons = client.lci_location_contributions(result, output.flow)
+        # ...
+        client.dispose(result)
+        ```
+        &#34;&#34;&#34;
+        raw = self.__post(&#39;get/inventory/contributions/locations&#39;, {
+            &#39;resultId&#39;: result.id,
+            &#39;flow&#39;: flow.to_json(),
+        })
+        return [ContributionItem.from_json(it) for it in raw]
+
+    def lci_total_requirements(self, result: schema.SimpleResult) -&gt; List[ProductResult]:
         &#34;&#34;&#34;
         Returns the total requirements of the given result.
 
@@ -852,16 +1236,148 @@ that are executed via this client are thus executed on that database.</p>
         )
         setup.amount = 1.0
         result = client.calculate(setup)
-        print(client.lci_total_requirements(result))
+        print(client.lci_total_requirements(result)[0])
         client.dispose(result)
         ```
         &#34;&#34;&#34;
 
-        return self.__post(&#39;get/inventory/total_requirements&#39;, {
+        raw = self.__post(&#39;get/inventory/total_requirements&#39;, {
             &#39;resultId&#39;: result.id
         })
+        return [ProductResult.from_json(it) for it in raw]
 
-    def __post(self, method: str, params) -&gt; dict:
+    def lcia(self, result: schema.SimpleResult) -&gt; List[schema.ImpactResult]:
+        &#34;&#34;&#34;
+        Returns the LCIA result of the given result.
+
+        Parameters
+        ----------
+        result: olca.schema.SimpleResult
+            The result from which the LCIA result should be returned.
+
+        Example
+        -------
+        ```python
+        # ...
+        result = client.calculate(setup)
+        lcia = client.lcia(result)
+        # ...
+        client.dispose(result)
+        ```
+        &#34;&#34;&#34;
+
+        raw = self.__post(&#39;get/impacts&#39;, {
+            &#39;resultId&#39;: result.id,
+        })
+        return [schema.ImpactResult.from_json(it) for it in raw]
+
+    def lcia_flow_contributions(self, result: schema.SimpleResult,
+                                impact: schema.Ref) -&gt; List[ContributionItem]:
+        &#34;&#34;&#34;
+        Get the flow contributions to the result of the given impact category.
+
+        Parameters
+        ----------
+        result: olca.schema.SimpleResult
+            The result.
+
+        impact: olca.schema.Ref
+            The (reference to the) LCIA category.
+
+        Example
+        -------
+        ```python
+        # ...
+        result = client.calculate(setup)
+        # select the first LCIA result
+        impact_result = client.lcia(result)[0]
+        # get the flow contributions to the LCIA category of that result
+        cons = client.lcia_flow_contributions(
+            result, impact_result.impact_category)
+        # ...
+        client.dispose(result)
+        ```
+        &#34;&#34;&#34;
+
+        raw = self.__post(&#39;get/impacts/contributions/flows&#39;, {
+            &#39;resultId&#39;: result.id,
+            &#39;impactCategory&#39;: impact.to_json(),
+        })
+        return [ContributionItem.from_json(it) for it in raw]
+
+    def lcia_location_contributions(self, result: schema.SimpleResult,
+                                    impact: schema.Ref) -&gt; List[ContributionItem]:
+        &#34;&#34;&#34;
+        Get the contributions to the result of the given impact category by
+        locations.
+
+        Parameters
+        ----------
+        result: olca.schema.SimpleResult
+            The result.
+
+        impact: olca.schema.Ref
+            The (reference to the) LCIA category.
+
+
+        Example
+        -------
+        ```python
+        # ...
+        result = client.calculate(setup)
+        # select the first LCIA result
+        impact_result = client.lcia(result)[0]
+        # get the flow contributions to the LCIA category of that result
+        cons = client.lcia_location_contributions(
+            result, impact_result.impact_category)
+        # ...
+        client.dispose(result)
+        ```
+        &#34;&#34;&#34;
+
+        raw = self.__post(&#39;get/impacts/contributions/locations&#39;, {
+            &#39;resultId&#39;: result.id,
+            &#39;impactCategory&#39;: impact.to_json(),
+        })
+        return [ContributionItem.from_json(it) for it in raw]
+
+    def lcia_process_contributions(self, result: schema.SimpleResult,
+                                   impact: schema.Ref) -&gt; List[ContributionItem]:
+        &#34;&#34;&#34;
+        Get the contributions to the result of the given impact category by
+        processes.
+
+        Parameters
+        ----------
+        result: olca.schema.SimpleResult
+            The result.
+
+        impact: olca.schema.Ref
+            The (reference to the) LCIA category.
+
+
+        Example
+        -------
+        ```python
+        # ...
+        result = client.calculate(setup)
+        # select the first LCIA result
+        impact_result = client.lcia(result)[0]
+        # get the flow contributions to the LCIA category of that result
+        cons = client.lcia_process_contributions(
+            result, impact_result.impact_category)
+        # ...
+        client.dispose(result)
+        ```
+        &#34;&#34;&#34;
+
+        raw = self.__post(&#39;get/impacts/contributions/processes&#39;, {
+            &#39;resultId&#39;: result.id,
+            &#39;impactCategory&#39;: impact.to_json(),
+        })
+        return [ContributionItem.from_json(it) for it in raw]
+
+    def __post(self, method: str, params):
         req = {
             &#39;jsonrpc&#39;: &#39;2.0&#39;,
             &#39;id&#39;: self.next_id,
@@ -950,9 +1466,7 @@ client.dispose(result)
     if setup is None:
         raise ValueError(&#39;Invalid calculation setup&#39;)
     resp = self.__post(&#39;calculate&#39;, setup.to_json())
-    result = schema.SimpleResult()
-    result.from_json(resp)
-    return result</code></pre>
+    return schema.SimpleResult.from_json(resp)</code></pre>
 </details>
 </dd>
 <dt id="olca.ipc.Client.create_product_system"><code class="name flex">
@@ -1025,7 +1539,7 @@ print('Created product system %s' % ref.id)
         product input or waste output the `preferred_type` indicates which
         type of process (LCI results or unit processes) should be preferred
         during the linking.
-    
+
     Returns
     -------
 
@@ -1050,9 +1564,7 @@ print('Created product system %s' % ref.id)
         &#39;preferredType&#39;: preferred_type,
         &#39;providerLinking&#39;: default_providers,
     })
-    ref = schema.Ref()
-    ref.from_json(r)
-    return ref</code></pre>
+    return schema.Ref.from_json(r)</code></pre>
 </details>
 </dd>
 <dt id="olca.ipc.Client.delete"><code class="name flex">
@@ -1209,13 +1721,11 @@ set in the database.</p></div>
 <pre><code class="python">def get(self, model_type: Type[T], model_id: str) -&gt; T:
     params = {&#39;@type&#39;: model_type.__name__, &#39;@id&#39;: model_id}
     result = self.__post(&#39;get/model&#39;, params)
-    e = model_type()
-    e.from_json(result)
-    return e</code></pre>
+    return model_type.from_json(result)</code></pre>
 </details>
 </dd>
 <dt id="olca.ipc.Client.get_all"><code class="name flex">
-<span>def <span class="ident">get_all</span></span>(<span>self, model_type: Type[~T]) ‑> Generator[~T, NoneType, NoneType]</span>
+<span>def <span class="ident">get_all</span></span>(<span>self, model_type: Type[~T]) ‑> Iterator[~T]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns a generator for all instances of the given type from the
@@ -1226,7 +1736,7 @@ instances is expected as return value.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_all(self, model_type: Type[T]) -&gt; Generator[T, None, None]:
+<pre><code class="python">def get_all(self, model_type: Type[T]) -&gt; Iterator[T]:
     &#34;&#34;&#34;
     Returns a generator for all instances of the given type from the
     database. Note that this will first fetch the complete JSON list from
@@ -1236,36 +1746,46 @@ instances is expected as return value.</p></div>
     params = {&#39;@type&#39;: model_type.__name__}
     result = self.__post(&#39;get/models&#39;, params)
     for r in result:
-        e = model_type()
-        e.from_json(r)
-        yield e</code></pre>
+        yield model_type.from_json(r)</code></pre>
 </details>
 </dd>
 <dt id="olca.ipc.Client.get_descriptors"><code class="name flex">
-<span>def <span class="ident">get_descriptors</span></span>(<span>self, model_type) ‑> Generator[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, NoneType, NoneType]</span>
+<span>def <span class="ident">get_descriptors</span></span>(<span>self, model_type: Type[~T]) ‑> Iterator[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Get the list of descriptors of the entities with the given
-model type.
-:param model_type: A class, e.g. olca.Flow
-:return: A list of descriptors.</p></div>
+<div class="desc"><p>Get the list of descriptors of the entities with the given model type.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>model_type</code></strong> :&ensp;<code>T</code></dt>
+<dd>A class, e.g. olca.Flow</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Iterator[schema.Ref]</code></dt>
+<dd>An iterator with Ref objects.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_descriptors(self, model_type) -&gt; Generator[schema.Ref, None, None]:
+<pre><code class="python">def get_descriptors(self, model_type: Type[T]) -&gt; Iterator[schema.Ref]:
     &#34;&#34;&#34;
-    Get the list of descriptors of the entities with the given
-    model type.
-    :param model_type: A class, e.g. olca.Flow
-    :return: A list of descriptors.
+    Get the list of descriptors of the entities with the given model type.
+
+    Parameters
+    ----------
+    model_type: T
+        A class, e.g. olca.Flow
+
+    Returns
+    -------
+    Iterator[schema.Ref]
+        An iterator with Ref objects.
     &#34;&#34;&#34;
     params = {&#39;@type&#39;: model_type.__name__}
     result = self.__post(&#39;get/descriptors&#39;, params)
     for r in result:
-        d = schema.Ref()
-        d.from_json(r)
-        yield d</code></pre>
+        yield schema.Ref.from_json(r)</code></pre>
 </details>
 </dd>
 <dt id="olca.ipc.Client.insert"><code class="name flex">
@@ -1327,8 +1847,147 @@ print(response)
     return self.__post(&#39;insert/model&#39;, json)</code></pre>
 </details>
 </dd>
+<dt id="olca.ipc.Client.lci_inputs"><code class="name flex">
+<span>def <span class="ident">lci_inputs</span></span>(<span>self, result: <a title="olca.schema.SimpleResult" href="schema.html#olca.schema.SimpleResult">SimpleResult</a>) ‑> List[<a title="olca.schema.FlowResult" href="schema.html#olca.schema.FlowResult">FlowResult</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the inputs of the given inventory result.</p>
+<h2 id="example">Example</h2>
+<pre><code class="python">result = client.calculate(setup)
+# print the first input
+print(client.lci_inputs(result)[0])
+client.dispose(result)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def lci_inputs(self, result: schema.SimpleResult) -&gt; List[schema.FlowResult]:
+    &#34;&#34;&#34;
+    Returns the inputs of the given inventory result.
+
+    Example
+    -------
+    ```python
+    result = client.calculate(setup)
+    # print the first input
+    print(client.lci_inputs(result)[0])
+    client.dispose(result)
+    ```
+    &#34;&#34;&#34;
+    raw = self.__post(&#39;get/inventory/inputs&#39;, {
+        &#39;resultId&#39;: result.id,
+    })
+    return [schema.FlowResult.from_json(it) for it in raw]</code></pre>
+</details>
+</dd>
+<dt id="olca.ipc.Client.lci_location_contributions"><code class="name flex">
+<span>def <span class="ident">lci_location_contributions</span></span>(<span>self, result: <a title="olca.schema.SimpleResult" href="schema.html#olca.schema.SimpleResult">SimpleResult</a>, flow: <a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>) ‑> List[<a title="olca.ipc.ContributionItem" href="#olca.ipc.ContributionItem">ContributionItem</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get the contributions of the result of the given flow by location.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>result</code></strong> :&ensp;<code><a title="olca.schema.SimpleResult" href="schema.html#olca.schema.SimpleResult">SimpleResult</a></code></dt>
+<dd>The result which needs to be at least a contribution result.</dd>
+<dt><strong><code>flow</code></strong> :&ensp;<code><a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a></code></dt>
+<dd>The (reference of the) flow for which the calculations should be
+calculated.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>List[<a title="olca.ipc.ContributionItem" href="#olca.ipc.ContributionItem">ContributionItem</a>]</code></dt>
+<dd>The contributions to the flow result by location.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="python"># ...
+result = client.calculate(setup)
+# select the first output of the LCI result
+output = client.lci_outputs(result)[0]
+# calculate the location contributions of the flow of that output
+cons = client.lci_location_contributions(result, output.flow)
+# ...
+client.dispose(result)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def lci_location_contributions(self, result: schema.SimpleResult,
+                               flow: schema.Ref) -&gt; List[ContributionItem]:
+    &#34;&#34;&#34;
+    Get the contributions of the result of the given flow by location.
+
+    Parameters
+    ----------
+    result: olca.schema.SimpleResult
+        The result which needs to be at least a contribution result.
+
+    flow: olca.schema.Ref
+        The (reference of the) flow for which the calculations should be
+        calculated.
+
+    Returns
+    -------
+    List[ContributionItem]
+        The contributions to the flow result by location.
+
+    Example
+    -------
+    ```python
+    # ...
+    result = client.calculate(setup)
+    # select the first output of the LCI result
+    output = client.lci_outputs(result)[0]
+    # calculate the location contributions of the flow of that output
+    cons = client.lci_location_contributions(result, output.flow)
+    # ...
+    client.dispose(result)
+    ```
+    &#34;&#34;&#34;
+    raw = self.__post(&#39;get/inventory/contributions/locations&#39;, {
+        &#39;resultId&#39;: result.id,
+        &#39;flow&#39;: flow.to_json(),
+    })
+    return [ContributionItem.from_json(it) for it in raw]</code></pre>
+</details>
+</dd>
+<dt id="olca.ipc.Client.lci_outputs"><code class="name flex">
+<span>def <span class="ident">lci_outputs</span></span>(<span>self, result: <a title="olca.schema.SimpleResult" href="schema.html#olca.schema.SimpleResult">SimpleResult</a>) ‑> list</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the outputs of the given inventory result.</p>
+<h2 id="example">Example</h2>
+<pre><code class="python">result = client.calculate(setup)
+# print the first output
+print(client.lci_outputs(result)[0])
+client.dispose(result)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def lci_outputs(self, result: schema.SimpleResult) -&gt; list:
+    &#34;&#34;&#34;
+    Returns the outputs of the given inventory result.
+
+    Example
+    -------
+    ```python
+    result = client.calculate(setup)
+    # print the first output
+    print(client.lci_outputs(result)[0])
+    client.dispose(result)
+    ```
+    &#34;&#34;&#34;
+    raw = self.__post(&#39;get/inventory/outputs&#39;, {
+        &#39;resultId&#39;: result.id,
+    })
+    return [schema.FlowResult.from_json(it) for it in raw]</code></pre>
+</details>
+</dd>
 <dt id="olca.ipc.Client.lci_total_requirements"><code class="name flex">
-<span>def <span class="ident">lci_total_requirements</span></span>(<span>self, result: <a title="olca.schema.SimpleResult" href="schema.html#olca.schema.SimpleResult">SimpleResult</a>) ‑> dict</span>
+<span>def <span class="ident">lci_total_requirements</span></span>(<span>self, result: <a title="olca.schema.SimpleResult" href="schema.html#olca.schema.SimpleResult">SimpleResult</a>) ‑> List[<a title="olca.ipc.ProductResult" href="#olca.ipc.ProductResult">ProductResult</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the total requirements of the given result.</p>
@@ -1358,14 +2017,14 @@ setup.product_system = olca.ref(
 )
 setup.amount = 1.0
 result = client.calculate(setup)
-print(client.lci_total_requirements(result))
+print(client.lci_total_requirements(result)[0])
 client.dispose(result)
 </code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def lci_total_requirements(self, result: schema.SimpleResult) -&gt; dict:
+<pre><code class="python">def lci_total_requirements(self, result: schema.SimpleResult) -&gt; List[ProductResult]:
     &#34;&#34;&#34;
     Returns the total requirements of the given result.
 
@@ -1399,14 +2058,254 @@ client.dispose(result)
     )
     setup.amount = 1.0
     result = client.calculate(setup)
-    print(client.lci_total_requirements(result))
+    print(client.lci_total_requirements(result)[0])
     client.dispose(result)
     ```
     &#34;&#34;&#34;
 
-    return self.__post(&#39;get/inventory/total_requirements&#39;, {
+    raw = self.__post(&#39;get/inventory/total_requirements&#39;, {
         &#39;resultId&#39;: result.id
-    })</code></pre>
+    })
+    return [ProductResult.from_json(it) for it in raw]</code></pre>
+</details>
+</dd>
+<dt id="olca.ipc.Client.lcia"><code class="name flex">
+<span>def <span class="ident">lcia</span></span>(<span>self, result: <a title="olca.schema.SimpleResult" href="schema.html#olca.schema.SimpleResult">SimpleResult</a>) ‑> List[<a title="olca.schema.ImpactResult" href="schema.html#olca.schema.ImpactResult">ImpactResult</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the LCIA result of the given result.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>result</code></strong> :&ensp;<code><a title="olca.schema.SimpleResult" href="schema.html#olca.schema.SimpleResult">SimpleResult</a></code></dt>
+<dd>The result from which the LCIA result should be returned.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="python"># ...
+result = client.calculate(setup)
+lcia = client.lcia(result)
+# ...
+client.dispose(result)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def lcia(self, result: schema.SimpleResult) -&gt; List[schema.ImpactResult]:
+    &#34;&#34;&#34;
+    Returns the LCIA result of the given result.
+
+    Parameters
+    ----------
+    result: olca.schema.SimpleResult
+        The result from which the LCIA result should be returned.
+
+    Example
+    -------
+    ```python
+    # ...
+    result = client.calculate(setup)
+    lcia = client.lcia(result)
+    # ...
+    client.dispose(result)
+    ```
+    &#34;&#34;&#34;
+
+    raw = self.__post(&#39;get/impacts&#39;, {
+        &#39;resultId&#39;: result.id,
+    })
+    return [schema.ImpactResult.from_json(it) for it in raw]</code></pre>
+</details>
+</dd>
+<dt id="olca.ipc.Client.lcia_flow_contributions"><code class="name flex">
+<span>def <span class="ident">lcia_flow_contributions</span></span>(<span>self, result: <a title="olca.schema.SimpleResult" href="schema.html#olca.schema.SimpleResult">SimpleResult</a>, impact: <a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>) ‑> List[<a title="olca.ipc.ContributionItem" href="#olca.ipc.ContributionItem">ContributionItem</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get the flow contributions to the result of the given impact category.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>result</code></strong> :&ensp;<code><a title="olca.schema.SimpleResult" href="schema.html#olca.schema.SimpleResult">SimpleResult</a></code></dt>
+<dd>The result.</dd>
+<dt><strong><code>impact</code></strong> :&ensp;<code><a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a></code></dt>
+<dd>The (reference to the) LCIA category.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="python"># ...
+result = client.calculate(setup)
+# select the first LCIA result
+impact_result = client.lcia(result)[0]
+# get the flow contributions to the LCIA category of that result
+cons = client.lcia_flow_contributions(
+    result, impact_result.impact_category)
+# ...
+client.dispose(result)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def lcia_flow_contributions(self, result: schema.SimpleResult,
+                            impact: schema.Ref) -&gt; List[ContributionItem]:
+    &#34;&#34;&#34;
+    Get the flow contributions to the result of the given impact category.
+
+    Parameters
+    ----------
+    result: olca.schema.SimpleResult
+        The result.
+
+    impact: olca.schema.Ref
+        The (reference to the) LCIA category.
+
+    Example
+    -------
+    ```python
+    # ...
+    result = client.calculate(setup)
+    # select the first LCIA result
+    impact_result = client.lcia(result)[0]
+    # get the flow contributions to the LCIA category of that result
+    cons = client.lcia_flow_contributions(
+        result, impact_result.impact_category)
+    # ...
+    client.dispose(result)
+    ```
+    &#34;&#34;&#34;
+
+    raw = self.__post(&#39;get/impacts/contributions/flows&#39;, {
+        &#39;resultId&#39;: result.id,
+        &#39;impactCategory&#39;: impact.to_json(),
+    })
+    return [ContributionItem.from_json(it) for it in raw]</code></pre>
+</details>
+</dd>
+<dt id="olca.ipc.Client.lcia_location_contributions"><code class="name flex">
+<span>def <span class="ident">lcia_location_contributions</span></span>(<span>self, result: <a title="olca.schema.SimpleResult" href="schema.html#olca.schema.SimpleResult">SimpleResult</a>, impact: <a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>) ‑> List[<a title="olca.ipc.ContributionItem" href="#olca.ipc.ContributionItem">ContributionItem</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get the contributions to the result of the given impact category by
+locations.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>result</code></strong> :&ensp;<code><a title="olca.schema.SimpleResult" href="schema.html#olca.schema.SimpleResult">SimpleResult</a></code></dt>
+<dd>The result.</dd>
+<dt><strong><code>impact</code></strong> :&ensp;<code><a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a></code></dt>
+<dd>The (reference to the) LCIA category.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="python"># ...
+result = client.calculate(setup)
+# select the first LCIA result
+impact_result = client.lcia(result)[0]
+# get the flow contributions to the LCIA category of that result
+cons = client.lcia_location_contributions(
+    result, impact_result.impact_category)
+# ...
+client.dispose(result)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def lcia_location_contributions(self, result: schema.SimpleResult,
+                                impact: schema.Ref) -&gt; List[ContributionItem]:
+    &#34;&#34;&#34;
+    Get the contributions to the result of the given impact category by
+    locations.
+
+    Parameters
+    ----------
+    result: olca.schema.SimpleResult
+        The result.
+
+    impact: olca.schema.Ref
+        The (reference to the) LCIA category.
+
+
+    Example
+    -------
+    ```python
+    # ...
+    result = client.calculate(setup)
+    # select the first LCIA result
+    impact_result = client.lcia(result)[0]
+    # get the flow contributions to the LCIA category of that result
+    cons = client.lcia_location_contributions(
+        result, impact_result.impact_category)
+    # ...
+    client.dispose(result)
+    ```
+    &#34;&#34;&#34;
+
+    raw = self.__post(&#39;get/impacts/contributions/locations&#39;, {
+        &#39;resultId&#39;: result.id,
+        &#39;impactCategory&#39;: impact.to_json(),
+    })
+    return [ContributionItem.from_json(it) for it in raw]</code></pre>
+</details>
+</dd>
+<dt id="olca.ipc.Client.lcia_process_contributions"><code class="name flex">
+<span>def <span class="ident">lcia_process_contributions</span></span>(<span>self, result: <a title="olca.schema.SimpleResult" href="schema.html#olca.schema.SimpleResult">SimpleResult</a>, impact: <a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>) ‑> List[<a title="olca.ipc.ContributionItem" href="#olca.ipc.ContributionItem">ContributionItem</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get the contributions to the result of the given impact category by
+processes.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>result</code></strong> :&ensp;<code><a title="olca.schema.SimpleResult" href="schema.html#olca.schema.SimpleResult">SimpleResult</a></code></dt>
+<dd>The result.</dd>
+<dt><strong><code>impact</code></strong> :&ensp;<code><a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a></code></dt>
+<dd>The (reference to the) LCIA category.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="python"># ...
+result = client.calculate(setup)
+# select the first LCIA result
+impact_result = client.lcia(result)[0]
+# get the flow contributions to the LCIA category of that result
+cons = client.lcia_process_contributions(
+    result, impact_result.impact_category)
+# ...
+client.dispose(result)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def lcia_process_contributions(self, result: schema.SimpleResult,
+                               impact: schema.Ref) -&gt; List[ContributionItem]:
+    &#34;&#34;&#34;
+    Get the contributions to the result of the given impact category by
+    processes.
+
+    Parameters
+    ----------
+    result: olca.schema.SimpleResult
+        The result.
+
+    impact: olca.schema.Ref
+        The (reference to the) LCIA category.
+
+
+    Example
+    -------
+    ```python
+    # ...
+    result = client.calculate(setup)
+    # select the first LCIA result
+    impact_result = client.lcia(result)[0]
+    # get the flow contributions to the LCIA category of that result
+    cons = client.lcia_process_contributions(
+        result, impact_result.impact_category)
+    # ...
+    client.dispose(result)
+    ```
+    &#34;&#34;&#34;
+
+    raw = self.__post(&#39;get/impacts/contributions/processes&#39;, {
+        &#39;resultId&#39;: result.id,
+        &#39;impactCategory&#39;: impact.to_json(),
+    })
+    return [ContributionItem.from_json(it) for it in raw]</code></pre>
 </details>
 </dd>
 <dt id="olca.ipc.Client.next_simulation"><code class="name flex">
@@ -1444,9 +2343,7 @@ simulation step.</dd>
     if simulator is None:
         raise ValueError(&#39;No simulator given&#39;)
     resp = self.__post(&#39;next/simulation&#39;, simulator.to_json())
-    result = schema.SimpleResult()
-    result.from_json(resp)
-    return result</code></pre>
+    return schema.SimpleResult.from_json(resp)</code></pre>
 </details>
 </dd>
 <dt id="olca.ipc.Client.shutdown_server"><code class="name flex">
@@ -1570,9 +2467,8 @@ client.dispose(simulator)
     &#34;&#34;&#34;
     if setup is None:
         raise ValueError(&#39;Invalid calculation setup&#39;)
-    ref = schema.Ref()
-    ref.from_json(self.__post(&#39;simulator&#39;, setup.to_json()))
-    return ref</code></pre>
+    r = self.__post(&#39;simulator&#39;, setup.to_json())
+    return schema.Ref.from_json(r)</code></pre>
 </details>
 </dd>
 <dt id="olca.ipc.Client.update"><code class="name flex">
@@ -1592,6 +2488,300 @@ client.dispose(simulator)
         return
     json = model.to_json()
     return self.__post(&#39;update/model&#39;, json)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="olca.ipc.ContributionItem"><code class="flex name class">
+<span>class <span class="ident">ContributionItem</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>The ContributionItem type is not an olca-schema type but a return
+type of the IPC protocol. However, it implements the same interface
+as the olca.schema.Entity type.</p>
+<h2 id="attributes">Attributes:</h2>
+<p>item: olca.schema.Ref</p>
+<p>amount: float</p>
+<p>share: float</p>
+<p>rest: bool</p>
+<p>unit: str</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ContributionItem(schema.Entity):
+    &#34;&#34;&#34;
+    The ContributionItem type is not an olca-schema type but a return
+    type of the IPC protocol. However, it implements the same interface
+    as the olca.schema.Entity type.
+
+    Attributes:
+    -----------
+    item: olca.schema.Ref
+
+    amount: float
+
+    share: float
+
+    rest: bool
+
+    unit: str
+
+    &#34;&#34;&#34;
+
+    def __init__(self):
+        item: Optional[Ref] = None
+        amount: Optional[float] = None
+        share: Optional[float] = None
+        rest: Optional[bool] = None
+        unit: Optional[str] = None
+
+    def to_json(self) -&gt; dict:
+        json: dict = super(ContributionItem, self).to_json()
+        if self.item is not None:
+            json[&#39;item&#39;] = self.item.to_json()
+        if self.amount is not None:
+            json[&#39;amount&#39;] = self.amount
+        if self.share is not None:
+            json[&#39;share&#39;] = self.share
+        if self.rest is not None:
+            json[&#39;rest&#39;] = self.rest
+        if self.unit is not None:
+            json[&#39;unit&#39;] = self.unit
+        return json
+
+    def read_json(self, json: dict):
+        super(ContributionItem, self).read_json(json)
+        val = json.get(&#39;item&#39;)
+        if val is not None:
+            self.item = schema.Ref.from_json(val)
+        val = json.get(&#39;amount&#39;)
+        if val is not None:
+            self.amount = val
+        val = json.get(&#39;share&#39;)
+        if val is not None:
+            self.share = val
+        val = json.get(&#39;rest&#39;)
+        if val is not None:
+            self.rest = val
+        val = json.get(&#39;unit&#39;)
+        if val is not None:
+            self.unit = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ContributionItem()
+        instance.read_json(json)
+        return instance</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="olca.schema.Entity" href="schema.html#olca.schema.Entity">Entity</a></li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="olca.ipc.ContributionItem.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = ContributionItem()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.ipc.ContributionItem.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(ContributionItem, self).read_json(json)
+    val = json.get(&#39;item&#39;)
+    if val is not None:
+        self.item = schema.Ref.from_json(val)
+    val = json.get(&#39;amount&#39;)
+    if val is not None:
+        self.amount = val
+    val = json.get(&#39;share&#39;)
+    if val is not None:
+        self.share = val
+    val = json.get(&#39;rest&#39;)
+    if val is not None:
+        self.rest = val
+    val = json.get(&#39;unit&#39;)
+    if val is not None:
+        self.unit = val</code></pre>
+</details>
+</dd>
+<dt id="olca.ipc.ContributionItem.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self) ‑> dict</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self) -&gt; dict:
+    json: dict = super(ContributionItem, self).to_json()
+    if self.item is not None:
+        json[&#39;item&#39;] = self.item.to_json()
+    if self.amount is not None:
+        json[&#39;amount&#39;] = self.amount
+    if self.share is not None:
+        json[&#39;share&#39;] = self.share
+    if self.rest is not None:
+        json[&#39;rest&#39;] = self.rest
+    if self.unit is not None:
+        json[&#39;unit&#39;] = self.unit
+    return json</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="olca.ipc.ProductResult"><code class="flex name class">
+<span>class <span class="ident">ProductResult</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>The ProductResult type is not an olca-schema type but a return
+type of the IPC protocol. However, it implements the same interface
+as the olca.schema.Entity type.</p>
+<h2 id="attributes">Attributes:</h2>
+<p>process: olca.schema.Ref</p>
+<p>product: olca.schema.Ref</p>
+<p>amount: float</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ProductResult(schema.Entity):
+    &#34;&#34;&#34;
+    The ProductResult type is not an olca-schema type but a return
+    type of the IPC protocol. However, it implements the same interface
+    as the olca.schema.Entity type.
+
+    Attributes:
+    -----------
+    process: olca.schema.Ref
+
+    product: olca.schema.Ref
+
+    amount: float
+
+    &#34;&#34;&#34;
+
+    def __init__(self):
+        process: Optional[Ref] = None
+        product: Optional[Ref] = None
+        amount: Optional[float] = None
+
+    def to_json(self) -&gt; dict:
+        json: dict = super(ProductResult, self).to_json()
+        if self.process is not None:
+            json[&#39;process&#39;] = self.process.to_json()
+        if self.product is not None:
+            json[&#39;product&#39;] = self.product.to_json()
+        if self.amount is not None:
+            json[&#39;amount&#39;] = self.amount
+        return json
+
+    def read_json(self, json: dict):
+        super(ProductResult, self).read_json(json)
+        val = json.get(&#39;process&#39;)
+        if val is not None:
+            self.process = schema.Ref.from_json(val)
+        val = json.get(&#39;product&#39;)
+        if val is not None:
+            self.product = schema.Ref.from_json(val)
+        val = json.get(&#39;amount&#39;)
+        if val is not None:
+            self.amount = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ProductResult()
+        instance.read_json(json)
+        return instance</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="olca.schema.Entity" href="schema.html#olca.schema.Entity">Entity</a></li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="olca.ipc.ProductResult.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = ProductResult()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.ipc.ProductResult.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(ProductResult, self).read_json(json)
+    val = json.get(&#39;process&#39;)
+    if val is not None:
+        self.process = schema.Ref.from_json(val)
+    val = json.get(&#39;product&#39;)
+    if val is not None:
+        self.product = schema.Ref.from_json(val)
+    val = json.get(&#39;amount&#39;)
+    if val is not None:
+        self.amount = val</code></pre>
+</details>
+</dd>
+<dt id="olca.ipc.ProductResult.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self) ‑> dict</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self) -&gt; dict:
+    json: dict = super(ProductResult, self).to_json()
+    if self.process is not None:
+        json[&#39;process&#39;] = self.process.to_json()
+    if self.product is not None:
+        json[&#39;product&#39;] = self.product.to_json()
+    if self.amount is not None:
+        json[&#39;amount&#39;] = self.amount
+    return json</code></pre>
 </details>
 </dd>
 </dl>
@@ -1625,11 +2815,34 @@ client.dispose(simulator)
 <li><code><a title="olca.ipc.Client.get_all" href="#olca.ipc.Client.get_all">get_all</a></code></li>
 <li><code><a title="olca.ipc.Client.get_descriptors" href="#olca.ipc.Client.get_descriptors">get_descriptors</a></code></li>
 <li><code><a title="olca.ipc.Client.insert" href="#olca.ipc.Client.insert">insert</a></code></li>
+<li><code><a title="olca.ipc.Client.lci_inputs" href="#olca.ipc.Client.lci_inputs">lci_inputs</a></code></li>
+<li><code><a title="olca.ipc.Client.lci_location_contributions" href="#olca.ipc.Client.lci_location_contributions">lci_location_contributions</a></code></li>
+<li><code><a title="olca.ipc.Client.lci_outputs" href="#olca.ipc.Client.lci_outputs">lci_outputs</a></code></li>
 <li><code><a title="olca.ipc.Client.lci_total_requirements" href="#olca.ipc.Client.lci_total_requirements">lci_total_requirements</a></code></li>
+<li><code><a title="olca.ipc.Client.lcia" href="#olca.ipc.Client.lcia">lcia</a></code></li>
+<li><code><a title="olca.ipc.Client.lcia_flow_contributions" href="#olca.ipc.Client.lcia_flow_contributions">lcia_flow_contributions</a></code></li>
+<li><code><a title="olca.ipc.Client.lcia_location_contributions" href="#olca.ipc.Client.lcia_location_contributions">lcia_location_contributions</a></code></li>
+<li><code><a title="olca.ipc.Client.lcia_process_contributions" href="#olca.ipc.Client.lcia_process_contributions">lcia_process_contributions</a></code></li>
 <li><code><a title="olca.ipc.Client.next_simulation" href="#olca.ipc.Client.next_simulation">next_simulation</a></code></li>
 <li><code><a title="olca.ipc.Client.shutdown_server" href="#olca.ipc.Client.shutdown_server">shutdown_server</a></code></li>
 <li><code><a title="olca.ipc.Client.simulator" href="#olca.ipc.Client.simulator">simulator</a></code></li>
 <li><code><a title="olca.ipc.Client.update" href="#olca.ipc.Client.update">update</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="olca.ipc.ContributionItem" href="#olca.ipc.ContributionItem">ContributionItem</a></code></h4>
+<ul class="">
+<li><code><a title="olca.ipc.ContributionItem.from_json" href="#olca.ipc.ContributionItem.from_json">from_json</a></code></li>
+<li><code><a title="olca.ipc.ContributionItem.read_json" href="#olca.ipc.ContributionItem.read_json">read_json</a></code></li>
+<li><code><a title="olca.ipc.ContributionItem.to_json" href="#olca.ipc.ContributionItem.to_json">to_json</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="olca.ipc.ProductResult" href="#olca.ipc.ProductResult">ProductResult</a></code></h4>
+<ul class="">
+<li><code><a title="olca.ipc.ProductResult.from_json" href="#olca.ipc.ProductResult.from_json">from_json</a></code></li>
+<li><code><a title="olca.ipc.ProductResult.read_json" href="#olca.ipc.ProductResult.read_json">read_json</a></code></li>
+<li><code><a title="olca.ipc.ProductResult.to_json" href="#olca.ipc.ProductResult.to_json">to_json</a></code></li>
 </ul>
 </li>
 </ul>

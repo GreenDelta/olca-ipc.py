@@ -148,8 +148,14 @@ class Entity(object):
             json[&#39;@id&#39;] = self.id
         return json
 
-    def from_json(self, json: dict):
+    def read_json(self, json: dict):
         self.id = json.get(&#39;@id&#39;)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Entity()
+        instance.read_json(json)
+        return instance
 
 
 class AllocationFactor(Entity):
@@ -193,12 +199,12 @@ class AllocationFactor(Entity):
             json[&#39;allocatedExchange&#39;] = self.allocated_exchange.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(AllocationFactor, self).from_json(json)
+    def read_json(self, json: dict):
+        super(AllocationFactor, self).read_json(json)
         val = json.get(&#39;productExchange&#39;)
         if val is not None:
             self.product_exchange = Exchange()
-            self.product_exchange.from_json(val)
+            self.product_exchange.read_json(val)
         val = json.get(&#39;allocationType&#39;)
         if val is not None:
             self.allocation_type = AllocationType(val)
@@ -208,7 +214,13 @@ class AllocationFactor(Entity):
         val = json.get(&#39;allocatedExchange&#39;)
         if val is not None:
             self.allocated_exchange = Exchange()
-            self.allocated_exchange.from_json(val)
+            self.allocated_exchange.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = AllocationFactor()
+        instance.read_json(json)
+        return instance
 
 
 class CalculationSetup(Entity):
@@ -290,26 +302,26 @@ class CalculationSetup(Entity):
             json[&#39;flowProperty&#39;] = self.flow_property.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(CalculationSetup, self).from_json(json)
+    def read_json(self, json: dict):
+        super(CalculationSetup, self).read_json(json)
         val = json.get(&#39;calculationType&#39;)
         if val is not None:
             self.calculation_type = CalculationType(val)
         val = json.get(&#39;productSystem&#39;)
         if val is not None:
             self.product_system = Ref()
-            self.product_system.from_json(val)
+            self.product_system.read_json(val)
         val = json.get(&#39;impactMethod&#39;)
         if val is not None:
             self.impact_method = Ref()
-            self.impact_method.from_json(val)
+            self.impact_method.read_json(val)
         val = json.get(&#39;withCosts&#39;)
         if val is not None:
             self.with_costs = val
         val = json.get(&#39;nwSet&#39;)
         if val is not None:
             self.nw_set = Ref()
-            self.nw_set.from_json(val)
+            self.nw_set.read_json(val)
         val = json.get(&#39;allocationMethod&#39;)
         if val is not None:
             self.allocation_method = AllocationType(val)
@@ -318,7 +330,7 @@ class CalculationSetup(Entity):
             self.parameter_redefs = []
             for d in val:
                 e = ParameterRedef()
-                e.from_json(d)
+                e.read_json(d)
                 self.parameter_redefs.append(e)
         val = json.get(&#39;amount&#39;)
         if val is not None:
@@ -326,11 +338,17 @@ class CalculationSetup(Entity):
         val = json.get(&#39;unit&#39;)
         if val is not None:
             self.unit = Ref()
-            self.unit.from_json(val)
+            self.unit.read_json(val)
         val = json.get(&#39;flowProperty&#39;)
         if val is not None:
             self.flow_property = Ref()
-            self.flow_property.from_json(val)
+            self.flow_property.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = CalculationSetup()
+        instance.read_json(json)
+        return instance
 
 
 class DqIndicator(Entity):
@@ -365,8 +383,8 @@ class DqIndicator(Entity):
                 json[&#39;scores&#39;].append(e.to_json())
         return json
 
-    def from_json(self, json: dict):
-        super(DqIndicator, self).from_json(json)
+    def read_json(self, json: dict):
+        super(DqIndicator, self).read_json(json)
         val = json.get(&#39;name&#39;)
         if val is not None:
             self.name = val
@@ -378,8 +396,14 @@ class DqIndicator(Entity):
             self.scores = []
             for d in val:
                 e = DqScore()
-                e.from_json(d)
+                e.read_json(d)
                 self.scores.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = DqIndicator()
+        instance.read_json(json)
+        return instance
 
 
 class DqScore(Entity):
@@ -418,8 +442,8 @@ class DqScore(Entity):
             json[&#39;uncertainty&#39;] = self.uncertainty
         return json
 
-    def from_json(self, json: dict):
-        super(DqScore, self).from_json(json)
+    def read_json(self, json: dict):
+        super(DqScore, self).read_json(json)
         val = json.get(&#39;position&#39;)
         if val is not None:
             self.position = val
@@ -432,6 +456,12 @@ class DqScore(Entity):
         val = json.get(&#39;uncertainty&#39;)
         if val is not None:
             self.uncertainty = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = DqScore()
+        instance.read_json(json)
+        return instance
 
 
 class Exchange(Entity):
@@ -544,8 +574,8 @@ class Exchange(Entity):
             json[&#39;description&#39;] = self.description
         return json
 
-    def from_json(self, json: dict):
-        super(Exchange, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Exchange, self).read_json(json)
         val = json.get(&#39;internalId&#39;)
         if val is not None:
             self.internal_id = val
@@ -555,11 +585,11 @@ class Exchange(Entity):
         val = json.get(&#39;flow&#39;)
         if val is not None:
             self.flow = FlowRef()
-            self.flow.from_json(val)
+            self.flow.read_json(val)
         val = json.get(&#39;flowProperty&#39;)
         if val is not None:
             self.flow_property = Ref()
-            self.flow_property.from_json(val)
+            self.flow_property.read_json(val)
         val = json.get(&#39;input&#39;)
         if val is not None:
             self.input = val
@@ -572,7 +602,7 @@ class Exchange(Entity):
         val = json.get(&#39;defaultProvider&#39;)
         if val is not None:
             self.default_provider = ProcessRef()
-            self.default_provider.from_json(val)
+            self.default_provider.read_json(val)
         val = json.get(&#39;amount&#39;)
         if val is not None:
             self.amount = val
@@ -582,17 +612,23 @@ class Exchange(Entity):
         val = json.get(&#39;unit&#39;)
         if val is not None:
             self.unit = Ref()
-            self.unit.from_json(val)
+            self.unit.read_json(val)
         val = json.get(&#39;dqEntry&#39;)
         if val is not None:
             self.dq_entry = val
         val = json.get(&#39;uncertainty&#39;)
         if val is not None:
             self.uncertainty = Uncertainty()
-            self.uncertainty.from_json(val)
+            self.uncertainty.read_json(val)
         val = json.get(&#39;description&#39;)
         if val is not None:
             self.description = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Exchange()
+        instance.read_json(json)
+        return instance
 
 
 class FlowMapRef(Entity):
@@ -634,20 +670,26 @@ class FlowMapRef(Entity):
             json[&#39;unit&#39;] = self.unit.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(FlowMapRef, self).from_json(json)
+    def read_json(self, json: dict):
+        super(FlowMapRef, self).read_json(json)
         val = json.get(&#39;flow&#39;)
         if val is not None:
             self.flow = FlowRef()
-            self.flow.from_json(val)
+            self.flow.read_json(val)
         val = json.get(&#39;flowProperty&#39;)
         if val is not None:
             self.flow_property = Ref()
-            self.flow_property.from_json(val)
+            self.flow_property.read_json(val)
         val = json.get(&#39;unit&#39;)
         if val is not None:
             self.unit = Ref()
-            self.unit.from_json(val)
+            self.unit.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = FlowMapRef()
+        instance.read_json(json)
+        return instance
 
 
 class FlowPropertyFactor(Entity):
@@ -706,18 +748,24 @@ class FlowPropertyFactor(Entity):
             json[&#39;referenceFlowProperty&#39;] = self.reference_flow_property
         return json
 
-    def from_json(self, json: dict):
-        super(FlowPropertyFactor, self).from_json(json)
+    def read_json(self, json: dict):
+        super(FlowPropertyFactor, self).read_json(json)
         val = json.get(&#39;flowProperty&#39;)
         if val is not None:
             self.flow_property = Ref()
-            self.flow_property.from_json(val)
+            self.flow_property.read_json(val)
         val = json.get(&#39;conversionFactor&#39;)
         if val is not None:
             self.conversion_factor = val
         val = json.get(&#39;referenceFlowProperty&#39;)
         if val is not None:
             self.reference_flow_property = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = FlowPropertyFactor()
+        instance.read_json(json)
+        return instance
 
 
 class FlowResult(Entity):
@@ -753,18 +801,24 @@ class FlowResult(Entity):
             json[&#39;value&#39;] = self.value
         return json
 
-    def from_json(self, json: dict):
-        super(FlowResult, self).from_json(json)
+    def read_json(self, json: dict):
+        super(FlowResult, self).read_json(json)
         val = json.get(&#39;flow&#39;)
         if val is not None:
             self.flow = FlowRef()
-            self.flow.from_json(val)
+            self.flow.read_json(val)
         val = json.get(&#39;input&#39;)
         if val is not None:
             self.input = val
         val = json.get(&#39;value&#39;)
         if val is not None:
             self.value = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = FlowResult()
+        instance.read_json(json)
+        return instance
 
 
 class ImpactFactor(Entity):
@@ -819,20 +873,20 @@ class ImpactFactor(Entity):
             json[&#39;uncertainty&#39;] = self.uncertainty.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(ImpactFactor, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ImpactFactor, self).read_json(json)
         val = json.get(&#39;flow&#39;)
         if val is not None:
             self.flow = FlowRef()
-            self.flow.from_json(val)
+            self.flow.read_json(val)
         val = json.get(&#39;flowProperty&#39;)
         if val is not None:
             self.flow_property = Ref()
-            self.flow_property.from_json(val)
+            self.flow_property.read_json(val)
         val = json.get(&#39;unit&#39;)
         if val is not None:
             self.unit = Ref()
-            self.unit.from_json(val)
+            self.unit.read_json(val)
         val = json.get(&#39;value&#39;)
         if val is not None:
             self.value = val
@@ -842,7 +896,13 @@ class ImpactFactor(Entity):
         val = json.get(&#39;uncertainty&#39;)
         if val is not None:
             self.uncertainty = Uncertainty()
-            self.uncertainty.from_json(val)
+            self.uncertainty.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ImpactFactor()
+        instance.read_json(json)
+        return instance
 
 
 class ImpactResult(Entity):
@@ -872,15 +932,21 @@ class ImpactResult(Entity):
             json[&#39;value&#39;] = self.value
         return json
 
-    def from_json(self, json: dict):
-        super(ImpactResult, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ImpactResult, self).read_json(json)
         val = json.get(&#39;impactCategory&#39;)
         if val is not None:
             self.impact_category = ImpactCategoryRef()
-            self.impact_category.from_json(val)
+            self.impact_category.read_json(val)
         val = json.get(&#39;value&#39;)
         if val is not None:
             self.value = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ImpactResult()
+        instance.read_json(json)
+        return instance
 
 
 class Parameter(Entity):
@@ -957,8 +1023,8 @@ class Parameter(Entity):
             json[&#39;uncertainty&#39;] = self.uncertainty.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(Parameter, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Parameter, self).read_json(json)
         val = json.get(&#39;name&#39;)
         if val is not None:
             self.name = val
@@ -986,7 +1052,13 @@ class Parameter(Entity):
         val = json.get(&#39;uncertainty&#39;)
         if val is not None:
             self.uncertainty = Uncertainty()
-            self.uncertainty.from_json(val)
+            self.uncertainty.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Parameter()
+        instance.read_json(json)
+        return instance
 
 
 class ParameterRedef(Entity):
@@ -1024,8 +1096,8 @@ class ParameterRedef(Entity):
             json[&#39;context&#39;] = self.context.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(ParameterRedef, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ParameterRedef, self).read_json(json)
         val = json.get(&#39;name&#39;)
         if val is not None:
             self.name = val
@@ -1035,7 +1107,13 @@ class ParameterRedef(Entity):
         val = json.get(&#39;context&#39;)
         if val is not None:
             self.context = Ref()
-            self.context.from_json(val)
+            self.context.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ParameterRedef()
+        instance.read_json(json)
+        return instance
 
 
 class ProcessDocumentation(Entity):
@@ -1175,8 +1253,8 @@ class ProcessDocumentation(Entity):
             json[&#39;geographyDescription&#39;] = self.geography_description
         return json
 
-    def from_json(self, json: dict):
-        super(ProcessDocumentation, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ProcessDocumentation, self).read_json(json)
         val = json.get(&#39;timeDescription&#39;)
         if val is not None:
             self.time_description = val
@@ -1213,7 +1291,7 @@ class ProcessDocumentation(Entity):
         val = json.get(&#39;reviewer&#39;)
         if val is not None:
             self.reviewer = Ref()
-            self.reviewer.from_json(val)
+            self.reviewer.read_json(val)
         val = json.get(&#39;samplingDescription&#39;)
         if val is not None:
             self.sampling_description = val
@@ -1222,7 +1300,7 @@ class ProcessDocumentation(Entity):
             self.sources = []
             for d in val:
                 e = Ref()
-                e.from_json(d)
+                e.read_json(d)
                 self.sources.append(e)
         val = json.get(&#39;restrictionsDescription&#39;)
         if val is not None:
@@ -1236,15 +1314,15 @@ class ProcessDocumentation(Entity):
         val = json.get(&#39;dataDocumentor&#39;)
         if val is not None:
             self.data_documentor = Ref()
-            self.data_documentor.from_json(val)
+            self.data_documentor.read_json(val)
         val = json.get(&#39;dataGenerator&#39;)
         if val is not None:
             self.data_generator = Ref()
-            self.data_generator.from_json(val)
+            self.data_generator.read_json(val)
         val = json.get(&#39;dataSetOwner&#39;)
         if val is not None:
             self.data_set_owner = Ref()
-            self.data_set_owner.from_json(val)
+            self.data_set_owner.read_json(val)
         val = json.get(&#39;intendedApplication&#39;)
         if val is not None:
             self.intended_application = val
@@ -1254,10 +1332,16 @@ class ProcessDocumentation(Entity):
         val = json.get(&#39;publication&#39;)
         if val is not None:
             self.publication = Ref()
-            self.publication.from_json(val)
+            self.publication.read_json(val)
         val = json.get(&#39;geographyDescription&#39;)
         if val is not None:
             self.geography_description = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ProcessDocumentation()
+        instance.read_json(json)
+        return instance
 
 
 class ProcessLink(Entity):
@@ -1302,24 +1386,30 @@ class ProcessLink(Entity):
             json[&#39;exchange&#39;] = self.exchange.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(ProcessLink, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ProcessLink, self).read_json(json)
         val = json.get(&#39;provider&#39;)
         if val is not None:
             self.provider = Ref()
-            self.provider.from_json(val)
+            self.provider.read_json(val)
         val = json.get(&#39;flow&#39;)
         if val is not None:
             self.flow = Ref()
-            self.flow.from_json(val)
+            self.flow.read_json(val)
         val = json.get(&#39;process&#39;)
         if val is not None:
             self.process = Ref()
-            self.process.from_json(val)
+            self.process.read_json(val)
         val = json.get(&#39;exchange&#39;)
         if val is not None:
             self.exchange = Exchange()
-            self.exchange.from_json(val)
+            self.exchange.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ProcessLink()
+        instance.read_json(json)
+        return instance
 
 
 class RootEntity(Entity):
@@ -1365,8 +1455,8 @@ class RootEntity(Entity):
             json[&#39;lastChange&#39;] = self.last_change
         return json
 
-    def from_json(self, json: dict):
-        super(RootEntity, self).from_json(json)
+    def read_json(self, json: dict):
+        super(RootEntity, self).read_json(json)
         val = json.get(&#39;name&#39;)
         if val is not None:
             self.name = val
@@ -1379,6 +1469,12 @@ class RootEntity(Entity):
         val = json.get(&#39;lastChange&#39;)
         if val is not None:
             self.last_change = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = RootEntity()
+        instance.read_json(json)
+        return instance
 
 
 class SimpleResult(Entity):
@@ -1410,22 +1506,28 @@ class SimpleResult(Entity):
                 json[&#39;impactResults&#39;].append(e.to_json())
         return json
 
-    def from_json(self, json: dict):
-        super(SimpleResult, self).from_json(json)
+    def read_json(self, json: dict):
+        super(SimpleResult, self).read_json(json)
         val = json.get(&#39;flowResults&#39;)
         if val is not None:
             self.flow_results = []
             for d in val:
                 e = FlowResult()
-                e.from_json(d)
+                e.read_json(d)
                 self.flow_results.append(e)
         val = json.get(&#39;impactResults&#39;)
         if val is not None:
             self.impact_results = []
             for d in val:
                 e = ImpactResult()
-                e.from_json(d)
+                e.read_json(d)
                 self.impact_results.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = SimpleResult()
+        instance.read_json(json)
+        return instance
 
 
 class Uncertainty(Entity):
@@ -1534,8 +1636,8 @@ class Uncertainty(Entity):
             json[&#39;maximumFormula&#39;] = self.maximum_formula
         return json
 
-    def from_json(self, json: dict):
-        super(Uncertainty, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Uncertainty, self).read_json(json)
         val = json.get(&#39;distributionType&#39;)
         if val is not None:
             self.distribution_type = UncertaintyType(val)
@@ -1582,6 +1684,12 @@ class Uncertainty(Entity):
         if val is not None:
             self.maximum_formula = val
 
+    @staticmethod
+    def from_json(json: dict):
+        instance = Uncertainty()
+        instance.read_json(json)
+        return instance
+
 
 class CategorizedEntity(RootEntity):
     &#34;&#34;&#34;
@@ -1604,12 +1712,18 @@ class CategorizedEntity(RootEntity):
             json[&#39;category&#39;] = self.category.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(CategorizedEntity, self).from_json(json)
+    def read_json(self, json: dict):
+        super(CategorizedEntity, self).read_json(json)
         val = json.get(&#39;category&#39;)
         if val is not None:
             self.category = Ref()
-            self.category.from_json(val)
+            self.category.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = CategorizedEntity()
+        instance.read_json(json)
+        return instance
 
 
 class FlowMap(RootEntity):
@@ -1648,23 +1762,29 @@ class FlowMap(RootEntity):
                 json[&#39;mappings&#39;].append(e.to_json())
         return json
 
-    def from_json(self, json: dict):
-        super(FlowMap, self).from_json(json)
+    def read_json(self, json: dict):
+        super(FlowMap, self).read_json(json)
         val = json.get(&#39;source&#39;)
         if val is not None:
             self.source = Ref()
-            self.source.from_json(val)
+            self.source.read_json(val)
         val = json.get(&#39;target&#39;)
         if val is not None:
             self.target = Ref()
-            self.target.from_json(val)
+            self.target.read_json(val)
         val = json.get(&#39;mappings&#39;)
         if val is not None:
             self.mappings = []
             for d in val:
                 e = FlowMapEntry()
-                e.from_json(d)
+                e.read_json(d)
                 self.mappings.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = FlowMap()
+        instance.read_json(json)
+        return instance
 
 
 class FlowMapEntry(RootEntity):
@@ -1700,19 +1820,25 @@ class FlowMapEntry(RootEntity):
             json[&#39;conversionFactor&#39;] = self.conversion_factor
         return json
 
-    def from_json(self, json: dict):
-        super(FlowMapEntry, self).from_json(json)
+    def read_json(self, json: dict):
+        super(FlowMapEntry, self).read_json(json)
         val = json.get(&#39;from&#39;)
         if val is not None:
             self.from_ = FlowMapRef()
-            self.from_.from_json(val)
+            self.from_.read_json(val)
         val = json.get(&#39;to&#39;)
         if val is not None:
             self.to = FlowMapRef()
-            self.to.from_json(val)
+            self.to.read_json(val)
         val = json.get(&#39;conversionFactor&#39;)
         if val is not None:
             self.conversion_factor = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = FlowMapEntry()
+        instance.read_json(json)
+        return instance
 
 
 class ImpactCategory(RootEntity):
@@ -1745,8 +1871,8 @@ class ImpactCategory(RootEntity):
                 json[&#39;impactFactors&#39;].append(e.to_json())
         return json
 
-    def from_json(self, json: dict):
-        super(ImpactCategory, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ImpactCategory, self).read_json(json)
         val = json.get(&#39;referenceUnitName&#39;)
         if val is not None:
             self.reference_unit_name = val
@@ -1755,8 +1881,14 @@ class ImpactCategory(RootEntity):
             self.impact_factors = []
             for d in val:
                 e = ImpactFactor()
-                e.from_json(d)
+                e.read_json(d)
                 self.impact_factors.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ImpactCategory()
+        instance.read_json(json)
+        return instance
 
 
 class Location(RootEntity):
@@ -1798,8 +1930,8 @@ class Location(RootEntity):
             json[&#39;kml&#39;] = self.kml
         return json
 
-    def from_json(self, json: dict):
-        super(Location, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Location, self).read_json(json)
         val = json.get(&#39;code&#39;)
         if val is not None:
             self.code = val
@@ -1812,6 +1944,12 @@ class Location(RootEntity):
         val = json.get(&#39;kml&#39;)
         if val is not None:
             self.kml = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Location()
+        instance.read_json(json)
+        return instance
 
 
 class Ref(RootEntity):
@@ -1843,14 +1981,20 @@ class Ref(RootEntity):
                 json[&#39;categoryPath&#39;].append(e)
         return json
 
-    def from_json(self, json: dict):
-        super(Ref, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Ref, self).read_json(json)
         val = json.get(&#39;categoryPath&#39;)
         if val is not None:
             self.category_path = []
             for d in val:
                 e = d
                 self.category_path.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Ref()
+        instance.read_json(json)
+        return instance
 
 
 class Unit(RootEntity):
@@ -1893,8 +2037,8 @@ class Unit(RootEntity):
                 json[&#39;synonyms&#39;].append(e)
         return json
 
-    def from_json(self, json: dict):
-        super(Unit, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Unit, self).read_json(json)
         val = json.get(&#39;conversionFactor&#39;)
         if val is not None:
             self.conversion_factor = val
@@ -1907,6 +2051,12 @@ class Unit(RootEntity):
             for d in val:
                 e = d
                 self.synonyms.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Unit()
+        instance.read_json(json)
+        return instance
 
 
 class Actor(CategorizedEntity):
@@ -1964,8 +2114,8 @@ class Actor(CategorizedEntity):
             json[&#39;zipCode&#39;] = self.zip_code
         return json
 
-    def from_json(self, json: dict):
-        super(Actor, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Actor, self).read_json(json)
         val = json.get(&#39;address&#39;)
         if val is not None:
             self.address = val
@@ -1990,6 +2140,12 @@ class Actor(CategorizedEntity):
         val = json.get(&#39;zipCode&#39;)
         if val is not None:
             self.zip_code = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Actor()
+        instance.read_json(json)
+        return instance
 
 
 class Category(CategorizedEntity):
@@ -2016,11 +2172,17 @@ class Category(CategorizedEntity):
             json[&#39;modelType&#39;] = self.model_type.value
         return json
 
-    def from_json(self, json: dict):
-        super(Category, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Category, self).read_json(json)
         val = json.get(&#39;modelType&#39;)
         if val is not None:
             self.model_type = ModelType(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Category()
+        instance.read_json(json)
+        return instance
 
 
 class DqSystem(CategorizedEntity):
@@ -2055,22 +2217,28 @@ class DqSystem(CategorizedEntity):
                 json[&#39;indicators&#39;].append(e.to_json())
         return json
 
-    def from_json(self, json: dict):
-        super(DqSystem, self).from_json(json)
+    def read_json(self, json: dict):
+        super(DqSystem, self).read_json(json)
         val = json.get(&#39;hasUncertainties&#39;)
         if val is not None:
             self.has_uncertainties = val
         val = json.get(&#39;source&#39;)
         if val is not None:
             self.source = Ref()
-            self.source.from_json(val)
+            self.source.read_json(val)
         val = json.get(&#39;indicators&#39;)
         if val is not None:
             self.indicators = []
             for d in val:
                 e = DqIndicator()
-                e.from_json(d)
+                e.read_json(d)
                 self.indicators.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = DqSystem()
+        instance.read_json(json)
+        return instance
 
 
 class Flow(CategorizedEntity):
@@ -2126,8 +2294,8 @@ class Flow(CategorizedEntity):
             json[&#39;location&#39;] = self.location.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(Flow, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Flow, self).read_json(json)
         val = json.get(&#39;flowType&#39;)
         if val is not None:
             self.flow_type = FlowType(val)
@@ -2142,12 +2310,18 @@ class Flow(CategorizedEntity):
             self.flow_properties = []
             for d in val:
                 e = FlowPropertyFactor()
-                e.from_json(d)
+                e.read_json(d)
                 self.flow_properties.append(e)
         val = json.get(&#39;location&#39;)
         if val is not None:
             self.location = Ref()
-            self.location.from_json(val)
+            self.location.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Flow()
+        instance.read_json(json)
+        return instance
 
 
 class FlowProperty(CategorizedEntity):
@@ -2179,15 +2353,21 @@ class FlowProperty(CategorizedEntity):
             json[&#39;unitGroup&#39;] = self.unit_group.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(FlowProperty, self).from_json(json)
+    def read_json(self, json: dict):
+        super(FlowProperty, self).read_json(json)
         val = json.get(&#39;flowPropertyType&#39;)
         if val is not None:
             self.flow_property_type = FlowPropertyType(val)
         val = json.get(&#39;unitGroup&#39;)
         if val is not None:
             self.unit_group = Ref()
-            self.unit_group.from_json(val)
+            self.unit_group.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = FlowProperty()
+        instance.read_json(json)
+        return instance
 
 
 class FlowRef(Ref):
@@ -2224,8 +2404,8 @@ class FlowRef(Ref):
             json[&#39;flowType&#39;] = self.flow_type.value
         return json
 
-    def from_json(self, json: dict):
-        super(FlowRef, self).from_json(json)
+    def read_json(self, json: dict):
+        super(FlowRef, self).read_json(json)
         val = json.get(&#39;refUnit&#39;)
         if val is not None:
             self.ref_unit = val
@@ -2235,6 +2415,12 @@ class FlowRef(Ref):
         val = json.get(&#39;flowType&#39;)
         if val is not None:
             self.flow_type = FlowType(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = FlowRef()
+        instance.read_json(json)
+        return instance
 
 
 class ImpactCategoryRef(Ref):
@@ -2258,11 +2444,17 @@ class ImpactCategoryRef(Ref):
             json[&#39;refUnit&#39;] = self.ref_unit
         return json
 
-    def from_json(self, json: dict):
-        super(ImpactCategoryRef, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ImpactCategoryRef, self).read_json(json)
         val = json.get(&#39;refUnit&#39;)
         if val is not None:
             self.ref_unit = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ImpactCategoryRef()
+        instance.read_json(json)
+        return instance
 
 
 class ImpactMethod(CategorizedEntity):
@@ -2297,22 +2489,28 @@ class ImpactMethod(CategorizedEntity):
                 json[&#39;parameters&#39;].append(e.to_json())
         return json
 
-    def from_json(self, json: dict):
-        super(ImpactMethod, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ImpactMethod, self).read_json(json)
         val = json.get(&#39;impactCategories&#39;)
         if val is not None:
             self.impact_categories = []
             for d in val:
                 e = ImpactCategoryRef()
-                e.from_json(d)
+                e.read_json(d)
                 self.impact_categories.append(e)
         val = json.get(&#39;parameters&#39;)
         if val is not None:
             self.parameters = []
             for d in val:
                 e = Parameter()
-                e.from_json(d)
+                e.read_json(d)
                 self.parameters.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ImpactMethod()
+        instance.read_json(json)
+        return instance
 
 
 class Process(CategorizedEntity):
@@ -2404,8 +2602,8 @@ class Process(CategorizedEntity):
             json[&#39;dqEntry&#39;] = self.dq_entry
         return json
 
-    def from_json(self, json: dict):
-        super(Process, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Process, self).read_json(json)
         val = json.get(&#39;defaultAllocationMethod&#39;)
         if val is not None:
             self.default_allocation_method = AllocationType(val)
@@ -2414,48 +2612,54 @@ class Process(CategorizedEntity):
             self.allocation_factors = []
             for d in val:
                 e = AllocationFactor()
-                e.from_json(d)
+                e.read_json(d)
                 self.allocation_factors.append(e)
         val = json.get(&#39;exchanges&#39;)
         if val is not None:
             self.exchanges = []
             for d in val:
                 e = Exchange()
-                e.from_json(d)
+                e.read_json(d)
                 self.exchanges.append(e)
         val = json.get(&#39;location&#39;)
         if val is not None:
             self.location = Location()
-            self.location.from_json(val)
+            self.location.read_json(val)
         val = json.get(&#39;parameters&#39;)
         if val is not None:
             self.parameters = []
             for d in val:
                 e = Parameter()
-                e.from_json(d)
+                e.read_json(d)
                 self.parameters.append(e)
         val = json.get(&#39;processDocumentation&#39;)
         if val is not None:
             self.process_documentation = ProcessDocumentation()
-            self.process_documentation.from_json(val)
+            self.process_documentation.read_json(val)
         val = json.get(&#39;processType&#39;)
         if val is not None:
             self.process_type = ProcessType(val)
         val = json.get(&#39;dqSystem&#39;)
         if val is not None:
             self.dq_system = Ref()
-            self.dq_system.from_json(val)
+            self.dq_system.read_json(val)
         val = json.get(&#39;exchangeDqSystem&#39;)
         if val is not None:
             self.exchange_dq_system = Ref()
-            self.exchange_dq_system.from_json(val)
+            self.exchange_dq_system.read_json(val)
         val = json.get(&#39;socialDqSystem&#39;)
         if val is not None:
             self.social_dq_system = Ref()
-            self.social_dq_system.from_json(val)
+            self.social_dq_system.read_json(val)
         val = json.get(&#39;dqEntry&#39;)
         if val is not None:
             self.dq_entry = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Process()
+        instance.read_json(json)
+        return instance
 
 
 class ProcessRef(Ref):
@@ -2485,14 +2689,20 @@ class ProcessRef(Ref):
             json[&#39;processType&#39;] = self.process_type.value
         return json
 
-    def from_json(self, json: dict):
-        super(ProcessRef, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ProcessRef, self).read_json(json)
         val = json.get(&#39;location&#39;)
         if val is not None:
             self.location = val
         val = json.get(&#39;processType&#39;)
         if val is not None:
             self.process_type = ProcessType(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ProcessRef()
+        instance.read_json(json)
+        return instance
 
 
 class ProductSystem(CategorizedEntity):
@@ -2561,41 +2771,47 @@ class ProductSystem(CategorizedEntity):
                 json[&#39;processLinks&#39;].append(e.to_json())
         return json
 
-    def from_json(self, json: dict):
-        super(ProductSystem, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ProductSystem, self).read_json(json)
         val = json.get(&#39;processes&#39;)
         if val is not None:
             self.processes = []
             for d in val:
                 e = ProcessRef()
-                e.from_json(d)
+                e.read_json(d)
                 self.processes.append(e)
         val = json.get(&#39;referenceProcess&#39;)
         if val is not None:
             self.reference_process = ProcessRef()
-            self.reference_process.from_json(val)
+            self.reference_process.read_json(val)
         val = json.get(&#39;referenceExchange&#39;)
         if val is not None:
             self.reference_exchange = Exchange()
-            self.reference_exchange.from_json(val)
+            self.reference_exchange.read_json(val)
         val = json.get(&#39;targetAmount&#39;)
         if val is not None:
             self.target_amount = val
         val = json.get(&#39;targetUnit&#39;)
         if val is not None:
             self.target_unit = Ref()
-            self.target_unit.from_json(val)
+            self.target_unit.read_json(val)
         val = json.get(&#39;targetFlowProperty&#39;)
         if val is not None:
             self.target_flow_property = Ref()
-            self.target_flow_property.from_json(val)
+            self.target_flow_property.read_json(val)
         val = json.get(&#39;processLinks&#39;)
         if val is not None:
             self.process_links = []
             for d in val:
                 e = ProcessLink()
-                e.from_json(d)
+                e.read_json(d)
                 self.process_links.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ProductSystem()
+        instance.read_json(json)
+        return instance
 
 
 class SocialIndicator(CategorizedEntity):
@@ -2643,25 +2859,31 @@ class SocialIndicator(CategorizedEntity):
             json[&#39;evaluationScheme&#39;] = self.evaluation_scheme
         return json
 
-    def from_json(self, json: dict):
-        super(SocialIndicator, self).from_json(json)
+    def read_json(self, json: dict):
+        super(SocialIndicator, self).read_json(json)
         val = json.get(&#39;activityVariable&#39;)
         if val is not None:
             self.activity_variable = val
         val = json.get(&#39;activityQuantity&#39;)
         if val is not None:
             self.activity_quantity = Ref()
-            self.activity_quantity.from_json(val)
+            self.activity_quantity.read_json(val)
         val = json.get(&#39;activityUnit&#39;)
         if val is not None:
             self.activity_unit = Ref()
-            self.activity_unit.from_json(val)
+            self.activity_unit.read_json(val)
         val = json.get(&#39;unitOfMeasurement&#39;)
         if val is not None:
             self.unit_of_measurement = val
         val = json.get(&#39;evaluationScheme&#39;)
         if val is not None:
             self.evaluation_scheme = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = SocialIndicator()
+        instance.read_json(json)
+        return instance
 
 
 class Source(CategorizedEntity):
@@ -2703,8 +2925,8 @@ class Source(CategorizedEntity):
             json[&#39;externalFile&#39;] = self.external_file
         return json
 
-    def from_json(self, json: dict):
-        super(Source, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Source, self).read_json(json)
         val = json.get(&#39;url&#39;)
         if val is not None:
             self.url = val
@@ -2717,6 +2939,12 @@ class Source(CategorizedEntity):
         val = json.get(&#39;externalFile&#39;)
         if val is not None:
             self.external_file = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Source()
+        instance.read_json(json)
+        return instance
 
 
 class UnitGroup(CategorizedEntity):
@@ -2750,19 +2978,25 @@ class UnitGroup(CategorizedEntity):
                 json[&#39;units&#39;].append(e.to_json())
         return json
 
-    def from_json(self, json: dict):
-        super(UnitGroup, self).from_json(json)
+    def read_json(self, json: dict):
+        super(UnitGroup, self).read_json(json)
         val = json.get(&#39;defaultFlowProperty&#39;)
         if val is not None:
             self.default_flow_property = Ref()
-            self.default_flow_property.from_json(val)
+            self.default_flow_property.read_json(val)
         val = json.get(&#39;units&#39;)
         if val is not None:
             self.units = []
             for d in val:
                 e = Unit()
-                e.from_json(d)
-                self.units.append(e)</code></pre>
+                e.read_json(d)
+                self.units.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = UnitGroup()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 </section>
 <section>
@@ -2857,8 +3091,8 @@ class UnitGroup(CategorizedEntity):
             json[&#39;zipCode&#39;] = self.zip_code
         return json
 
-    def from_json(self, json: dict):
-        super(Actor, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Actor, self).read_json(json)
         val = json.get(&#39;address&#39;)
         if val is not None:
             self.address = val
@@ -2882,7 +3116,13 @@ class UnitGroup(CategorizedEntity):
             self.website = val
         val = json.get(&#39;zipCode&#39;)
         if val is not None:
-            self.zip_code = val</code></pre>
+            self.zip_code = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Actor()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -2890,10 +3130,10 @@ class UnitGroup(CategorizedEntity):
 <li><a title="olca.schema.RootEntity" href="#olca.schema.RootEntity">RootEntity</a></li>
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.Actor.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2901,8 +3141,27 @@ class UnitGroup(CategorizedEntity):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(Actor, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = Actor()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.Actor.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(Actor, self).read_json(json)
     val = json.get(&#39;address&#39;)
     if val is not None:
         self.address = val
@@ -3024,12 +3283,12 @@ factors can be assigned to single exchanges.</dd>
             json[&#39;allocatedExchange&#39;] = self.allocated_exchange.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(AllocationFactor, self).from_json(json)
+    def read_json(self, json: dict):
+        super(AllocationFactor, self).read_json(json)
         val = json.get(&#39;productExchange&#39;)
         if val is not None:
             self.product_exchange = Exchange()
-            self.product_exchange.from_json(val)
+            self.product_exchange.read_json(val)
         val = json.get(&#39;allocationType&#39;)
         if val is not None:
             self.allocation_type = AllocationType(val)
@@ -3039,16 +3298,22 @@ factors can be assigned to single exchanges.</dd>
         val = json.get(&#39;allocatedExchange&#39;)
         if val is not None:
             self.allocated_exchange = Exchange()
-            self.allocated_exchange.from_json(val)</code></pre>
+            self.allocated_exchange.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = AllocationFactor()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.AllocationFactor.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -3056,12 +3321,31 @@ factors can be assigned to single exchanges.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(AllocationFactor, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = AllocationFactor()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.AllocationFactor.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(AllocationFactor, self).read_json(json)
     val = json.get(&#39;productExchange&#39;)
     if val is not None:
         self.product_exchange = Exchange()
-        self.product_exchange.from_json(val)
+        self.product_exchange.read_json(val)
     val = json.get(&#39;allocationType&#39;)
     if val is not None:
         self.allocation_type = AllocationType(val)
@@ -3071,7 +3355,7 @@ factors can be assigned to single exchanges.</dd>
     val = json.get(&#39;allocatedExchange&#39;)
     if val is not None:
         self.allocated_exchange = Exchange()
-        self.allocated_exchange.from_json(val)</code></pre>
+        self.allocated_exchange.read_json(val)</code></pre>
 </details>
 </dd>
 <dt id="olca.schema.AllocationFactor.to_json"><code class="name flex">
@@ -3266,26 +3550,26 @@ multi-functional [Process], or the allocation method in a
             json[&#39;flowProperty&#39;] = self.flow_property.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(CalculationSetup, self).from_json(json)
+    def read_json(self, json: dict):
+        super(CalculationSetup, self).read_json(json)
         val = json.get(&#39;calculationType&#39;)
         if val is not None:
             self.calculation_type = CalculationType(val)
         val = json.get(&#39;productSystem&#39;)
         if val is not None:
             self.product_system = Ref()
-            self.product_system.from_json(val)
+            self.product_system.read_json(val)
         val = json.get(&#39;impactMethod&#39;)
         if val is not None:
             self.impact_method = Ref()
-            self.impact_method.from_json(val)
+            self.impact_method.read_json(val)
         val = json.get(&#39;withCosts&#39;)
         if val is not None:
             self.with_costs = val
         val = json.get(&#39;nwSet&#39;)
         if val is not None:
             self.nw_set = Ref()
-            self.nw_set.from_json(val)
+            self.nw_set.read_json(val)
         val = json.get(&#39;allocationMethod&#39;)
         if val is not None:
             self.allocation_method = AllocationType(val)
@@ -3294,7 +3578,7 @@ multi-functional [Process], or the allocation method in a
             self.parameter_redefs = []
             for d in val:
                 e = ParameterRedef()
-                e.from_json(d)
+                e.read_json(d)
                 self.parameter_redefs.append(e)
         val = json.get(&#39;amount&#39;)
         if val is not None:
@@ -3302,20 +3586,26 @@ multi-functional [Process], or the allocation method in a
         val = json.get(&#39;unit&#39;)
         if val is not None:
             self.unit = Ref()
-            self.unit.from_json(val)
+            self.unit.read_json(val)
         val = json.get(&#39;flowProperty&#39;)
         if val is not None:
             self.flow_property = Ref()
-            self.flow_property.from_json(val)</code></pre>
+            self.flow_property.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = CalculationSetup()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.CalculationSetup.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -3323,26 +3613,45 @@ multi-functional [Process], or the allocation method in a
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(CalculationSetup, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = CalculationSetup()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.CalculationSetup.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(CalculationSetup, self).read_json(json)
     val = json.get(&#39;calculationType&#39;)
     if val is not None:
         self.calculation_type = CalculationType(val)
     val = json.get(&#39;productSystem&#39;)
     if val is not None:
         self.product_system = Ref()
-        self.product_system.from_json(val)
+        self.product_system.read_json(val)
     val = json.get(&#39;impactMethod&#39;)
     if val is not None:
         self.impact_method = Ref()
-        self.impact_method.from_json(val)
+        self.impact_method.read_json(val)
     val = json.get(&#39;withCosts&#39;)
     if val is not None:
         self.with_costs = val
     val = json.get(&#39;nwSet&#39;)
     if val is not None:
         self.nw_set = Ref()
-        self.nw_set.from_json(val)
+        self.nw_set.read_json(val)
     val = json.get(&#39;allocationMethod&#39;)
     if val is not None:
         self.allocation_method = AllocationType(val)
@@ -3351,7 +3660,7 @@ multi-functional [Process], or the allocation method in a
         self.parameter_redefs = []
         for d in val:
             e = ParameterRedef()
-            e.from_json(d)
+            e.read_json(d)
             self.parameter_redefs.append(e)
     val = json.get(&#39;amount&#39;)
     if val is not None:
@@ -3359,11 +3668,11 @@ multi-functional [Process], or the allocation method in a
     val = json.get(&#39;unit&#39;)
     if val is not None:
         self.unit = Ref()
-        self.unit.from_json(val)
+        self.unit.read_json(val)
     val = json.get(&#39;flowProperty&#39;)
     if val is not None:
         self.flow_property = Ref()
-        self.flow_property.from_json(val)</code></pre>
+        self.flow_property.read_json(val)</code></pre>
 </details>
 </dd>
 <dt id="olca.schema.CalculationSetup.to_json"><code class="name flex">
@@ -3488,12 +3797,18 @@ multi-functional [Process], or the allocation method in a
             json[&#39;category&#39;] = self.category.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(CategorizedEntity, self).from_json(json)
+    def read_json(self, json: dict):
+        super(CategorizedEntity, self).read_json(json)
         val = json.get(&#39;category&#39;)
         if val is not None:
             self.category = Ref()
-            self.category.from_json(val)</code></pre>
+            self.category.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = CategorizedEntity()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -3514,10 +3829,10 @@ multi-functional [Process], or the allocation method in a
 <li><a title="olca.schema.Source" href="#olca.schema.Source">Source</a></li>
 <li><a title="olca.schema.UnitGroup" href="#olca.schema.UnitGroup">UnitGroup</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.CategorizedEntity.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -3525,12 +3840,31 @@ multi-functional [Process], or the allocation method in a
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(CategorizedEntity, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = CategorizedEntity()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.CategorizedEntity.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(CategorizedEntity, self).read_json(json)
     val = json.get(&#39;category&#39;)
     if val is not None:
         self.category = Ref()
-        self.category.from_json(val)</code></pre>
+        self.category.read_json(val)</code></pre>
 </details>
 </dd>
 <dt id="olca.schema.CategorizedEntity.to_json"><code class="name flex">
@@ -3592,11 +3926,17 @@ which is then the parent category of this category (uff).</p>
             json[&#39;modelType&#39;] = self.model_type.value
         return json
 
-    def from_json(self, json: dict):
-        super(Category, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Category, self).read_json(json)
         val = json.get(&#39;modelType&#39;)
         if val is not None:
-            self.model_type = ModelType(val)</code></pre>
+            self.model_type = ModelType(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Category()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -3604,10 +3944,10 @@ which is then the parent category of this category (uff).</p>
 <li><a title="olca.schema.RootEntity" href="#olca.schema.RootEntity">RootEntity</a></li>
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.Category.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -3615,8 +3955,27 @@ which is then the parent category of this category (uff).</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(Category, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = Category()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.Category.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(Category, self).read_json(json)
     val = json.get(&#39;modelType&#39;)
     if val is not None:
         self.model_type = ModelType(val)</code></pre>
@@ -3690,8 +4049,8 @@ which is then the parent category of this category (uff).</p>
                 json[&#39;scores&#39;].append(e.to_json())
         return json
 
-    def from_json(self, json: dict):
-        super(DqIndicator, self).from_json(json)
+    def read_json(self, json: dict):
+        super(DqIndicator, self).read_json(json)
         val = json.get(&#39;name&#39;)
         if val is not None:
             self.name = val
@@ -3703,17 +4062,23 @@ which is then the parent category of this category (uff).</p>
             self.scores = []
             for d in val:
                 e = DqScore()
-                e.from_json(d)
-                self.scores.append(e)</code></pre>
+                e.read_json(d)
+                self.scores.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = DqIndicator()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.DqIndicator.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -3721,8 +4086,27 @@ which is then the parent category of this category (uff).</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(DqIndicator, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = DqIndicator()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.DqIndicator.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(DqIndicator, self).read_json(json)
     val = json.get(&#39;name&#39;)
     if val is not None:
         self.name = val
@@ -3734,7 +4118,7 @@ which is then the parent category of this category (uff).</p>
         self.scores = []
         for d in val:
             e = DqScore()
-            e.from_json(d)
+            e.read_json(d)
             self.scores.append(e)</code></pre>
 </details>
 </dd>
@@ -3819,8 +4203,8 @@ which is then the parent category of this category (uff).</p>
             json[&#39;uncertainty&#39;] = self.uncertainty
         return json
 
-    def from_json(self, json: dict):
-        super(DqScore, self).from_json(json)
+    def read_json(self, json: dict):
+        super(DqScore, self).read_json(json)
         val = json.get(&#39;position&#39;)
         if val is not None:
             self.position = val
@@ -3832,16 +4216,22 @@ which is then the parent category of this category (uff).</p>
             self.description = val
         val = json.get(&#39;uncertainty&#39;)
         if val is not None:
-            self.uncertainty = val</code></pre>
+            self.uncertainty = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = DqScore()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.DqScore.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -3849,8 +4239,27 @@ which is then the parent category of this category (uff).</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(DqScore, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = DqScore()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.DqScore.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(DqScore, self).read_json(json)
     val = json.get(&#39;position&#39;)
     if val is not None:
         self.position = val
@@ -3939,22 +4348,28 @@ which is then the parent category of this category (uff).</p>
                 json[&#39;indicators&#39;].append(e.to_json())
         return json
 
-    def from_json(self, json: dict):
-        super(DqSystem, self).from_json(json)
+    def read_json(self, json: dict):
+        super(DqSystem, self).read_json(json)
         val = json.get(&#39;hasUncertainties&#39;)
         if val is not None:
             self.has_uncertainties = val
         val = json.get(&#39;source&#39;)
         if val is not None:
             self.source = Ref()
-            self.source.from_json(val)
+            self.source.read_json(val)
         val = json.get(&#39;indicators&#39;)
         if val is not None:
             self.indicators = []
             for d in val:
                 e = DqIndicator()
-                e.from_json(d)
-                self.indicators.append(e)</code></pre>
+                e.read_json(d)
+                self.indicators.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = DqSystem()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -3962,10 +4377,10 @@ which is then the parent category of this category (uff).</p>
 <li><a title="olca.schema.RootEntity" href="#olca.schema.RootEntity">RootEntity</a></li>
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.DqSystem.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -3973,21 +4388,40 @@ which is then the parent category of this category (uff).</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(DqSystem, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = DqSystem()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.DqSystem.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(DqSystem, self).read_json(json)
     val = json.get(&#39;hasUncertainties&#39;)
     if val is not None:
         self.has_uncertainties = val
     val = json.get(&#39;source&#39;)
     if val is not None:
         self.source = Ref()
-        self.source.from_json(val)
+        self.source.read_json(val)
     val = json.get(&#39;indicators&#39;)
     if val is not None:
         self.indicators = []
         for d in val:
             e = DqIndicator()
-            e.from_json(d)
+            e.read_json(d)
             self.indicators.append(e)</code></pre>
 </details>
 </dd>
@@ -4042,11 +4476,19 @@ which is then the parent category of this category (uff).</p>
             json[&#39;@id&#39;] = self.id
         return json
 
-    def from_json(self, json: dict):
-        self.id = json.get(&#39;@id&#39;)</code></pre>
+    def read_json(self, json: dict):
+        self.id = json.get(&#39;@id&#39;)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Entity()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
+<li><a title="olca.ipc.ContributionItem" href="ipc.html#olca.ipc.ContributionItem">ContributionItem</a></li>
+<li><a title="olca.ipc.ProductResult" href="ipc.html#olca.ipc.ProductResult">ProductResult</a></li>
 <li><a title="olca.schema.AllocationFactor" href="#olca.schema.AllocationFactor">AllocationFactor</a></li>
 <li><a title="olca.schema.CalculationSetup" href="#olca.schema.CalculationSetup">CalculationSetup</a></li>
 <li><a title="olca.schema.DqIndicator" href="#olca.schema.DqIndicator">DqIndicator</a></li>
@@ -4065,10 +4507,10 @@ which is then the parent category of this category (uff).</p>
 <li><a title="olca.schema.SimpleResult" href="#olca.schema.SimpleResult">SimpleResult</a></li>
 <li><a title="olca.schema.Uncertainty" href="#olca.schema.Uncertainty">Uncertainty</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.Entity.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -4076,7 +4518,26 @@ which is then the parent category of this category (uff).</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = Entity()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.Entity.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
     self.id = json.get(&#39;@id&#39;)</code></pre>
 </details>
 </dd>
@@ -4268,8 +4729,8 @@ values in the <code>dqEntry</code> vector map to these positions.</dd>
             json[&#39;description&#39;] = self.description
         return json
 
-    def from_json(self, json: dict):
-        super(Exchange, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Exchange, self).read_json(json)
         val = json.get(&#39;internalId&#39;)
         if val is not None:
             self.internal_id = val
@@ -4279,11 +4740,11 @@ values in the <code>dqEntry</code> vector map to these positions.</dd>
         val = json.get(&#39;flow&#39;)
         if val is not None:
             self.flow = FlowRef()
-            self.flow.from_json(val)
+            self.flow.read_json(val)
         val = json.get(&#39;flowProperty&#39;)
         if val is not None:
             self.flow_property = Ref()
-            self.flow_property.from_json(val)
+            self.flow_property.read_json(val)
         val = json.get(&#39;input&#39;)
         if val is not None:
             self.input = val
@@ -4296,7 +4757,7 @@ values in the <code>dqEntry</code> vector map to these positions.</dd>
         val = json.get(&#39;defaultProvider&#39;)
         if val is not None:
             self.default_provider = ProcessRef()
-            self.default_provider.from_json(val)
+            self.default_provider.read_json(val)
         val = json.get(&#39;amount&#39;)
         if val is not None:
             self.amount = val
@@ -4306,26 +4767,32 @@ values in the <code>dqEntry</code> vector map to these positions.</dd>
         val = json.get(&#39;unit&#39;)
         if val is not None:
             self.unit = Ref()
-            self.unit.from_json(val)
+            self.unit.read_json(val)
         val = json.get(&#39;dqEntry&#39;)
         if val is not None:
             self.dq_entry = val
         val = json.get(&#39;uncertainty&#39;)
         if val is not None:
             self.uncertainty = Uncertainty()
-            self.uncertainty.from_json(val)
+            self.uncertainty.read_json(val)
         val = json.get(&#39;description&#39;)
         if val is not None:
-            self.description = val</code></pre>
+            self.description = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Exchange()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.Exchange.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -4333,8 +4800,27 @@ values in the <code>dqEntry</code> vector map to these positions.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(Exchange, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = Exchange()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.Exchange.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(Exchange, self).read_json(json)
     val = json.get(&#39;internalId&#39;)
     if val is not None:
         self.internal_id = val
@@ -4344,11 +4830,11 @@ values in the <code>dqEntry</code> vector map to these positions.</dd>
     val = json.get(&#39;flow&#39;)
     if val is not None:
         self.flow = FlowRef()
-        self.flow.from_json(val)
+        self.flow.read_json(val)
     val = json.get(&#39;flowProperty&#39;)
     if val is not None:
         self.flow_property = Ref()
-        self.flow_property.from_json(val)
+        self.flow_property.read_json(val)
     val = json.get(&#39;input&#39;)
     if val is not None:
         self.input = val
@@ -4361,7 +4847,7 @@ values in the <code>dqEntry</code> vector map to these positions.</dd>
     val = json.get(&#39;defaultProvider&#39;)
     if val is not None:
         self.default_provider = ProcessRef()
-        self.default_provider.from_json(val)
+        self.default_provider.read_json(val)
     val = json.get(&#39;amount&#39;)
     if val is not None:
         self.amount = val
@@ -4371,14 +4857,14 @@ values in the <code>dqEntry</code> vector map to these positions.</dd>
     val = json.get(&#39;unit&#39;)
     if val is not None:
         self.unit = Ref()
-        self.unit.from_json(val)
+        self.unit.read_json(val)
     val = json.get(&#39;dqEntry&#39;)
     if val is not None:
         self.dq_entry = val
     val = json.get(&#39;uncertainty&#39;)
     if val is not None:
         self.uncertainty = Uncertainty()
-        self.uncertainty.from_json(val)
+        self.uncertainty.read_json(val)
     val = json.get(&#39;description&#39;)
     if val is not None:
         self.description = val</code></pre>
@@ -4509,8 +4995,8 @@ some data formats define a location as a property of a flow.</dd>
             json[&#39;location&#39;] = self.location.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(Flow, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Flow, self).read_json(json)
         val = json.get(&#39;flowType&#39;)
         if val is not None:
             self.flow_type = FlowType(val)
@@ -4525,12 +5011,18 @@ some data formats define a location as a property of a flow.</dd>
             self.flow_properties = []
             for d in val:
                 e = FlowPropertyFactor()
-                e.from_json(d)
+                e.read_json(d)
                 self.flow_properties.append(e)
         val = json.get(&#39;location&#39;)
         if val is not None:
             self.location = Ref()
-            self.location.from_json(val)</code></pre>
+            self.location.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Flow()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -4538,10 +5030,10 @@ some data formats define a location as a property of a flow.</dd>
 <li><a title="olca.schema.RootEntity" href="#olca.schema.RootEntity">RootEntity</a></li>
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.Flow.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -4549,8 +5041,27 @@ some data formats define a location as a property of a flow.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(Flow, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = Flow()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.Flow.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(Flow, self).read_json(json)
     val = json.get(&#39;flowType&#39;)
     if val is not None:
         self.flow_type = FlowType(val)
@@ -4565,12 +5076,12 @@ some data formats define a location as a property of a flow.</dd>
         self.flow_properties = []
         for d in val:
             e = FlowPropertyFactor()
-            e.from_json(d)
+            e.read_json(d)
             self.flow_properties.append(e)
     val = json.get(&#39;location&#39;)
     if val is not None:
         self.location = Ref()
-        self.location.from_json(val)</code></pre>
+        self.location.read_json(val)</code></pre>
 </details>
 </dd>
 <dt id="olca.schema.Flow.to_json"><code class="name flex">
@@ -4656,33 +5167,39 @@ target flow list.</dd>
                 json[&#39;mappings&#39;].append(e.to_json())
         return json
 
-    def from_json(self, json: dict):
-        super(FlowMap, self).from_json(json)
+    def read_json(self, json: dict):
+        super(FlowMap, self).read_json(json)
         val = json.get(&#39;source&#39;)
         if val is not None:
             self.source = Ref()
-            self.source.from_json(val)
+            self.source.read_json(val)
         val = json.get(&#39;target&#39;)
         if val is not None:
             self.target = Ref()
-            self.target.from_json(val)
+            self.target.read_json(val)
         val = json.get(&#39;mappings&#39;)
         if val is not None:
             self.mappings = []
             for d in val:
                 e = FlowMapEntry()
-                e.from_json(d)
-                self.mappings.append(e)</code></pre>
+                e.read_json(d)
+                self.mappings.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = FlowMap()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="olca.schema.RootEntity" href="#olca.schema.RootEntity">RootEntity</a></li>
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.FlowMap.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -4690,22 +5207,41 @@ target flow list.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(FlowMap, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = FlowMap()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.FlowMap.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(FlowMap, self).read_json(json)
     val = json.get(&#39;source&#39;)
     if val is not None:
         self.source = Ref()
-        self.source.from_json(val)
+        self.source.read_json(val)
     val = json.get(&#39;target&#39;)
     if val is not None:
         self.target = Ref()
-        self.target.from_json(val)
+        self.target.read_json(val)
     val = json.get(&#39;mappings&#39;)
     if val is not None:
         self.mappings = []
         for d in val:
             e = FlowMapEntry()
-            e.from_json(d)
+            e.read_json(d)
             self.mappings.append(e)</code></pre>
 </details>
 </dd>
@@ -4784,29 +5320,35 @@ target flow list.</dd>
             json[&#39;conversionFactor&#39;] = self.conversion_factor
         return json
 
-    def from_json(self, json: dict):
-        super(FlowMapEntry, self).from_json(json)
+    def read_json(self, json: dict):
+        super(FlowMapEntry, self).read_json(json)
         val = json.get(&#39;from&#39;)
         if val is not None:
             self.from_ = FlowMapRef()
-            self.from_.from_json(val)
+            self.from_.read_json(val)
         val = json.get(&#39;to&#39;)
         if val is not None:
             self.to = FlowMapRef()
-            self.to.from_json(val)
+            self.to.read_json(val)
         val = json.get(&#39;conversionFactor&#39;)
         if val is not None:
-            self.conversion_factor = val</code></pre>
+            self.conversion_factor = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = FlowMapEntry()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="olca.schema.RootEntity" href="#olca.schema.RootEntity">RootEntity</a></li>
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.FlowMapEntry.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -4814,16 +5356,35 @@ target flow list.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(FlowMapEntry, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = FlowMapEntry()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.FlowMapEntry.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(FlowMapEntry, self).read_json(json)
     val = json.get(&#39;from&#39;)
     if val is not None:
         self.from_ = FlowMapRef()
-        self.from_.from_json(val)
+        self.from_.read_json(val)
     val = json.get(&#39;to&#39;)
     if val is not None:
         self.to = FlowMapRef()
-        self.to.from_json(val)
+        self.to.read_json(val)
     val = json.get(&#39;conversionFactor&#39;)
     if val is not None:
         self.conversion_factor = val</code></pre>
@@ -4914,29 +5475,35 @@ valid</dd>
             json[&#39;unit&#39;] = self.unit.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(FlowMapRef, self).from_json(json)
+    def read_json(self, json: dict):
+        super(FlowMapRef, self).read_json(json)
         val = json.get(&#39;flow&#39;)
         if val is not None:
             self.flow = FlowRef()
-            self.flow.from_json(val)
+            self.flow.read_json(val)
         val = json.get(&#39;flowProperty&#39;)
         if val is not None:
             self.flow_property = Ref()
-            self.flow_property.from_json(val)
+            self.flow_property.read_json(val)
         val = json.get(&#39;unit&#39;)
         if val is not None:
             self.unit = Ref()
-            self.unit.from_json(val)</code></pre>
+            self.unit.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = FlowMapRef()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.FlowMapRef.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -4944,20 +5511,39 @@ valid</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(FlowMapRef, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = FlowMapRef()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.FlowMapRef.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(FlowMapRef, self).read_json(json)
     val = json.get(&#39;flow&#39;)
     if val is not None:
         self.flow = FlowRef()
-        self.flow.from_json(val)
+        self.flow.read_json(val)
     val = json.get(&#39;flowProperty&#39;)
     if val is not None:
         self.flow_property = Ref()
-        self.flow_property.from_json(val)
+        self.flow_property.read_json(val)
     val = json.get(&#39;unit&#39;)
     if val is not None:
         self.unit = Ref()
-        self.unit.from_json(val)</code></pre>
+        self.unit.read_json(val)</code></pre>
 </details>
 </dd>
 <dt id="olca.schema.FlowMapRef.to_json"><code class="name flex">
@@ -5029,15 +5615,21 @@ property.</dd>
             json[&#39;unitGroup&#39;] = self.unit_group.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(FlowProperty, self).from_json(json)
+    def read_json(self, json: dict):
+        super(FlowProperty, self).read_json(json)
         val = json.get(&#39;flowPropertyType&#39;)
         if val is not None:
             self.flow_property_type = FlowPropertyType(val)
         val = json.get(&#39;unitGroup&#39;)
         if val is not None:
             self.unit_group = Ref()
-            self.unit_group.from_json(val)</code></pre>
+            self.unit_group.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = FlowProperty()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -5045,10 +5637,10 @@ property.</dd>
 <li><a title="olca.schema.RootEntity" href="#olca.schema.RootEntity">RootEntity</a></li>
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.FlowProperty.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -5056,15 +5648,34 @@ property.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(FlowProperty, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = FlowProperty()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.FlowProperty.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(FlowProperty, self).read_json(json)
     val = json.get(&#39;flowPropertyType&#39;)
     if val is not None:
         self.flow_property_type = FlowPropertyType(val)
     val = json.get(&#39;unitGroup&#39;)
     if val is not None:
         self.unit_group = Ref()
-        self.unit_group.from_json(val)</code></pre>
+        self.unit_group.read_json(val)</code></pre>
 </details>
 </dd>
 <dt id="olca.schema.FlowProperty.to_json"><code class="name flex">
@@ -5184,27 +5795,33 @@ property.</dd>
             json[&#39;referenceFlowProperty&#39;] = self.reference_flow_property
         return json
 
-    def from_json(self, json: dict):
-        super(FlowPropertyFactor, self).from_json(json)
+    def read_json(self, json: dict):
+        super(FlowPropertyFactor, self).read_json(json)
         val = json.get(&#39;flowProperty&#39;)
         if val is not None:
             self.flow_property = Ref()
-            self.flow_property.from_json(val)
+            self.flow_property.read_json(val)
         val = json.get(&#39;conversionFactor&#39;)
         if val is not None:
             self.conversion_factor = val
         val = json.get(&#39;referenceFlowProperty&#39;)
         if val is not None:
-            self.reference_flow_property = val</code></pre>
+            self.reference_flow_property = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = FlowPropertyFactor()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.FlowPropertyFactor.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -5212,12 +5829,31 @@ property.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(FlowPropertyFactor, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = FlowPropertyFactor()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.FlowPropertyFactor.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(FlowPropertyFactor, self).read_json(json)
     val = json.get(&#39;flowProperty&#39;)
     if val is not None:
         self.flow_property = Ref()
-        self.flow_property.from_json(val)
+        self.flow_property.read_json(val)
     val = json.get(&#39;conversionFactor&#39;)
     if val is not None:
         self.conversion_factor = val
@@ -5335,8 +5971,8 @@ product flows in databases like ecoinvent.</dd>
             json[&#39;flowType&#39;] = self.flow_type.value
         return json
 
-    def from_json(self, json: dict):
-        super(FlowRef, self).from_json(json)
+    def read_json(self, json: dict):
+        super(FlowRef, self).read_json(json)
         val = json.get(&#39;refUnit&#39;)
         if val is not None:
             self.ref_unit = val
@@ -5345,7 +5981,13 @@ product flows in databases like ecoinvent.</dd>
             self.location = val
         val = json.get(&#39;flowType&#39;)
         if val is not None:
-            self.flow_type = FlowType(val)</code></pre>
+            self.flow_type = FlowType(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = FlowRef()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -5353,10 +5995,10 @@ product flows in databases like ecoinvent.</dd>
 <li><a title="olca.schema.RootEntity" href="#olca.schema.RootEntity">RootEntity</a></li>
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.FlowRef.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -5364,8 +6006,27 @@ product flows in databases like ecoinvent.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(FlowRef, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = FlowRef()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.FlowRef.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(FlowRef, self).read_json(json)
     val = json.get(&#39;refUnit&#39;)
     if val is not None:
         self.ref_unit = val
@@ -5450,27 +6111,33 @@ product flows in databases like ecoinvent.</dd>
             json[&#39;value&#39;] = self.value
         return json
 
-    def from_json(self, json: dict):
-        super(FlowResult, self).from_json(json)
+    def read_json(self, json: dict):
+        super(FlowResult, self).read_json(json)
         val = json.get(&#39;flow&#39;)
         if val is not None:
             self.flow = FlowRef()
-            self.flow.from_json(val)
+            self.flow.read_json(val)
         val = json.get(&#39;input&#39;)
         if val is not None:
             self.input = val
         val = json.get(&#39;value&#39;)
         if val is not None:
-            self.value = val</code></pre>
+            self.value = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = FlowResult()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.FlowResult.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -5478,12 +6145,31 @@ product flows in databases like ecoinvent.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(FlowResult, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = FlowResult()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.FlowResult.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(FlowResult, self).read_json(json)
     val = json.get(&#39;flow&#39;)
     if val is not None:
         self.flow = FlowRef()
-        self.flow.from_json(val)
+        self.flow.read_json(val)
     val = json.get(&#39;input&#39;)
     if val is not None:
         self.input = val
@@ -5600,8 +6286,8 @@ characterisation factors</p>
                 json[&#39;impactFactors&#39;].append(e.to_json())
         return json
 
-    def from_json(self, json: dict):
-        super(ImpactCategory, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ImpactCategory, self).read_json(json)
         val = json.get(&#39;referenceUnitName&#39;)
         if val is not None:
             self.reference_unit_name = val
@@ -5610,18 +6296,24 @@ characterisation factors</p>
             self.impact_factors = []
             for d in val:
                 e = ImpactFactor()
-                e.from_json(d)
-                self.impact_factors.append(e)</code></pre>
+                e.read_json(d)
+                self.impact_factors.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ImpactCategory()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="olca.schema.RootEntity" href="#olca.schema.RootEntity">RootEntity</a></li>
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.ImpactCategory.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -5629,8 +6321,27 @@ characterisation factors</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(ImpactCategory, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = ImpactCategory()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.ImpactCategory.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(ImpactCategory, self).read_json(json)
     val = json.get(&#39;referenceUnitName&#39;)
     if val is not None:
         self.reference_unit_name = val
@@ -5639,7 +6350,7 @@ characterisation factors</p>
         self.impact_factors = []
         for d in val:
             e = ImpactFactor()
-            e.from_json(d)
+            e.read_json(d)
             self.impact_factors.append(e)</code></pre>
 </details>
 </dd>
@@ -5700,11 +6411,17 @@ characterisation factors</p>
             json[&#39;refUnit&#39;] = self.ref_unit
         return json
 
-    def from_json(self, json: dict):
-        super(ImpactCategoryRef, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ImpactCategoryRef, self).read_json(json)
         val = json.get(&#39;refUnit&#39;)
         if val is not None:
-            self.ref_unit = val</code></pre>
+            self.ref_unit = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ImpactCategoryRef()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -5712,10 +6429,10 @@ characterisation factors</p>
 <li><a title="olca.schema.RootEntity" href="#olca.schema.RootEntity">RootEntity</a></li>
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.ImpactCategoryRef.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -5723,8 +6440,27 @@ characterisation factors</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(ImpactCategoryRef, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = ImpactCategoryRef()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.ImpactCategoryRef.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(ImpactCategoryRef, self).read_json(json)
     val = json.get(&#39;refUnit&#39;)
     if val is not None:
         self.ref_unit = val</code></pre>
@@ -5825,20 +6561,20 @@ Mass).</dd>
             json[&#39;uncertainty&#39;] = self.uncertainty.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(ImpactFactor, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ImpactFactor, self).read_json(json)
         val = json.get(&#39;flow&#39;)
         if val is not None:
             self.flow = FlowRef()
-            self.flow.from_json(val)
+            self.flow.read_json(val)
         val = json.get(&#39;flowProperty&#39;)
         if val is not None:
             self.flow_property = Ref()
-            self.flow_property.from_json(val)
+            self.flow_property.read_json(val)
         val = json.get(&#39;unit&#39;)
         if val is not None:
             self.unit = Ref()
-            self.unit.from_json(val)
+            self.unit.read_json(val)
         val = json.get(&#39;value&#39;)
         if val is not None:
             self.value = val
@@ -5848,16 +6584,22 @@ Mass).</dd>
         val = json.get(&#39;uncertainty&#39;)
         if val is not None:
             self.uncertainty = Uncertainty()
-            self.uncertainty.from_json(val)</code></pre>
+            self.uncertainty.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ImpactFactor()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.ImpactFactor.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -5865,20 +6607,39 @@ Mass).</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(ImpactFactor, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = ImpactFactor()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.ImpactFactor.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(ImpactFactor, self).read_json(json)
     val = json.get(&#39;flow&#39;)
     if val is not None:
         self.flow = FlowRef()
-        self.flow.from_json(val)
+        self.flow.read_json(val)
     val = json.get(&#39;flowProperty&#39;)
     if val is not None:
         self.flow_property = Ref()
-        self.flow_property.from_json(val)
+        self.flow_property.read_json(val)
     val = json.get(&#39;unit&#39;)
     if val is not None:
         self.unit = Ref()
-        self.unit.from_json(val)
+        self.unit.read_json(val)
     val = json.get(&#39;value&#39;)
     if val is not None:
         self.value = val
@@ -5888,7 +6649,7 @@ Mass).</dd>
     val = json.get(&#39;uncertainty&#39;)
     if val is not None:
         self.uncertainty = Uncertainty()
-        self.uncertainty.from_json(val)</code></pre>
+        self.uncertainty.read_json(val)</code></pre>
 </details>
 </dd>
 <dt id="olca.schema.ImpactFactor.to_json"><code class="name flex">
@@ -5968,22 +6729,28 @@ the characterisation factors in this method.</dd>
                 json[&#39;parameters&#39;].append(e.to_json())
         return json
 
-    def from_json(self, json: dict):
-        super(ImpactMethod, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ImpactMethod, self).read_json(json)
         val = json.get(&#39;impactCategories&#39;)
         if val is not None:
             self.impact_categories = []
             for d in val:
                 e = ImpactCategoryRef()
-                e.from_json(d)
+                e.read_json(d)
                 self.impact_categories.append(e)
         val = json.get(&#39;parameters&#39;)
         if val is not None:
             self.parameters = []
             for d in val:
                 e = Parameter()
-                e.from_json(d)
-                self.parameters.append(e)</code></pre>
+                e.read_json(d)
+                self.parameters.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ImpactMethod()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -5991,10 +6758,10 @@ the characterisation factors in this method.</dd>
 <li><a title="olca.schema.RootEntity" href="#olca.schema.RootEntity">RootEntity</a></li>
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.ImpactMethod.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -6002,21 +6769,40 @@ the characterisation factors in this method.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(ImpactMethod, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = ImpactMethod()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.ImpactMethod.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(ImpactMethod, self).read_json(json)
     val = json.get(&#39;impactCategories&#39;)
     if val is not None:
         self.impact_categories = []
         for d in val:
             e = ImpactCategoryRef()
-            e.from_json(d)
+            e.read_json(d)
             self.impact_categories.append(e)
     val = json.get(&#39;parameters&#39;)
     if val is not None:
         self.parameters = []
         for d in val:
             e = Parameter()
-            e.from_json(d)
+            e.read_json(d)
             self.parameters.append(e)</code></pre>
 </details>
 </dd>
@@ -6087,24 +6873,30 @@ the characterisation factors in this method.</dd>
             json[&#39;value&#39;] = self.value
         return json
 
-    def from_json(self, json: dict):
-        super(ImpactResult, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ImpactResult, self).read_json(json)
         val = json.get(&#39;impactCategory&#39;)
         if val is not None:
             self.impact_category = ImpactCategoryRef()
-            self.impact_category.from_json(val)
+            self.impact_category.read_json(val)
         val = json.get(&#39;value&#39;)
         if val is not None:
-            self.value = val</code></pre>
+            self.value = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ImpactResult()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.ImpactResult.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -6112,12 +6904,31 @@ the characterisation factors in this method.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(ImpactResult, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = ImpactResult()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.ImpactResult.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(ImpactResult, self).read_json(json)
     val = json.get(&#39;impactCategory&#39;)
     if val is not None:
         self.impact_category = ImpactCategoryRef()
-        self.impact_category.from_json(val)
+        self.impact_category.read_json(val)
     val = json.get(&#39;value&#39;)
     if val is not None:
         self.value = val</code></pre>
@@ -6202,8 +7013,8 @@ the characterisation factors in this method.</dd>
             json[&#39;kml&#39;] = self.kml
         return json
 
-    def from_json(self, json: dict):
-        super(Location, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Location, self).read_json(json)
         val = json.get(&#39;code&#39;)
         if val is not None:
             self.code = val
@@ -6215,17 +7026,23 @@ the characterisation factors in this method.</dd>
             self.longitude = val
         val = json.get(&#39;kml&#39;)
         if val is not None:
-            self.kml = val</code></pre>
+            self.kml = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Location()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="olca.schema.RootEntity" href="#olca.schema.RootEntity">RootEntity</a></li>
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.Location.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -6233,8 +7050,27 @@ the characterisation factors in this method.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(Location, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = Location()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.Location.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(Location, self).read_json(json)
     val = json.get(&#39;code&#39;)
     if val is not None:
         self.code = val
@@ -6480,8 +7316,8 @@ for input parameters.</dd>
             json[&#39;uncertainty&#39;] = self.uncertainty.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(Parameter, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Parameter, self).read_json(json)
         val = json.get(&#39;name&#39;)
         if val is not None:
             self.name = val
@@ -6509,16 +7345,22 @@ for input parameters.</dd>
         val = json.get(&#39;uncertainty&#39;)
         if val is not None:
             self.uncertainty = Uncertainty()
-            self.uncertainty.from_json(val)</code></pre>
+            self.uncertainty.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Parameter()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.Parameter.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -6526,8 +7368,27 @@ for input parameters.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(Parameter, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = Parameter()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.Parameter.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(Parameter, self).read_json(json)
     val = json.get(&#39;name&#39;)
     if val is not None:
         self.name = val
@@ -6555,7 +7416,7 @@ for input parameters.</dd>
     val = json.get(&#39;uncertainty&#39;)
     if val is not None:
         self.uncertainty = Uncertainty()
-        self.uncertainty.from_json(val)</code></pre>
+        self.uncertainty.read_json(val)</code></pre>
 </details>
 </dd>
 <dt id="olca.schema.Parameter.to_json"><code class="name flex">
@@ -6647,8 +7508,8 @@ parameter.</dd>
             json[&#39;context&#39;] = self.context.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(ParameterRedef, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ParameterRedef, self).read_json(json)
         val = json.get(&#39;name&#39;)
         if val is not None:
             self.name = val
@@ -6658,16 +7519,22 @@ parameter.</dd>
         val = json.get(&#39;context&#39;)
         if val is not None:
             self.context = Ref()
-            self.context.from_json(val)</code></pre>
+            self.context.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ParameterRedef()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.ParameterRedef.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -6675,8 +7542,27 @@ parameter.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(ParameterRedef, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = ParameterRedef()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.ParameterRedef.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(ParameterRedef, self).read_json(json)
     val = json.get(&#39;name&#39;)
     if val is not None:
         self.name = val
@@ -6686,7 +7572,7 @@ parameter.</dd>
     val = json.get(&#39;context&#39;)
     if val is not None:
         self.context = Ref()
-        self.context.from_json(val)</code></pre>
+        self.context.read_json(val)</code></pre>
 </details>
 </dd>
 <dt id="olca.schema.ParameterRedef.to_json"><code class="name flex">
@@ -6880,8 +7766,8 @@ respective values in the <code>dqEntry</code> vector map to these positions.</dd
             json[&#39;dqEntry&#39;] = self.dq_entry
         return json
 
-    def from_json(self, json: dict):
-        super(Process, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Process, self).read_json(json)
         val = json.get(&#39;defaultAllocationMethod&#39;)
         if val is not None:
             self.default_allocation_method = AllocationType(val)
@@ -6890,48 +7776,54 @@ respective values in the <code>dqEntry</code> vector map to these positions.</dd
             self.allocation_factors = []
             for d in val:
                 e = AllocationFactor()
-                e.from_json(d)
+                e.read_json(d)
                 self.allocation_factors.append(e)
         val = json.get(&#39;exchanges&#39;)
         if val is not None:
             self.exchanges = []
             for d in val:
                 e = Exchange()
-                e.from_json(d)
+                e.read_json(d)
                 self.exchanges.append(e)
         val = json.get(&#39;location&#39;)
         if val is not None:
             self.location = Location()
-            self.location.from_json(val)
+            self.location.read_json(val)
         val = json.get(&#39;parameters&#39;)
         if val is not None:
             self.parameters = []
             for d in val:
                 e = Parameter()
-                e.from_json(d)
+                e.read_json(d)
                 self.parameters.append(e)
         val = json.get(&#39;processDocumentation&#39;)
         if val is not None:
             self.process_documentation = ProcessDocumentation()
-            self.process_documentation.from_json(val)
+            self.process_documentation.read_json(val)
         val = json.get(&#39;processType&#39;)
         if val is not None:
             self.process_type = ProcessType(val)
         val = json.get(&#39;dqSystem&#39;)
         if val is not None:
             self.dq_system = Ref()
-            self.dq_system.from_json(val)
+            self.dq_system.read_json(val)
         val = json.get(&#39;exchangeDqSystem&#39;)
         if val is not None:
             self.exchange_dq_system = Ref()
-            self.exchange_dq_system.from_json(val)
+            self.exchange_dq_system.read_json(val)
         val = json.get(&#39;socialDqSystem&#39;)
         if val is not None:
             self.social_dq_system = Ref()
-            self.social_dq_system.from_json(val)
+            self.social_dq_system.read_json(val)
         val = json.get(&#39;dqEntry&#39;)
         if val is not None:
-            self.dq_entry = val</code></pre>
+            self.dq_entry = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Process()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -6939,10 +7831,10 @@ respective values in the <code>dqEntry</code> vector map to these positions.</dd
 <li><a title="olca.schema.RootEntity" href="#olca.schema.RootEntity">RootEntity</a></li>
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.Process.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -6950,8 +7842,27 @@ respective values in the <code>dqEntry</code> vector map to these positions.</dd
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(Process, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = Process()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.Process.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(Process, self).read_json(json)
     val = json.get(&#39;defaultAllocationMethod&#39;)
     if val is not None:
         self.default_allocation_method = AllocationType(val)
@@ -6960,45 +7871,45 @@ respective values in the <code>dqEntry</code> vector map to these positions.</dd
         self.allocation_factors = []
         for d in val:
             e = AllocationFactor()
-            e.from_json(d)
+            e.read_json(d)
             self.allocation_factors.append(e)
     val = json.get(&#39;exchanges&#39;)
     if val is not None:
         self.exchanges = []
         for d in val:
             e = Exchange()
-            e.from_json(d)
+            e.read_json(d)
             self.exchanges.append(e)
     val = json.get(&#39;location&#39;)
     if val is not None:
         self.location = Location()
-        self.location.from_json(val)
+        self.location.read_json(val)
     val = json.get(&#39;parameters&#39;)
     if val is not None:
         self.parameters = []
         for d in val:
             e = Parameter()
-            e.from_json(d)
+            e.read_json(d)
             self.parameters.append(e)
     val = json.get(&#39;processDocumentation&#39;)
     if val is not None:
         self.process_documentation = ProcessDocumentation()
-        self.process_documentation.from_json(val)
+        self.process_documentation.read_json(val)
     val = json.get(&#39;processType&#39;)
     if val is not None:
         self.process_type = ProcessType(val)
     val = json.get(&#39;dqSystem&#39;)
     if val is not None:
         self.dq_system = Ref()
-        self.dq_system.from_json(val)
+        self.dq_system.read_json(val)
     val = json.get(&#39;exchangeDqSystem&#39;)
     if val is not None:
         self.exchange_dq_system = Ref()
-        self.exchange_dq_system.from_json(val)
+        self.exchange_dq_system.read_json(val)
     val = json.get(&#39;socialDqSystem&#39;)
     if val is not None:
         self.social_dq_system = Ref()
-        self.social_dq_system.from_json(val)
+        self.social_dq_system.read_json(val)
     val = json.get(&#39;dqEntry&#39;)
     if val is not None:
         self.dq_entry = val</code></pre>
@@ -7244,8 +8155,8 @@ respective values in the <code>dqEntry</code> vector map to these positions.</dd
             json[&#39;geographyDescription&#39;] = self.geography_description
         return json
 
-    def from_json(self, json: dict):
-        super(ProcessDocumentation, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ProcessDocumentation, self).read_json(json)
         val = json.get(&#39;timeDescription&#39;)
         if val is not None:
             self.time_description = val
@@ -7282,7 +8193,7 @@ respective values in the <code>dqEntry</code> vector map to these positions.</dd
         val = json.get(&#39;reviewer&#39;)
         if val is not None:
             self.reviewer = Ref()
-            self.reviewer.from_json(val)
+            self.reviewer.read_json(val)
         val = json.get(&#39;samplingDescription&#39;)
         if val is not None:
             self.sampling_description = val
@@ -7291,7 +8202,7 @@ respective values in the <code>dqEntry</code> vector map to these positions.</dd
             self.sources = []
             for d in val:
                 e = Ref()
-                e.from_json(d)
+                e.read_json(d)
                 self.sources.append(e)
         val = json.get(&#39;restrictionsDescription&#39;)
         if val is not None:
@@ -7305,15 +8216,15 @@ respective values in the <code>dqEntry</code> vector map to these positions.</dd
         val = json.get(&#39;dataDocumentor&#39;)
         if val is not None:
             self.data_documentor = Ref()
-            self.data_documentor.from_json(val)
+            self.data_documentor.read_json(val)
         val = json.get(&#39;dataGenerator&#39;)
         if val is not None:
             self.data_generator = Ref()
-            self.data_generator.from_json(val)
+            self.data_generator.read_json(val)
         val = json.get(&#39;dataSetOwner&#39;)
         if val is not None:
             self.data_set_owner = Ref()
-            self.data_set_owner.from_json(val)
+            self.data_set_owner.read_json(val)
         val = json.get(&#39;intendedApplication&#39;)
         if val is not None:
             self.intended_application = val
@@ -7323,19 +8234,25 @@ respective values in the <code>dqEntry</code> vector map to these positions.</dd
         val = json.get(&#39;publication&#39;)
         if val is not None:
             self.publication = Ref()
-            self.publication.from_json(val)
+            self.publication.read_json(val)
         val = json.get(&#39;geographyDescription&#39;)
         if val is not None:
-            self.geography_description = val</code></pre>
+            self.geography_description = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ProcessDocumentation()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.ProcessDocumentation.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -7343,8 +8260,27 @@ respective values in the <code>dqEntry</code> vector map to these positions.</dd
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(ProcessDocumentation, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = ProcessDocumentation()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.ProcessDocumentation.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(ProcessDocumentation, self).read_json(json)
     val = json.get(&#39;timeDescription&#39;)
     if val is not None:
         self.time_description = val
@@ -7381,7 +8317,7 @@ respective values in the <code>dqEntry</code> vector map to these positions.</dd
     val = json.get(&#39;reviewer&#39;)
     if val is not None:
         self.reviewer = Ref()
-        self.reviewer.from_json(val)
+        self.reviewer.read_json(val)
     val = json.get(&#39;samplingDescription&#39;)
     if val is not None:
         self.sampling_description = val
@@ -7390,7 +8326,7 @@ respective values in the <code>dqEntry</code> vector map to these positions.</dd
         self.sources = []
         for d in val:
             e = Ref()
-            e.from_json(d)
+            e.read_json(d)
             self.sources.append(e)
     val = json.get(&#39;restrictionsDescription&#39;)
     if val is not None:
@@ -7404,15 +8340,15 @@ respective values in the <code>dqEntry</code> vector map to these positions.</dd
     val = json.get(&#39;dataDocumentor&#39;)
     if val is not None:
         self.data_documentor = Ref()
-        self.data_documentor.from_json(val)
+        self.data_documentor.read_json(val)
     val = json.get(&#39;dataGenerator&#39;)
     if val is not None:
         self.data_generator = Ref()
-        self.data_generator.from_json(val)
+        self.data_generator.read_json(val)
     val = json.get(&#39;dataSetOwner&#39;)
     if val is not None:
         self.data_set_owner = Ref()
-        self.data_set_owner.from_json(val)
+        self.data_set_owner.read_json(val)
     val = json.get(&#39;intendedApplication&#39;)
     if val is not None:
         self.intended_application = val
@@ -7422,7 +8358,7 @@ respective values in the <code>dqEntry</code> vector map to these positions.</dd
     val = json.get(&#39;publication&#39;)
     if val is not None:
         self.publication = Ref()
-        self.publication.from_json(val)
+        self.publication.read_json(val)
     val = json.get(&#39;geographyDescription&#39;)
     if val is not None:
         self.geography_description = val</code></pre>
@@ -7559,33 +8495,39 @@ different provides, e.g. in an electricity mix).</dd>
             json[&#39;exchange&#39;] = self.exchange.to_json()
         return json
 
-    def from_json(self, json: dict):
-        super(ProcessLink, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ProcessLink, self).read_json(json)
         val = json.get(&#39;provider&#39;)
         if val is not None:
             self.provider = Ref()
-            self.provider.from_json(val)
+            self.provider.read_json(val)
         val = json.get(&#39;flow&#39;)
         if val is not None:
             self.flow = Ref()
-            self.flow.from_json(val)
+            self.flow.read_json(val)
         val = json.get(&#39;process&#39;)
         if val is not None:
             self.process = Ref()
-            self.process.from_json(val)
+            self.process.read_json(val)
         val = json.get(&#39;exchange&#39;)
         if val is not None:
             self.exchange = Exchange()
-            self.exchange.from_json(val)</code></pre>
+            self.exchange.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ProcessLink()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.ProcessLink.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -7593,24 +8535,43 @@ different provides, e.g. in an electricity mix).</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(ProcessLink, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = ProcessLink()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.ProcessLink.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(ProcessLink, self).read_json(json)
     val = json.get(&#39;provider&#39;)
     if val is not None:
         self.provider = Ref()
-        self.provider.from_json(val)
+        self.provider.read_json(val)
     val = json.get(&#39;flow&#39;)
     if val is not None:
         self.flow = Ref()
-        self.flow.from_json(val)
+        self.flow.read_json(val)
     val = json.get(&#39;process&#39;)
     if val is not None:
         self.process = Ref()
-        self.process.from_json(val)
+        self.process.read_json(val)
     val = json.get(&#39;exchange&#39;)
     if val is not None:
         self.exchange = Exchange()
-        self.exchange.from_json(val)</code></pre>
+        self.exchange.read_json(val)</code></pre>
 </details>
 </dd>
 <dt id="olca.schema.ProcessLink.to_json"><code class="name flex">
@@ -7680,14 +8641,20 @@ different provides, e.g. in an electricity mix).</dd>
             json[&#39;processType&#39;] = self.process_type.value
         return json
 
-    def from_json(self, json: dict):
-        super(ProcessRef, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ProcessRef, self).read_json(json)
         val = json.get(&#39;location&#39;)
         if val is not None:
             self.location = val
         val = json.get(&#39;processType&#39;)
         if val is not None:
-            self.process_type = ProcessType(val)</code></pre>
+            self.process_type = ProcessType(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ProcessRef()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -7695,10 +8662,10 @@ different provides, e.g. in an electricity mix).</dd>
 <li><a title="olca.schema.RootEntity" href="#olca.schema.RootEntity">RootEntity</a></li>
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.ProcessRef.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -7706,8 +8673,27 @@ different provides, e.g. in an electricity mix).</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(ProcessRef, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = ProcessRef()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.ProcessRef.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(ProcessRef, self).read_json(json)
     val = json.get(&#39;location&#39;)
     if val is not None:
         self.location = val
@@ -7863,41 +8849,47 @@ given.</dd>
                 json[&#39;processLinks&#39;].append(e.to_json())
         return json
 
-    def from_json(self, json: dict):
-        super(ProductSystem, self).from_json(json)
+    def read_json(self, json: dict):
+        super(ProductSystem, self).read_json(json)
         val = json.get(&#39;processes&#39;)
         if val is not None:
             self.processes = []
             for d in val:
                 e = ProcessRef()
-                e.from_json(d)
+                e.read_json(d)
                 self.processes.append(e)
         val = json.get(&#39;referenceProcess&#39;)
         if val is not None:
             self.reference_process = ProcessRef()
-            self.reference_process.from_json(val)
+            self.reference_process.read_json(val)
         val = json.get(&#39;referenceExchange&#39;)
         if val is not None:
             self.reference_exchange = Exchange()
-            self.reference_exchange.from_json(val)
+            self.reference_exchange.read_json(val)
         val = json.get(&#39;targetAmount&#39;)
         if val is not None:
             self.target_amount = val
         val = json.get(&#39;targetUnit&#39;)
         if val is not None:
             self.target_unit = Ref()
-            self.target_unit.from_json(val)
+            self.target_unit.read_json(val)
         val = json.get(&#39;targetFlowProperty&#39;)
         if val is not None:
             self.target_flow_property = Ref()
-            self.target_flow_property.from_json(val)
+            self.target_flow_property.read_json(val)
         val = json.get(&#39;processLinks&#39;)
         if val is not None:
             self.process_links = []
             for d in val:
                 e = ProcessLink()
-                e.from_json(d)
-                self.process_links.append(e)</code></pre>
+                e.read_json(d)
+                self.process_links.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ProductSystem()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -7905,10 +8897,10 @@ given.</dd>
 <li><a title="olca.schema.RootEntity" href="#olca.schema.RootEntity">RootEntity</a></li>
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.ProductSystem.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -7916,40 +8908,59 @@ given.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(ProductSystem, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = ProductSystem()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.ProductSystem.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(ProductSystem, self).read_json(json)
     val = json.get(&#39;processes&#39;)
     if val is not None:
         self.processes = []
         for d in val:
             e = ProcessRef()
-            e.from_json(d)
+            e.read_json(d)
             self.processes.append(e)
     val = json.get(&#39;referenceProcess&#39;)
     if val is not None:
         self.reference_process = ProcessRef()
-        self.reference_process.from_json(val)
+        self.reference_process.read_json(val)
     val = json.get(&#39;referenceExchange&#39;)
     if val is not None:
         self.reference_exchange = Exchange()
-        self.reference_exchange.from_json(val)
+        self.reference_exchange.read_json(val)
     val = json.get(&#39;targetAmount&#39;)
     if val is not None:
         self.target_amount = val
     val = json.get(&#39;targetUnit&#39;)
     if val is not None:
         self.target_unit = Ref()
-        self.target_unit.from_json(val)
+        self.target_unit.read_json(val)
     val = json.get(&#39;targetFlowProperty&#39;)
     if val is not None:
         self.target_flow_property = Ref()
-        self.target_flow_property.from_json(val)
+        self.target_flow_property.read_json(val)
     val = json.get(&#39;processLinks&#39;)
     if val is not None:
         self.process_links = []
         for d in val:
             e = ProcessLink()
-            e.from_json(d)
+            e.read_json(d)
             self.process_links.append(e)</code></pre>
 </details>
 </dd>
@@ -8036,14 +9047,20 @@ bottom, e.g. <code>"Elementary flows", "Emissions to air", "unspecified"</code>.
                 json[&#39;categoryPath&#39;].append(e)
         return json
 
-    def from_json(self, json: dict):
-        super(Ref, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Ref, self).read_json(json)
         val = json.get(&#39;categoryPath&#39;)
         if val is not None:
             self.category_path = []
             for d in val:
                 e = d
-                self.category_path.append(e)</code></pre>
+                self.category_path.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Ref()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -8056,10 +9073,10 @@ bottom, e.g. <code>"Elementary flows", "Emissions to air", "unspecified"</code>.
 <li><a title="olca.schema.ImpactCategoryRef" href="#olca.schema.ImpactCategoryRef">ImpactCategoryRef</a></li>
 <li><a title="olca.schema.ProcessRef" href="#olca.schema.ProcessRef">ProcessRef</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.Ref.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -8067,8 +9084,27 @@ bottom, e.g. <code>"Elementary flows", "Emissions to air", "unspecified"</code>.
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(Ref, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = Ref()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.Ref.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(Ref, self).read_json(json)
     val = json.get(&#39;categoryPath&#39;)
     if val is not None:
         self.category_path = []
@@ -8164,8 +9200,8 @@ is the same as 1.0.0 or 1).</dd>
             json[&#39;lastChange&#39;] = self.last_change
         return json
 
-    def from_json(self, json: dict):
-        super(RootEntity, self).from_json(json)
+    def read_json(self, json: dict):
+        super(RootEntity, self).read_json(json)
         val = json.get(&#39;name&#39;)
         if val is not None:
             self.name = val
@@ -8177,7 +9213,13 @@ is the same as 1.0.0 or 1).</dd>
             self.version = val
         val = json.get(&#39;lastChange&#39;)
         if val is not None:
-            self.last_change = val</code></pre>
+            self.last_change = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = RootEntity()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -8193,10 +9235,10 @@ is the same as 1.0.0 or 1).</dd>
 <li><a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a></li>
 <li><a title="olca.schema.Unit" href="#olca.schema.Unit">Unit</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.RootEntity.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -8204,8 +9246,27 @@ is the same as 1.0.0 or 1).</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(RootEntity, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = RootEntity()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.RootEntity.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(RootEntity, self).read_json(json)
     val = json.get(&#39;name&#39;)
     if val is not None:
         self.name = val
@@ -8288,31 +9349,37 @@ is the same as 1.0.0 or 1).</dd>
                 json[&#39;impactResults&#39;].append(e.to_json())
         return json
 
-    def from_json(self, json: dict):
-        super(SimpleResult, self).from_json(json)
+    def read_json(self, json: dict):
+        super(SimpleResult, self).read_json(json)
         val = json.get(&#39;flowResults&#39;)
         if val is not None:
             self.flow_results = []
             for d in val:
                 e = FlowResult()
-                e.from_json(d)
+                e.read_json(d)
                 self.flow_results.append(e)
         val = json.get(&#39;impactResults&#39;)
         if val is not None:
             self.impact_results = []
             for d in val:
                 e = ImpactResult()
-                e.from_json(d)
-                self.impact_results.append(e)</code></pre>
+                e.read_json(d)
+                self.impact_results.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = SimpleResult()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.SimpleResult.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -8320,21 +9387,40 @@ is the same as 1.0.0 or 1).</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(SimpleResult, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = SimpleResult()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.SimpleResult.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(SimpleResult, self).read_json(json)
     val = json.get(&#39;flowResults&#39;)
     if val is not None:
         self.flow_results = []
         for d in val:
             e = FlowResult()
-            e.from_json(d)
+            e.read_json(d)
             self.flow_results.append(e)
     val = json.get(&#39;impactResults&#39;)
     if val is not None:
         self.impact_results = []
         for d in val:
             e = ImpactResult()
-            e.from_json(d)
+            e.read_json(d)
             self.impact_results.append(e)</code></pre>
 </details>
 </dd>
@@ -8428,25 +9514,31 @@ is the same as 1.0.0 or 1).</dd>
             json[&#39;evaluationScheme&#39;] = self.evaluation_scheme
         return json
 
-    def from_json(self, json: dict):
-        super(SocialIndicator, self).from_json(json)
+    def read_json(self, json: dict):
+        super(SocialIndicator, self).read_json(json)
         val = json.get(&#39;activityVariable&#39;)
         if val is not None:
             self.activity_variable = val
         val = json.get(&#39;activityQuantity&#39;)
         if val is not None:
             self.activity_quantity = Ref()
-            self.activity_quantity.from_json(val)
+            self.activity_quantity.read_json(val)
         val = json.get(&#39;activityUnit&#39;)
         if val is not None:
             self.activity_unit = Ref()
-            self.activity_unit.from_json(val)
+            self.activity_unit.read_json(val)
         val = json.get(&#39;unitOfMeasurement&#39;)
         if val is not None:
             self.unit_of_measurement = val
         val = json.get(&#39;evaluationScheme&#39;)
         if val is not None:
-            self.evaluation_scheme = val</code></pre>
+            self.evaluation_scheme = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = SocialIndicator()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -8454,10 +9546,10 @@ is the same as 1.0.0 or 1).</dd>
 <li><a title="olca.schema.RootEntity" href="#olca.schema.RootEntity">RootEntity</a></li>
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.SocialIndicator.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -8465,19 +9557,38 @@ is the same as 1.0.0 or 1).</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(SocialIndicator, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = SocialIndicator()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.SocialIndicator.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(SocialIndicator, self).read_json(json)
     val = json.get(&#39;activityVariable&#39;)
     if val is not None:
         self.activity_variable = val
     val = json.get(&#39;activityQuantity&#39;)
     if val is not None:
         self.activity_quantity = Ref()
-        self.activity_quantity.from_json(val)
+        self.activity_quantity.read_json(val)
     val = json.get(&#39;activityUnit&#39;)
     if val is not None:
         self.activity_unit = Ref()
-        self.activity_unit.from_json(val)
+        self.activity_unit.read_json(val)
     val = json.get(&#39;unitOfMeasurement&#39;)
     if val is not None:
         self.unit_of_measurement = val
@@ -8571,8 +9682,8 @@ is the same as 1.0.0 or 1).</dd>
             json[&#39;externalFile&#39;] = self.external_file
         return json
 
-    def from_json(self, json: dict):
-        super(Source, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Source, self).read_json(json)
         val = json.get(&#39;url&#39;)
         if val is not None:
             self.url = val
@@ -8584,7 +9695,13 @@ is the same as 1.0.0 or 1).</dd>
             self.year = val
         val = json.get(&#39;externalFile&#39;)
         if val is not None:
-            self.external_file = val</code></pre>
+            self.external_file = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Source()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -8592,10 +9709,10 @@ is the same as 1.0.0 or 1).</dd>
 <li><a title="olca.schema.RootEntity" href="#olca.schema.RootEntity">RootEntity</a></li>
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.Source.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -8603,8 +9720,27 @@ is the same as 1.0.0 or 1).</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(Source, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = Source()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.Source.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(Source, self).read_json(json)
     val = json.get(&#39;url&#39;)
     if val is not None:
         self.url = val
@@ -8792,8 +9928,8 @@ the uncertainty distribution type different parameters could be used.</p>
             json[&#39;maximumFormula&#39;] = self.maximum_formula
         return json
 
-    def from_json(self, json: dict):
-        super(Uncertainty, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Uncertainty, self).read_json(json)
         val = json.get(&#39;distributionType&#39;)
         if val is not None:
             self.distribution_type = UncertaintyType(val)
@@ -8838,16 +9974,22 @@ the uncertainty distribution type different parameters could be used.</p>
             self.maximum = val
         val = json.get(&#39;maximumFormula&#39;)
         if val is not None:
-            self.maximum_formula = val</code></pre>
+            self.maximum_formula = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Uncertainty()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.Uncertainty.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -8855,8 +9997,27 @@ the uncertainty distribution type different parameters could be used.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(Uncertainty, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = Uncertainty()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.Uncertainty.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(Uncertainty, self).read_json(json)
     val = json.get(&#39;distributionType&#39;)
     if val is not None:
         self.distribution_type = UncertaintyType(val)
@@ -9059,8 +10220,8 @@ unit to amounts given in another unit of the respective unit group.</dd>
                 json[&#39;synonyms&#39;].append(e)
         return json
 
-    def from_json(self, json: dict):
-        super(Unit, self).from_json(json)
+    def read_json(self, json: dict):
+        super(Unit, self).read_json(json)
         val = json.get(&#39;conversionFactor&#39;)
         if val is not None:
             self.conversion_factor = val
@@ -9072,17 +10233,23 @@ unit to amounts given in another unit of the respective unit group.</dd>
             self.synonyms = []
             for d in val:
                 e = d
-                self.synonyms.append(e)</code></pre>
+                self.synonyms.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Unit()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="olca.schema.RootEntity" href="#olca.schema.RootEntity">RootEntity</a></li>
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.Unit.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -9090,8 +10257,27 @@ unit to amounts given in another unit of the respective unit group.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(Unit, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = Unit()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.Unit.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(Unit, self).read_json(json)
     val = json.get(&#39;conversionFactor&#39;)
     if val is not None:
         self.conversion_factor = val
@@ -9179,19 +10365,25 @@ units that are contained in this group.</dd>
                 json[&#39;units&#39;].append(e.to_json())
         return json
 
-    def from_json(self, json: dict):
-        super(UnitGroup, self).from_json(json)
+    def read_json(self, json: dict):
+        super(UnitGroup, self).read_json(json)
         val = json.get(&#39;defaultFlowProperty&#39;)
         if val is not None:
             self.default_flow_property = Ref()
-            self.default_flow_property.from_json(val)
+            self.default_flow_property.read_json(val)
         val = json.get(&#39;units&#39;)
         if val is not None:
             self.units = []
             for d in val:
                 e = Unit()
-                e.from_json(d)
-                self.units.append(e)</code></pre>
+                e.read_json(d)
+                self.units.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = UnitGroup()
+        instance.read_json(json)
+        return instance</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -9199,10 +10391,10 @@ units that are contained in this group.</dd>
 <li><a title="olca.schema.RootEntity" href="#olca.schema.RootEntity">RootEntity</a></li>
 <li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
 </ul>
-<h3>Methods</h3>
+<h3>Static methods</h3>
 <dl>
 <dt id="olca.schema.UnitGroup.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>self, json: dict)</span>
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -9210,18 +10402,37 @@ units that are contained in this group.</dd>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_json(self, json: dict):
-    super(UnitGroup, self).from_json(json)
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = UnitGroup()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.UnitGroup.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(UnitGroup, self).read_json(json)
     val = json.get(&#39;defaultFlowProperty&#39;)
     if val is not None:
         self.default_flow_property = Ref()
-        self.default_flow_property.from_json(val)
+        self.default_flow_property.read_json(val)
     val = json.get(&#39;units&#39;)
     if val is not None:
         self.units = []
         for d in val:
             e = Unit()
-            e.from_json(d)
+            e.read_json(d)
             self.units.append(e)</code></pre>
 </details>
 </dd>
@@ -9267,6 +10478,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.Actor" href="#olca.schema.Actor">Actor</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.Actor.from_json" href="#olca.schema.Actor.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.Actor.read_json" href="#olca.schema.Actor.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.Actor.to_json" href="#olca.schema.Actor.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9274,6 +10486,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.AllocationFactor" href="#olca.schema.AllocationFactor">AllocationFactor</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.AllocationFactor.from_json" href="#olca.schema.AllocationFactor.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.AllocationFactor.read_json" href="#olca.schema.AllocationFactor.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.AllocationFactor.to_json" href="#olca.schema.AllocationFactor.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9291,6 +10504,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.CalculationSetup" href="#olca.schema.CalculationSetup">CalculationSetup</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.CalculationSetup.from_json" href="#olca.schema.CalculationSetup.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.CalculationSetup.read_json" href="#olca.schema.CalculationSetup.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.CalculationSetup.to_json" href="#olca.schema.CalculationSetup.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9308,6 +10522,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.CategorizedEntity" href="#olca.schema.CategorizedEntity">CategorizedEntity</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.CategorizedEntity.from_json" href="#olca.schema.CategorizedEntity.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.CategorizedEntity.read_json" href="#olca.schema.CategorizedEntity.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.CategorizedEntity.to_json" href="#olca.schema.CategorizedEntity.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9315,6 +10530,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.Category" href="#olca.schema.Category">Category</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.Category.from_json" href="#olca.schema.Category.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.Category.read_json" href="#olca.schema.Category.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.Category.to_json" href="#olca.schema.Category.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9322,6 +10538,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.DqIndicator" href="#olca.schema.DqIndicator">DqIndicator</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.DqIndicator.from_json" href="#olca.schema.DqIndicator.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.DqIndicator.read_json" href="#olca.schema.DqIndicator.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.DqIndicator.to_json" href="#olca.schema.DqIndicator.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9329,6 +10546,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.DqScore" href="#olca.schema.DqScore">DqScore</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.DqScore.from_json" href="#olca.schema.DqScore.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.DqScore.read_json" href="#olca.schema.DqScore.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.DqScore.to_json" href="#olca.schema.DqScore.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9336,6 +10554,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.DqSystem" href="#olca.schema.DqSystem">DqSystem</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.DqSystem.from_json" href="#olca.schema.DqSystem.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.DqSystem.read_json" href="#olca.schema.DqSystem.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.DqSystem.to_json" href="#olca.schema.DqSystem.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9343,6 +10562,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.Entity.from_json" href="#olca.schema.Entity.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.Entity.read_json" href="#olca.schema.Entity.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.Entity.to_json" href="#olca.schema.Entity.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9350,6 +10570,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.Exchange" href="#olca.schema.Exchange">Exchange</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.Exchange.from_json" href="#olca.schema.Exchange.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.Exchange.read_json" href="#olca.schema.Exchange.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.Exchange.to_json" href="#olca.schema.Exchange.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9357,6 +10578,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.Flow" href="#olca.schema.Flow">Flow</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.Flow.from_json" href="#olca.schema.Flow.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.Flow.read_json" href="#olca.schema.Flow.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.Flow.to_json" href="#olca.schema.Flow.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9364,6 +10586,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.FlowMap" href="#olca.schema.FlowMap">FlowMap</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.FlowMap.from_json" href="#olca.schema.FlowMap.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.FlowMap.read_json" href="#olca.schema.FlowMap.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.FlowMap.to_json" href="#olca.schema.FlowMap.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9371,6 +10594,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.FlowMapEntry" href="#olca.schema.FlowMapEntry">FlowMapEntry</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.FlowMapEntry.from_json" href="#olca.schema.FlowMapEntry.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.FlowMapEntry.read_json" href="#olca.schema.FlowMapEntry.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.FlowMapEntry.to_json" href="#olca.schema.FlowMapEntry.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9378,6 +10602,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.FlowMapRef" href="#olca.schema.FlowMapRef">FlowMapRef</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.FlowMapRef.from_json" href="#olca.schema.FlowMapRef.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.FlowMapRef.read_json" href="#olca.schema.FlowMapRef.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.FlowMapRef.to_json" href="#olca.schema.FlowMapRef.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9385,6 +10610,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.FlowProperty" href="#olca.schema.FlowProperty">FlowProperty</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.FlowProperty.from_json" href="#olca.schema.FlowProperty.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.FlowProperty.read_json" href="#olca.schema.FlowProperty.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.FlowProperty.to_json" href="#olca.schema.FlowProperty.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9392,6 +10618,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.FlowPropertyFactor" href="#olca.schema.FlowPropertyFactor">FlowPropertyFactor</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.FlowPropertyFactor.from_json" href="#olca.schema.FlowPropertyFactor.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.FlowPropertyFactor.read_json" href="#olca.schema.FlowPropertyFactor.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.FlowPropertyFactor.to_json" href="#olca.schema.FlowPropertyFactor.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9406,6 +10633,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.FlowRef" href="#olca.schema.FlowRef">FlowRef</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.FlowRef.from_json" href="#olca.schema.FlowRef.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.FlowRef.read_json" href="#olca.schema.FlowRef.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.FlowRef.to_json" href="#olca.schema.FlowRef.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9413,6 +10641,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.FlowResult" href="#olca.schema.FlowResult">FlowResult</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.FlowResult.from_json" href="#olca.schema.FlowResult.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.FlowResult.read_json" href="#olca.schema.FlowResult.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.FlowResult.to_json" href="#olca.schema.FlowResult.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9428,6 +10657,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.ImpactCategory" href="#olca.schema.ImpactCategory">ImpactCategory</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.ImpactCategory.from_json" href="#olca.schema.ImpactCategory.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.ImpactCategory.read_json" href="#olca.schema.ImpactCategory.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.ImpactCategory.to_json" href="#olca.schema.ImpactCategory.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9435,6 +10665,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.ImpactCategoryRef" href="#olca.schema.ImpactCategoryRef">ImpactCategoryRef</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.ImpactCategoryRef.from_json" href="#olca.schema.ImpactCategoryRef.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.ImpactCategoryRef.read_json" href="#olca.schema.ImpactCategoryRef.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.ImpactCategoryRef.to_json" href="#olca.schema.ImpactCategoryRef.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9442,6 +10673,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.ImpactFactor" href="#olca.schema.ImpactFactor">ImpactFactor</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.ImpactFactor.from_json" href="#olca.schema.ImpactFactor.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.ImpactFactor.read_json" href="#olca.schema.ImpactFactor.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.ImpactFactor.to_json" href="#olca.schema.ImpactFactor.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9449,6 +10681,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.ImpactMethod" href="#olca.schema.ImpactMethod">ImpactMethod</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.ImpactMethod.from_json" href="#olca.schema.ImpactMethod.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.ImpactMethod.read_json" href="#olca.schema.ImpactMethod.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.ImpactMethod.to_json" href="#olca.schema.ImpactMethod.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9456,6 +10689,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.ImpactResult" href="#olca.schema.ImpactResult">ImpactResult</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.ImpactResult.from_json" href="#olca.schema.ImpactResult.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.ImpactResult.read_json" href="#olca.schema.ImpactResult.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.ImpactResult.to_json" href="#olca.schema.ImpactResult.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9463,6 +10697,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.Location" href="#olca.schema.Location">Location</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.Location.from_json" href="#olca.schema.Location.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.Location.read_json" href="#olca.schema.Location.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.Location.to_json" href="#olca.schema.Location.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9490,6 +10725,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.Parameter" href="#olca.schema.Parameter">Parameter</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.Parameter.from_json" href="#olca.schema.Parameter.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.Parameter.read_json" href="#olca.schema.Parameter.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.Parameter.to_json" href="#olca.schema.Parameter.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9497,6 +10733,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.ParameterRedef" href="#olca.schema.ParameterRedef">ParameterRedef</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.ParameterRedef.from_json" href="#olca.schema.ParameterRedef.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.ParameterRedef.read_json" href="#olca.schema.ParameterRedef.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.ParameterRedef.to_json" href="#olca.schema.ParameterRedef.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9512,6 +10749,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.Process" href="#olca.schema.Process">Process</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.Process.from_json" href="#olca.schema.Process.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.Process.read_json" href="#olca.schema.Process.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.Process.to_json" href="#olca.schema.Process.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9519,6 +10757,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.ProcessDocumentation" href="#olca.schema.ProcessDocumentation">ProcessDocumentation</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.ProcessDocumentation.from_json" href="#olca.schema.ProcessDocumentation.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.ProcessDocumentation.read_json" href="#olca.schema.ProcessDocumentation.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.ProcessDocumentation.to_json" href="#olca.schema.ProcessDocumentation.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9526,6 +10765,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.ProcessLink" href="#olca.schema.ProcessLink">ProcessLink</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.ProcessLink.from_json" href="#olca.schema.ProcessLink.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.ProcessLink.read_json" href="#olca.schema.ProcessLink.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.ProcessLink.to_json" href="#olca.schema.ProcessLink.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9533,6 +10773,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.ProcessRef" href="#olca.schema.ProcessRef">ProcessRef</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.ProcessRef.from_json" href="#olca.schema.ProcessRef.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.ProcessRef.read_json" href="#olca.schema.ProcessRef.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.ProcessRef.to_json" href="#olca.schema.ProcessRef.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9547,6 +10788,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.ProductSystem" href="#olca.schema.ProductSystem">ProductSystem</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.ProductSystem.from_json" href="#olca.schema.ProductSystem.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.ProductSystem.read_json" href="#olca.schema.ProductSystem.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.ProductSystem.to_json" href="#olca.schema.ProductSystem.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9554,6 +10796,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.Ref.from_json" href="#olca.schema.Ref.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.Ref.read_json" href="#olca.schema.Ref.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.Ref.to_json" href="#olca.schema.Ref.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9561,6 +10804,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.RootEntity" href="#olca.schema.RootEntity">RootEntity</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.RootEntity.from_json" href="#olca.schema.RootEntity.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.RootEntity.read_json" href="#olca.schema.RootEntity.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.RootEntity.to_json" href="#olca.schema.RootEntity.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9568,6 +10812,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.SimpleResult" href="#olca.schema.SimpleResult">SimpleResult</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.SimpleResult.from_json" href="#olca.schema.SimpleResult.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.SimpleResult.read_json" href="#olca.schema.SimpleResult.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.SimpleResult.to_json" href="#olca.schema.SimpleResult.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9575,6 +10820,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.SocialIndicator" href="#olca.schema.SocialIndicator">SocialIndicator</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.SocialIndicator.from_json" href="#olca.schema.SocialIndicator.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.SocialIndicator.read_json" href="#olca.schema.SocialIndicator.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.SocialIndicator.to_json" href="#olca.schema.SocialIndicator.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9582,6 +10828,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.Source" href="#olca.schema.Source">Source</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.Source.from_json" href="#olca.schema.Source.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.Source.read_json" href="#olca.schema.Source.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.Source.to_json" href="#olca.schema.Source.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9589,6 +10836,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.Uncertainty" href="#olca.schema.Uncertainty">Uncertainty</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.Uncertainty.from_json" href="#olca.schema.Uncertainty.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.Uncertainty.read_json" href="#olca.schema.Uncertainty.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.Uncertainty.to_json" href="#olca.schema.Uncertainty.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9605,6 +10853,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.Unit" href="#olca.schema.Unit">Unit</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.Unit.from_json" href="#olca.schema.Unit.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.Unit.read_json" href="#olca.schema.Unit.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.Unit.to_json" href="#olca.schema.Unit.to_json">to_json</a></code></li>
 </ul>
 </li>
@@ -9612,6 +10861,7 @@ units that are contained in this group.</dd>
 <h4><code><a title="olca.schema.UnitGroup" href="#olca.schema.UnitGroup">UnitGroup</a></code></h4>
 <ul class="">
 <li><code><a title="olca.schema.UnitGroup.from_json" href="#olca.schema.UnitGroup.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.UnitGroup.read_json" href="#olca.schema.UnitGroup.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.UnitGroup.to_json" href="#olca.schema.UnitGroup.to_json">to_json</a></code></li>
 </ul>
 </li>
