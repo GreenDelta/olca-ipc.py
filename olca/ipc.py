@@ -641,6 +641,78 @@ class Client(object):
         })
         return [ContributionItem.from_json(it) for it in raw]
 
+    def lcia_location_contributions(self, result: schema.SimpleResult,
+                                    impact: schema.Ref) -> List[ContributionItem]:
+        """
+        Get the contributions to the result of the given impact category by
+        locations.
+
+        Parameters
+        ----------
+        result: olca.schema.SimpleResult
+            The result.
+
+        impact: olca.schema.Ref
+            The (reference to the) LCIA category.
+
+
+        Example
+        -------
+        ```python
+        # ...
+        result = client.calculate(setup)
+        # select the first LCIA result
+        impact_result = client.lcia(result)[0]
+        # get the flow contributions to the LCIA category of that result
+        cons = client.lcia_location_contributions(
+            result, impact_result.impact_category)
+        # ...
+        client.dispose(result)
+        ```
+        """
+
+        raw = self.__post('get/impacts/contributions/locations', {
+            'resultId': result.id,
+            'impactCategory': impact.to_json(),
+        })
+        return [ContributionItem.from_json(it) for it in raw]
+
+    def lcia_process_contributions(self, result: schema.SimpleResult,
+                                   impact: schema.Ref) -> List[ContributionItem]:
+        """
+        Get the contributions to the result of the given impact category by
+        processes.
+
+        Parameters
+        ----------
+        result: olca.schema.SimpleResult
+            The result.
+
+        impact: olca.schema.Ref
+            The (reference to the) LCIA category.
+
+
+        Example
+        -------
+        ```python
+        # ...
+        result = client.calculate(setup)
+        # select the first LCIA result
+        impact_result = client.lcia(result)[0]
+        # get the flow contributions to the LCIA category of that result
+        cons = client.lcia_process_contributions(
+            result, impact_result.impact_category)
+        # ...
+        client.dispose(result)
+        ```
+        """
+
+        raw = self.__post('get/impacts/contributions/processes', {
+            'resultId': result.id,
+            'impactCategory': impact.to_json(),
+        })
+        return [ContributionItem.from_json(it) for it in raw]
+
     def __post(self, method: str, params):
         req = {
             'jsonrpc': '2.0',
