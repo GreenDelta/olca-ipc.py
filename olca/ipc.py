@@ -582,6 +582,65 @@ class Client(object):
         })
         return [ProductResult.from_json(it) for it in raw]
 
+    def lcia(self, result: schema.SimpleResult) -> List[schema.ImpactResult]:
+        """
+        Returns the LCIA result of the given result.
+
+        Parameters
+        ----------
+        result: olca.schema.SimpleResult
+            The result from which the LCIA result should be returned.
+
+        Example
+        -------
+        ```python
+        # ...
+        result = client.calculate(setup)
+        lcia = client.lcia(result)
+        # ...
+        client.dispose(result)
+        ```
+        """
+
+        raw = self.__post('get/impacts', {
+            'resultId': result.id,
+        })
+        return [schema.ImpactResult.from_json(it) for it in raw]
+
+    def lcia_flow_contributions(self, result: schema.SimpleResult,
+                                impact: schema.Ref) -> List[ContributionItem]:
+        """
+        Get the flow contributions to the result of the given impact category.
+
+        Parameters
+        ----------
+        result: olca.schema.SimpleResult
+            The result.
+
+        impact: olca.schema.Ref
+            The (reference to the) LCIA category.
+
+        Example
+        -------
+        ```python
+        # ...
+        result = client.calculate(setup)
+        # select the first LCIA result
+        impact_result = client.lcia(result)[0]
+        # get the flow contributions to the LCIA category of that result
+        cons = client.lcia_flow_contributions(
+            result, impact_result.impact_category)
+        # ...
+        client.dispose(result)
+        ```
+        """
+
+        raw = self.__post('get/impacts/contributions/flows', {
+            'resultId': result.id,
+            'impactCategory': impact.to_json(),
+        })
+        return [ContributionItem.from_json(it) for it in raw]
+
     def __post(self, method: str, params):
         req = {
             'jsonrpc': '2.0',
