@@ -41,19 +41,85 @@ class ProductResult(schema.Entity):
 
     def read_json(self, json: dict):
         super(ProductResult, self).read_json(json)
-        val = dict.get('process')
+        val = json.get('process')
         if val is not None:
-            self.process = Ref.from_json(val)
-        val = dict.get('product')
+            self.process = schema.Ref.from_json(val)
+        val = json.get('product')
         if val is not None:
-            self.product = Ref.from_json(val)
-        val = dict.get('amount')
+            self.product = schema.Ref.from_json(val)
+        val = json.get('amount')
         if val is not None:
             self.amount = val
 
     @staticmethod
     def from_json(json: dict):
         instance = ProductResult()
+        instance.read_json(json)
+        return instance
+
+
+class ContributionItem(schema.Entity):
+    """
+    The ContributionItem type is not an olca-schema type but a return
+    type of the IPC protocol. However, it implements the same interface
+    as the olca.schema.Entity type.
+
+    Attributes:
+    -----------
+    item: olca.schema.Ref
+
+    amount: float
+
+    share: float
+
+    rest: bool
+
+    unit: str
+
+    """
+
+    def __init__(self):
+        item: Optional[Ref] = None
+        amount: Optional[float] = None
+        share: Optional[float] = None
+        rest: Optional[bool] = None
+        unit: Optional[str] = None
+
+    def to_json(self) -> dict:
+        json: dict = super(ContributionItem, self).to_json()
+        if self.item is not None:
+            json['item'] = self.item.to_json()
+        if self.amount is not None:
+            json['amount'] = self.amount
+        if self.share is not None:
+            json['share'] = self.share
+        if self.rest is not None:
+            json['rest'] = self.rest
+        if self.unit is not None:
+            json['unit'] = self.unit
+        return json
+
+    def read_json(self, json: dict):
+        super(ContributionItem, self).read_json(json)
+        val = json.get('item')
+        if val is not None:
+            self.item = schema.Ref.from_json(val)
+        val = json.get('amount')
+        if val is not None:
+            self.amount = val
+        val = json.get('share')
+        if val is not None:
+            self.share = val
+        val = json.get('rest')
+        if val is not None:
+            self.rest = val
+        val = json.get('unit')
+        if val is not None:
+            self.unit = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ContributionItem()
         instance.read_json(json)
         return instance
 
@@ -435,27 +501,44 @@ class Client(object):
         return [schema.FlowResult.from_json(it) for it in raw]
 
     def lci_location_contributions(self, result: schema.SimpleResult,
-                                   flow: schema.Ref) -> dict:
+                                   flow: schema.Ref) -> List[ContributionItem]:
         """
-        Get the contributions of the locations
+        Get the contributions of the result of the given flow by location.
 
         Parameters
         ----------
-        TODO: describe the parameters
+        result: olca.schema.SimpleResult
+            The result which needs to be at least a contribution result.
+
+        flow: olca.schema.Ref
+            The (reference of the) flow for which the calculations should be
+            calculated.
+
+        Returns
+        -------
+        List[ContributionItem]
+            The contributions to the flow result by location.
 
         Example
         -------
-        ```
-        # TODO: give an example
-        result = client.get_location_contributions(...)
+        ```python
+        # ...
+        result = client.calculate(setup)
+        # select the first output of the LCI result
+        output = client.lci_outputs(result)[0]
+        # calculate the location contributions of the flow of that output
+        cons = client.lci_location_contributions(result, output.flow)
+        # ...
+        client.dispose(result)
         ```
         """
-
-        return self.__post('get/inventory/contributions/locations', {
-            # TODO: set parameters
+        raw = self.__post('get/inventory/contributions/locations', {
+            'resultId': result.id,
+            'flow': flow.to_json(),
         })
+        return [ContributionItem.from_json(it) for it in raw]
 
-    def lci_total_requirements(self, result: schema.SimpleResult) -> list:
+    def lci_total_requirements(self, result: schema.SimpleResult) -> List[ProductResult]:
         """
         Returns the total requirements of the given result.
 
@@ -494,9 +577,10 @@ class Client(object):
         ```
         """
 
-        return self.__post('get/inventory/total_requirements', {
+        raw = self.__post('get/inventory/total_requirements', {
             'resultId': result.id
         })
+        return [ProductResult.from_json(it) for it in raw]
 
     def __post(self, method: str, params):
         req = {
