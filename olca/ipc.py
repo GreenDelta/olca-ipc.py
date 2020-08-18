@@ -3,9 +3,59 @@ import os
 import requests
 import olca.schema as schema
 
-from typing import Generator, List, Type, TypeVar
+from typing import Iterator, List, Type, TypeVar
 
 T = TypeVar('T')
+
+
+class ProductResult(schema.Entity):
+    """
+    The ProductResult type is not an olca-schema type but a return
+    type of the IPC protocol. However, it implements the same interface
+    as the olca.schema.Entity type.
+
+    Attributes:
+    -----------
+    process: olca.schema.Ref
+
+    product: olca.schema.Ref
+
+    amount: float
+
+    """
+
+    def __init__(self):
+        process: Optional[Ref] = None
+        product: Optional[Ref] = None
+        amount: Optional[float] = None
+
+    def to_json(self) -> dict:
+        json: dict = super(ProductResult, self).to_json()
+        if self.process is not None:
+            json['process'] = self.process.to_json()
+        if self.product is not None:
+            json['product'] = self.product.to_json()
+        if self.amount is not None:
+            json['amount'] = self.amount
+        return json
+
+    def read_json(self, json: dict):
+        super(ProductResult, self).read_json(json)
+        val = dict.get('process')
+        if val is not None:
+            self.process = Ref.from_json(val)
+        val = dict.get('product')
+        if val is not None:
+            self.product = Ref.from_json(val)
+        val = dict.get('amount')
+        if val is not None:
+            self.amount = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ProductResult()
+        instance.read_json(json)
+        return instance
 
 
 class Client(object):
@@ -185,12 +235,19 @@ class Client(object):
         resp = self.__post('next/simulation', simulator.to_json())
         return schema.SimpleResult.from_json(resp)
 
-    def get_descriptors(self, model_type) -> Generator[schema.Ref, None, None]:
+    def get_descriptors(self, model_type: Type[T]) -> Iterator[schema.Ref]:
         """
-        Get the list of descriptors of the entities with the given
-        model type.
-        :param model_type: A class, e.g. olca.Flow
-        :return: A list of descriptors.
+        Get the list of descriptors of the entities with the given model type.
+
+        Parameters
+        ----------
+        model_type: T
+            A class, e.g. olca.Flow
+
+        Returns
+        -------
+        Iterator[schema.Ref]
+            An iterator with Ref objects.
         """
         params = {'@type': model_type.__name__}
         result = self.__post('get/descriptors', params)
@@ -202,7 +259,7 @@ class Client(object):
         result = self.__post('get/model', params)
         return model_type.from_json(result)
 
-    def get_all(self, model_type: Type[T]) -> Generator[T, None, None]:
+    def get_all(self, model_type: Type[T]) -> Iterator[T]:
         """
         Returns a generator for all instances of the given type from the
         database. Note that this will first fetch the complete JSON list from
@@ -314,7 +371,7 @@ class Client(object):
             product input or waste output the `preferred_type` indicates which
             type of process (LCI results or unit processes) should be preferred
             during the linking.
-        
+
         Returns
         -------
 
