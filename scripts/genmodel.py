@@ -196,6 +196,10 @@ def print_enum(e: model.EnumType):
     # enum items
     for item in e.items:
         t += "    %s = '%s'\n" % (item.name, item.name)
+        if item.doc is not None:
+            t += '    """\n'
+            t += format_doc(item.doc, 4)
+            t += '\n    """\n\n'
     t += '\n'
     print(t)
 

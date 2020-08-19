@@ -154,10 +154,11 @@ class EnumType:
             e.doc = ''
         if 'items' in yaml_model:
             for item in yaml_model['items']:
-                e.items.append(EnumItem(item['name']))
+                e.items.append(EnumItem(item['name'], item.get('doc')))
         return e
 
 
 class EnumItem:
-    def __init__(self, name=''):
+    def __init__(self, name='',doc=None):
         self.name: str = name
+        self.doc: Optional[str] = doc

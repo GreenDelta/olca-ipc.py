@@ -34,7 +34,6 @@
 from enum import Enum
 from typing import List, Optional
 
-
 class AllocationType(Enum):
     &#34;&#34;&#34;
     An enumeration type for allocation methods. This type is used to define the
@@ -56,10 +55,44 @@ class CalculationType(Enum):
     &#34;&#34;&#34;
 
     SIMPLE_CALCULATION = &#39;SIMPLE_CALCULATION&#39;
+    &#34;&#34;&#34;
+    Calculates the total results for elementary flows, LCIA indicators, costs,
+    etc. of a product system.
+    &#34;&#34;&#34;
+
     CONTRIBUTION_ANALYSIS = &#39;CONTRIBUTION_ANALYSIS&#39;
+    &#34;&#34;&#34;
+    Includes the total result vectors of a simple calculation but calculates
+    also the direct contributions of each process (or better process product in
+    case of multi-output processes) to these total results.
+    &#34;&#34;&#34;
+
     UPSTREAM_ANALYSIS = &#39;UPSTREAM_ANALYSIS&#39;
+    &#34;&#34;&#34;
+    Extends the contribution analysis by providing also the upstream results of
+    each process (process product) in the product system. The upstream result
+    contains the direct contributions of the respective process but also the
+    result of the supply chain up to this process scaled to the demand of the
+    process in the product system.
+    &#34;&#34;&#34;
+
     REGIONALIZED_CALCULATION = &#39;REGIONALIZED_CALCULATION&#39;
+    &#34;&#34;&#34;
+    A regionalized calculation is a contribution analysis but with an LCIA
+    method that supports regionalized characterization factors (via region
+    specific parameters in formulas) and a product system with processes that
+    have geographic information assigned (point, line, or polygon shapes).
+    &#34;&#34;&#34;
+
     MONTE_CARLO_SIMULATION = &#39;MONTE_CARLO_SIMULATION&#39;
+    &#34;&#34;&#34;
+    A Monte Carlo simulation generates for each run, of a given number of a
+    given number of iterations, random values according to the uncertainty
+    distributions of process inputs/outputs, parameters, characterization
+    factors, etc. of a product system and then performs a simple calculation
+    for that specific run.
+    &#34;&#34;&#34;
+
 
 
 class FlowPropertyType(Enum):
@@ -130,6 +163,7 @@ class UncertaintyType(Enum):
     UNIFORM_DISTRIBUTION = &#39;UNIFORM_DISTRIBUTION&#39;
 
 
+
 class Entity(object):
     &#34;&#34;&#34;
     The most generic type of the openLCA data model.
@@ -173,6 +207,10 @@ class AllocationFactor(Entity):
     value: float
         The value of the allocation factor.
 
+    formula: str
+        An optional formula from which the value of the allocation factor is
+        calculated.
+
     allocated_exchange: Exchange
         An input product or elementary flow exchange which is allocated by this
         factor. This is only valid for causal allocation where allocation
@@ -185,6 +223,7 @@ class AllocationFactor(Entity):
         self.product_exchange: Optional[Exchange] = None
         self.allocation_type: Optional[AllocationType] = None
         self.value: Optional[float] = None
+        self.formula: Optional[str] = None
         self.allocated_exchange: Optional[Exchange] = None
 
     def to_json(self) -&gt; dict:
@@ -195,6 +234,8 @@ class AllocationFactor(Entity):
             json[&#39;allocationType&#39;] = self.allocation_type.value
         if self.value is not None:
             json[&#39;value&#39;] = self.value
+        if self.formula is not None:
+            json[&#39;formula&#39;] = self.formula
         if self.allocated_exchange is not None:
             json[&#39;allocatedExchange&#39;] = self.allocated_exchange.to_json()
         return json
@@ -211,6 +252,9 @@ class AllocationFactor(Entity):
         val = json.get(&#39;value&#39;)
         if val is not None:
             self.value = val
+        val = json.get(&#39;formula&#39;)
+        if val is not None:
+            self.formula = val
         val = json.get(&#39;allocatedExchange&#39;)
         if val is not None:
             self.allocated_exchange = Exchange()
@@ -2185,9 +2229,81 @@ class Category(CategorizedEntity):
         return instance
 
 
+class Currency(CategorizedEntity):
+    &#34;&#34;&#34;
+
+
+    Attributes
+    ----------
+    code: str
+
+    conversion_factor: float
+
+    reference_currency: Ref
+
+    &#34;&#34;&#34;
+
+    def __init__(self):
+        super(Currency, self).__init__()
+        self.code: Optional[str] = None
+        self.conversion_factor: Optional[float] = None
+        self.reference_currency: Optional[Ref] = None
+
+    def to_json(self) -&gt; dict:
+        json: dict = super(Currency, self).to_json()
+        if self.code is not None:
+            json[&#39;code&#39;] = self.code
+        if self.conversion_factor is not None:
+            json[&#39;conversionFactor&#39;] = self.conversion_factor
+        if self.reference_currency is not None:
+            json[&#39;referenceCurrency&#39;] = self.reference_currency.to_json()
+        return json
+
+    def read_json(self, json: dict):
+        super(Currency, self).read_json(json)
+        val = json.get(&#39;code&#39;)
+        if val is not None:
+            self.code = val
+        val = json.get(&#39;conversionFactor&#39;)
+        if val is not None:
+            self.conversion_factor = val
+        val = json.get(&#39;referenceCurrency&#39;)
+        if val is not None:
+            self.reference_currency = Ref()
+            self.reference_currency.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Currency()
+        instance.read_json(json)
+        return instance
+
+
 class DqSystem(CategorizedEntity):
     &#34;&#34;&#34;
-    A data quality system.
+    A data quality system (DQS) in openLCA describes a pedigree matrix of $m$
+    data quality indicators (DQIs) and $n$ data quality scores (DQ scores).
+    Such a system can then be used to assess the data quality of processes and
+    exchanges by tagging them with an instance of the system $D$ where $D$ is a
+    $m * n$ matrix with an entry $d_{ij}$ containing the value of the data
+    quality score $j$ for indicator $i$. As each indicator in $D$ can only have
+    a single score value, $D$ can be stored in a vector $d$ where $d_i$
+    contains the data quality score for indicator $i$. The possible values of
+    the data quality scores are defined as a linear order $1 \dots n$. In
+    openLCA, the data quality entry $d$ of a process or exchange is stored as a
+    string like `(3;2;4;n.a.;2)` which means the data quality score for the
+    first indicator is `3`, for the second `2` etc. A specific value is `n.a.`
+    which stands for _not applicable_. In calculations, these data quality
+    entries can be aggregated in different ways. For example, the data quality
+    entry of a flow $f$ with a contribution of `0.5 kg` and a data quality
+    entry of `(3;2;4;n.a.;2)` in a process $p$ and a contribution of `1.5 kg`
+    and a data quality entry of `(2;3;1;n.a.;5)` in a process $q$ could be
+    aggregated to `(2;3;2;n.a.;4)` by applying an weighted average and
+    rounding. Finally, custom labels like `A, B, C, ...` or `Very good, Good,
+    Fair, ...` for the DQ scores can be assigned by the user. These labels are
+    then displayed instead of `1, 2, 3 ...` in the user interface or result
+    exports. However, internally the numeric values are used in the data model
+    and calculations.
 
     Attributes
     ----------
@@ -3233,6 +3349,9 @@ def from_json(json: dict):
 <dd>The type of allocation.</dd>
 <dt><strong><code>value</code></strong> :&ensp;<code>float</code></dt>
 <dd>The value of the allocation factor.</dd>
+<dt><strong><code>formula</code></strong> :&ensp;<code>str</code></dt>
+<dd>An optional formula from which the value of the allocation factor is
+calculated.</dd>
 <dt><strong><code>allocated_exchange</code></strong> :&ensp;<code><a title="olca.schema.Exchange" href="#olca.schema.Exchange">Exchange</a></code></dt>
 <dd>An input product or elementary flow exchange which is allocated by this
 factor. This is only valid for causal allocation where allocation
@@ -3257,6 +3376,10 @@ factors can be assigned to single exchanges.</dd>
     value: float
         The value of the allocation factor.
 
+    formula: str
+        An optional formula from which the value of the allocation factor is
+        calculated.
+
     allocated_exchange: Exchange
         An input product or elementary flow exchange which is allocated by this
         factor. This is only valid for causal allocation where allocation
@@ -3269,6 +3392,7 @@ factors can be assigned to single exchanges.</dd>
         self.product_exchange: Optional[Exchange] = None
         self.allocation_type: Optional[AllocationType] = None
         self.value: Optional[float] = None
+        self.formula: Optional[str] = None
         self.allocated_exchange: Optional[Exchange] = None
 
     def to_json(self) -&gt; dict:
@@ -3279,6 +3403,8 @@ factors can be assigned to single exchanges.</dd>
             json[&#39;allocationType&#39;] = self.allocation_type.value
         if self.value is not None:
             json[&#39;value&#39;] = self.value
+        if self.formula is not None:
+            json[&#39;formula&#39;] = self.formula
         if self.allocated_exchange is not None:
             json[&#39;allocatedExchange&#39;] = self.allocated_exchange.to_json()
         return json
@@ -3295,6 +3421,9 @@ factors can be assigned to single exchanges.</dd>
         val = json.get(&#39;value&#39;)
         if val is not None:
             self.value = val
+        val = json.get(&#39;formula&#39;)
+        if val is not None:
+            self.formula = val
         val = json.get(&#39;allocatedExchange&#39;)
         if val is not None:
             self.allocated_exchange = Exchange()
@@ -3352,6 +3481,9 @@ def from_json(json: dict):
     val = json.get(&#39;value&#39;)
     if val is not None:
         self.value = val
+    val = json.get(&#39;formula&#39;)
+    if val is not None:
+        self.formula = val
     val = json.get(&#39;allocatedExchange&#39;)
     if val is not None:
         self.allocated_exchange = Exchange()
@@ -3375,6 +3507,8 @@ def from_json(json: dict):
         json[&#39;allocationType&#39;] = self.allocation_type.value
     if self.value is not None:
         json[&#39;value&#39;] = self.value
+    if self.formula is not None:
+        json[&#39;formula&#39;] = self.formula
     if self.allocated_exchange is not None:
         json[&#39;allocatedExchange&#39;] = self.allocated_exchange.to_json()
     return json</code></pre>
@@ -3729,10 +3863,43 @@ def from_json(json: dict):
     &#34;&#34;&#34;
 
     SIMPLE_CALCULATION = &#39;SIMPLE_CALCULATION&#39;
+    &#34;&#34;&#34;
+    Calculates the total results for elementary flows, LCIA indicators, costs,
+    etc. of a product system.
+    &#34;&#34;&#34;
+
     CONTRIBUTION_ANALYSIS = &#39;CONTRIBUTION_ANALYSIS&#39;
+    &#34;&#34;&#34;
+    Includes the total result vectors of a simple calculation but calculates
+    also the direct contributions of each process (or better process product in
+    case of multi-output processes) to these total results.
+    &#34;&#34;&#34;
+
     UPSTREAM_ANALYSIS = &#39;UPSTREAM_ANALYSIS&#39;
+    &#34;&#34;&#34;
+    Extends the contribution analysis by providing also the upstream results of
+    each process (process product) in the product system. The upstream result
+    contains the direct contributions of the respective process but also the
+    result of the supply chain up to this process scaled to the demand of the
+    process in the product system.
+    &#34;&#34;&#34;
+
     REGIONALIZED_CALCULATION = &#39;REGIONALIZED_CALCULATION&#39;
-    MONTE_CARLO_SIMULATION = &#39;MONTE_CARLO_SIMULATION&#39;</code></pre>
+    &#34;&#34;&#34;
+    A regionalized calculation is a contribution analysis but with an LCIA
+    method that supports regionalized characterization factors (via region
+    specific parameters in formulas) and a product system with processes that
+    have geographic information assigned (point, line, or polygon shapes).
+    &#34;&#34;&#34;
+
+    MONTE_CARLO_SIMULATION = &#39;MONTE_CARLO_SIMULATION&#39;
+    &#34;&#34;&#34;
+    A Monte Carlo simulation generates for each run, of a given number of a
+    given number of iterations, random values according to the uncertainty
+    distributions of process inputs/outputs, parameters, characterization
+    factors, etc. of a product system and then performs a simple calculation
+    for that specific run.
+    &#34;&#34;&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -3742,23 +3909,37 @@ def from_json(json: dict):
 <dl>
 <dt id="olca.schema.CalculationType.CONTRIBUTION_ANALYSIS"><code class="name">var <span class="ident">CONTRIBUTION_ANALYSIS</span></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Includes the total result vectors of a simple calculation but calculates
+also the direct contributions of each process (or better process product in
+case of multi-output processes) to these total results.</p></div>
 </dd>
 <dt id="olca.schema.CalculationType.MONTE_CARLO_SIMULATION"><code class="name">var <span class="ident">MONTE_CARLO_SIMULATION</span></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>A Monte Carlo simulation generates for each run, of a given number of a
+given number of iterations, random values according to the uncertainty
+distributions of process inputs/outputs, parameters, characterization
+factors, etc. of a product system and then performs a simple calculation
+for that specific run.</p></div>
 </dd>
 <dt id="olca.schema.CalculationType.REGIONALIZED_CALCULATION"><code class="name">var <span class="ident">REGIONALIZED_CALCULATION</span></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>A regionalized calculation is a contribution analysis but with an LCIA
+method that supports regionalized characterization factors (via region
+specific parameters in formulas) and a product system with processes that
+have geographic information assigned (point, line, or polygon shapes).</p></div>
 </dd>
 <dt id="olca.schema.CalculationType.SIMPLE_CALCULATION"><code class="name">var <span class="ident">SIMPLE_CALCULATION</span></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Calculates the total results for elementary flows, LCIA indicators, costs,
+etc. of a product system.</p></div>
 </dd>
 <dt id="olca.schema.CalculationType.UPSTREAM_ANALYSIS"><code class="name">var <span class="ident">UPSTREAM_ANALYSIS</span></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Extends the contribution analysis by providing also the upstream results of
+each process (process product) in the product system. The upstream result
+contains the direct contributions of the respective process but also the
+result of the supply chain up to this process scaled to the demand of the
+process in the product system.</p></div>
 </dd>
 </dl>
 </dd>
@@ -3819,6 +4000,7 @@ def from_json(json: dict):
 <ul class="hlist">
 <li><a title="olca.schema.Actor" href="#olca.schema.Actor">Actor</a></li>
 <li><a title="olca.schema.Category" href="#olca.schema.Category">Category</a></li>
+<li><a title="olca.schema.Currency" href="#olca.schema.Currency">Currency</a></li>
 <li><a title="olca.schema.DqSystem" href="#olca.schema.DqSystem">DqSystem</a></li>
 <li><a title="olca.schema.Flow" href="#olca.schema.Flow">Flow</a></li>
 <li><a title="olca.schema.FlowProperty" href="#olca.schema.FlowProperty">FlowProperty</a></li>
@@ -3994,6 +4176,144 @@ def from_json(json: dict):
     json: dict = super(Category, self).to_json()
     if self.model_type is not None:
         json[&#39;modelType&#39;] = self.model_type.value
+    return json</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="olca.schema.Currency"><code class="flex name class">
+<span>class <span class="ident">Currency</span></span>
+</code></dt>
+<dd>
+<div class="desc"><h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>code</code></strong> :&ensp;<code>str</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>conversion_factor</code></strong> :&ensp;<code>float</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>reference_currency</code></strong> :&ensp;<code><a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a></code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Currency(CategorizedEntity):
+    &#34;&#34;&#34;
+
+
+    Attributes
+    ----------
+    code: str
+
+    conversion_factor: float
+
+    reference_currency: Ref
+
+    &#34;&#34;&#34;
+
+    def __init__(self):
+        super(Currency, self).__init__()
+        self.code: Optional[str] = None
+        self.conversion_factor: Optional[float] = None
+        self.reference_currency: Optional[Ref] = None
+
+    def to_json(self) -&gt; dict:
+        json: dict = super(Currency, self).to_json()
+        if self.code is not None:
+            json[&#39;code&#39;] = self.code
+        if self.conversion_factor is not None:
+            json[&#39;conversionFactor&#39;] = self.conversion_factor
+        if self.reference_currency is not None:
+            json[&#39;referenceCurrency&#39;] = self.reference_currency.to_json()
+        return json
+
+    def read_json(self, json: dict):
+        super(Currency, self).read_json(json)
+        val = json.get(&#39;code&#39;)
+        if val is not None:
+            self.code = val
+        val = json.get(&#39;conversionFactor&#39;)
+        if val is not None:
+            self.conversion_factor = val
+        val = json.get(&#39;referenceCurrency&#39;)
+        if val is not None:
+            self.reference_currency = Ref()
+            self.reference_currency.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Currency()
+        instance.read_json(json)
+        return instance</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="olca.schema.CategorizedEntity" href="#olca.schema.CategorizedEntity">CategorizedEntity</a></li>
+<li><a title="olca.schema.RootEntity" href="#olca.schema.RootEntity">RootEntity</a></li>
+<li><a title="olca.schema.Entity" href="#olca.schema.Entity">Entity</a></li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="olca.schema.Currency.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_json(json: dict):
+    instance = Currency()
+    instance.read_json(json)
+    return instance</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="olca.schema.Currency.read_json"><code class="name flex">
+<span>def <span class="ident">read_json</span></span>(<span>self, json: dict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_json(self, json: dict):
+    super(Currency, self).read_json(json)
+    val = json.get(&#39;code&#39;)
+    if val is not None:
+        self.code = val
+    val = json.get(&#39;conversionFactor&#39;)
+    if val is not None:
+        self.conversion_factor = val
+    val = json.get(&#39;referenceCurrency&#39;)
+    if val is not None:
+        self.reference_currency = Ref()
+        self.reference_currency.read_json(val)</code></pre>
+</details>
+</dd>
+<dt id="olca.schema.Currency.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self) ‑> dict</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self) -&gt; dict:
+    json: dict = super(Currency, self).to_json()
+    if self.code is not None:
+        json[&#39;code&#39;] = self.code
+    if self.conversion_factor is not None:
+        json[&#39;conversionFactor&#39;] = self.conversion_factor
+    if self.reference_currency is not None:
+        json[&#39;referenceCurrency&#39;] = self.reference_currency.to_json()
     return json</code></pre>
 </details>
 </dd>
@@ -4302,7 +4622,29 @@ def from_json(json: dict):
 <span>class <span class="ident">DqSystem</span></span>
 </code></dt>
 <dd>
-<div class="desc"><p>A data quality system.</p>
+<div class="desc"><p>A data quality system (DQS) in openLCA describes a pedigree matrix of $m$
+data quality indicators (DQIs) and $n$ data quality scores (DQ scores).
+Such a system can then be used to assess the data quality of processes and
+exchanges by tagging them with an instance of the system $D$ where $D$ is a
+$m * n$ matrix with an entry $d_{ij}$ containing the value of the data
+quality score $j$ for indicator $i$. As each indicator in $D$ can only have
+a single score value, $D$ can be stored in a vector $d$ where $d_i$
+contains the data quality score for indicator $i$. The possible values of
+the data quality scores are defined as a linear order $1 \dots n$. In
+openLCA, the data quality entry $d$ of a process or exchange is stored as a
+string like <code>(3;2;4;n.a.;2)</code> which means the data quality score for the
+first indicator is <code>3</code>, for the second <code>2</code> etc. A specific value is <code>n.a.</code>
+which stands for <em>not applicable</em>. In calculations, these data quality
+entries can be aggregated in different ways. For example, the data quality
+entry of a flow $f$ with a contribution of <code>0.5 kg</code> and a data quality
+entry of <code>(3;2;4;n.a.;2)</code> in a process $p$ and a contribution of <code>1.5 kg</code>
+and a data quality entry of <code>(2;3;1;n.a.;5)</code> in a process $q$ could be
+aggregated to <code>(2;3;2;n.a.;4)</code> by applying an weighted average and
+rounding. Finally, custom labels like <code>A, B, C, &hellip;</code> or <code>Very good, Good,
+Fair, ...</code> for the DQ scores can be assigned by the user. These labels are
+then displayed instead of <code>1, 2, 3 &hellip;</code> in the user interface or result
+exports. However, internally the numeric values are used in the data model
+and calculations.</p>
 <h2 id="attributes">Attributes</h2>
 <dl>
 <dt><strong><code>has_uncertainties</code></strong> :&ensp;<code>bool</code></dt>
@@ -4318,7 +4660,29 @@ def from_json(json: dict):
 </summary>
 <pre><code class="python">class DqSystem(CategorizedEntity):
     &#34;&#34;&#34;
-    A data quality system.
+    A data quality system (DQS) in openLCA describes a pedigree matrix of $m$
+    data quality indicators (DQIs) and $n$ data quality scores (DQ scores).
+    Such a system can then be used to assess the data quality of processes and
+    exchanges by tagging them with an instance of the system $D$ where $D$ is a
+    $m * n$ matrix with an entry $d_{ij}$ containing the value of the data
+    quality score $j$ for indicator $i$. As each indicator in $D$ can only have
+    a single score value, $D$ can be stored in a vector $d$ where $d_i$
+    contains the data quality score for indicator $i$. The possible values of
+    the data quality scores are defined as a linear order $1 \dots n$. In
+    openLCA, the data quality entry $d$ of a process or exchange is stored as a
+    string like `(3;2;4;n.a.;2)` which means the data quality score for the
+    first indicator is `3`, for the second `2` etc. A specific value is `n.a.`
+    which stands for _not applicable_. In calculations, these data quality
+    entries can be aggregated in different ways. For example, the data quality
+    entry of a flow $f$ with a contribution of `0.5 kg` and a data quality
+    entry of `(3;2;4;n.a.;2)` in a process $p$ and a contribution of `1.5 kg`
+    and a data quality entry of `(2;3;1;n.a.;5)` in a process $q$ could be
+    aggregated to `(2;3;2;n.a.;4)` by applying an weighted average and
+    rounding. Finally, custom labels like `A, B, C, ...` or `Very good, Good,
+    Fair, ...` for the DQ scores can be assigned by the user. These labels are
+    then displayed instead of `1, 2, 3 ...` in the user interface or result
+    exports. However, internally the numeric values are used in the data model
+    and calculations.
 
     Attributes
     ----------
@@ -10532,6 +10896,14 @@ def from_json(json: dict):
 <li><code><a title="olca.schema.Category.from_json" href="#olca.schema.Category.from_json">from_json</a></code></li>
 <li><code><a title="olca.schema.Category.read_json" href="#olca.schema.Category.read_json">read_json</a></code></li>
 <li><code><a title="olca.schema.Category.to_json" href="#olca.schema.Category.to_json">to_json</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="olca.schema.Currency" href="#olca.schema.Currency">Currency</a></code></h4>
+<ul class="">
+<li><code><a title="olca.schema.Currency.from_json" href="#olca.schema.Currency.from_json">from_json</a></code></li>
+<li><code><a title="olca.schema.Currency.read_json" href="#olca.schema.Currency.read_json">read_json</a></code></li>
+<li><code><a title="olca.schema.Currency.to_json" href="#olca.schema.Currency.to_json">to_json</a></code></li>
 </ul>
 </li>
 <li>

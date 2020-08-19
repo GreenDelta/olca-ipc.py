@@ -27,10 +27,43 @@ class CalculationType(Enum):
     """
 
     SIMPLE_CALCULATION = 'SIMPLE_CALCULATION'
+    """
+    Calculates the total results for elementary flows, LCIA indicators, costs,
+    etc. of a product system.
+    """
+
     CONTRIBUTION_ANALYSIS = 'CONTRIBUTION_ANALYSIS'
+    """
+    Includes the total result vectors of a simple calculation but calculates
+    also the direct contributions of each process (or better process product in
+    case of multi-output processes) to these total results.
+    """
+
     UPSTREAM_ANALYSIS = 'UPSTREAM_ANALYSIS'
+    """
+    Extends the contribution analysis by providing also the upstream results of
+    each process (process product) in the product system. The upstream result
+    contains the direct contributions of the respective process but also the
+    result of the supply chain up to this process scaled to the demand of the
+    process in the product system.
+    """
+
     REGIONALIZED_CALCULATION = 'REGIONALIZED_CALCULATION'
+    """
+    A regionalized calculation is a contribution analysis but with an LCIA
+    method that supports regionalized characterization factors (via region
+    specific parameters in formulas) and a product system with processes that
+    have geographic information assigned (point, line, or polygon shapes).
+    """
+
     MONTE_CARLO_SIMULATION = 'MONTE_CARLO_SIMULATION'
+    """
+    A Monte Carlo simulation generates for each run, of a given number of a
+    given number of iterations, random values according to the uncertainty
+    distributions of process inputs/outputs, parameters, characterization
+    factors, etc. of a product system and then performs a simple calculation
+    for that specific run.
+    """
 
 
 class FlowPropertyType(Enum):
@@ -144,6 +177,10 @@ class AllocationFactor(Entity):
     value: float
         The value of the allocation factor.
 
+    formula: str
+        An optional formula from which the value of the allocation factor is
+        calculated.
+
     allocated_exchange: Exchange
         An input product or elementary flow exchange which is allocated by this
         factor. This is only valid for causal allocation where allocation
@@ -156,6 +193,7 @@ class AllocationFactor(Entity):
         self.product_exchange: Optional[Exchange] = None
         self.allocation_type: Optional[AllocationType] = None
         self.value: Optional[float] = None
+        self.formula: Optional[str] = None
         self.allocated_exchange: Optional[Exchange] = None
 
     def to_json(self) -> dict:
@@ -166,6 +204,8 @@ class AllocationFactor(Entity):
             json['allocationType'] = self.allocation_type.value
         if self.value is not None:
             json['value'] = self.value
+        if self.formula is not None:
+            json['formula'] = self.formula
         if self.allocated_exchange is not None:
             json['allocatedExchange'] = self.allocated_exchange.to_json()
         return json
@@ -182,6 +222,9 @@ class AllocationFactor(Entity):
         val = json.get('value')
         if val is not None:
             self.value = val
+        val = json.get('formula')
+        if val is not None:
+            self.formula = val
         val = json.get('allocatedExchange')
         if val is not None:
             self.allocated_exchange = Exchange()
@@ -2156,9 +2199,81 @@ class Category(CategorizedEntity):
         return instance
 
 
+class Currency(CategorizedEntity):
+    """
+
+
+    Attributes
+    ----------
+    code: str
+
+    conversion_factor: float
+
+    reference_currency: Ref
+
+    """
+
+    def __init__(self):
+        super(Currency, self).__init__()
+        self.code: Optional[str] = None
+        self.conversion_factor: Optional[float] = None
+        self.reference_currency: Optional[Ref] = None
+
+    def to_json(self) -> dict:
+        json: dict = super(Currency, self).to_json()
+        if self.code is not None:
+            json['code'] = self.code
+        if self.conversion_factor is not None:
+            json['conversionFactor'] = self.conversion_factor
+        if self.reference_currency is not None:
+            json['referenceCurrency'] = self.reference_currency.to_json()
+        return json
+
+    def read_json(self, json: dict):
+        super(Currency, self).read_json(json)
+        val = json.get('code')
+        if val is not None:
+            self.code = val
+        val = json.get('conversionFactor')
+        if val is not None:
+            self.conversion_factor = val
+        val = json.get('referenceCurrency')
+        if val is not None:
+            self.reference_currency = Ref()
+            self.reference_currency.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Currency()
+        instance.read_json(json)
+        return instance
+
+
 class DqSystem(CategorizedEntity):
     """
-    A data quality system.
+    A data quality system (DQS) in openLCA describes a pedigree matrix of $m$
+    data quality indicators (DQIs) and $n$ data quality scores (DQ scores).
+    Such a system can then be used to assess the data quality of processes and
+    exchanges by tagging them with an instance of the system $D$ where $D$ is a
+    $m * n$ matrix with an entry $d_{ij}$ containing the value of the data
+    quality score $j$ for indicator $i$. As each indicator in $D$ can only have
+    a single score value, $D$ can be stored in a vector $d$ where $d_i$
+    contains the data quality score for indicator $i$. The possible values of
+    the data quality scores are defined as a linear order $1 \dots n$. In
+    openLCA, the data quality entry $d$ of a process or exchange is stored as a
+    string like `(3;2;4;n.a.;2)` which means the data quality score for the
+    first indicator is `3`, for the second `2` etc. A specific value is `n.a.`
+    which stands for _not applicable_. In calculations, these data quality
+    entries can be aggregated in different ways. For example, the data quality
+    entry of a flow $f$ with a contribution of `0.5 kg` and a data quality
+    entry of `(3;2;4;n.a.;2)` in a process $p$ and a contribution of `1.5 kg`
+    and a data quality entry of `(2;3;1;n.a.;5)` in a process $q$ could be
+    aggregated to `(2;3;2;n.a.;4)` by applying an weighted average and
+    rounding. Finally, custom labels like `A, B, C, ...` or `Very good, Good,
+    Fair, ...` for the DQ scores can be assigned by the user. These labels are
+    then displayed instead of `1, 2, 3 ...` in the user interface or result
+    exports. However, internally the numeric values are used in the data model
+    and calculations.
 
     Attributes
     ----------

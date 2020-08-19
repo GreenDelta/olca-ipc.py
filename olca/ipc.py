@@ -3,7 +3,8 @@ import os
 import requests
 import olca.schema as schema
 
-from typing import Iterator, List, Type, TypeVar
+from enum import Enum
+from typing import Iterator, List, Optional, Type, TypeVar
 
 T = TypeVar('T')
 
@@ -25,8 +26,9 @@ class ProductResult(schema.Entity):
     """
 
     def __init__(self):
-        process: Optional[Ref] = None
-        product: Optional[Ref] = None
+        super(ProductResult, self).__init__()
+        process: Optional[schema.Ref] = None
+        product: Optional[schema.Ref] = None
         amount: Optional[float] = None
 
     def to_json(self) -> dict:
@@ -79,7 +81,8 @@ class ContributionItem(schema.Entity):
     """
 
     def __init__(self):
-        item: Optional[Ref] = None
+        super(ContributionItem, self).__init__()
+        item: Optional[schema.Ref] = None
         amount: Optional[float] = None
         share: Optional[float] = None
         rest: Optional[bool] = None
@@ -331,6 +334,17 @@ class Client(object):
         database. Note that this will first fetch the complete JSON list from
         the IPC server and thus should be only used when a small amount of
         instances is expected as return value.
+
+        Example
+        -------
+        ```python
+        import olca
+
+        client = olca.Client()
+        currencies = client.get_all(olca.Currency)
+        for c in currencies:
+            print(c.name)
+        ```
         """
         params = {'@type': model_type.__name__}
         result = self.__post('get/models', params)
