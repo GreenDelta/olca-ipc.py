@@ -963,114 +963,55 @@ class ImpactResult(Entity):
         return instance
 
 
-class Parameter(Entity):
+class NwFactor(Entity):
     """
-
+    A normalization and weighting factor of a [NwSet] related to an impact
+    category. Depending on the purpose of the [NwSet] (normalization,
+    weighting, or both) the normalization and weighting factor can be present
+    or not.
 
     Attributes
     ----------
-    name: str
-        The name of the parameter.
+    impact_category: Ref
 
-    description: str
-        A description of the parameter.
+    normalisation_factor: float
 
-    parameter_scope: ParameterScope
-        The scope where the parameter is valid.
-
-    input_parameter: bool
-        Indicates whether the parameter is an input parameter (true) or a
-        dependent/calculated parameter (false). A parameter can have a formula
-        if it is not an input parameter.
-
-    value: float
-        The parameter value.
-
-    formula: str
-        A mathematical expression to calculate the parameter value.
-
-    external_source: str
-        A reference to an external source where the parameter is defined (e.g.
-        an Excel table, shapefile, etc.).
-
-    source_type: str
-        Indicates the type of the source if an external source is defined for
-        the parameter.
-
-    uncertainty: Uncertainty
-        An uncertainty distribution of the parameter value. This is only valid
-        for input parameters.
+    weighting_factor: float
 
     """
 
     def __init__(self):
-        super(Parameter, self).__init__()
-        self.name: Optional[str] = None
-        self.description: Optional[str] = None
-        self.parameter_scope: Optional[ParameterScope] = None
-        self.input_parameter: Optional[bool] = None
-        self.value: Optional[float] = None
-        self.formula: Optional[str] = None
-        self.external_source: Optional[str] = None
-        self.source_type: Optional[str] = None
-        self.uncertainty: Optional[Uncertainty] = None
+        super(NwFactor, self).__init__()
+        self.impact_category: Optional[Ref] = None
+        self.normalisation_factor: Optional[float] = None
+        self.weighting_factor: Optional[float] = None
 
     def to_json(self) -> dict:
-        json: dict = super(Parameter, self).to_json()
-        if self.name is not None:
-            json['name'] = self.name
-        if self.description is not None:
-            json['description'] = self.description
-        if self.parameter_scope is not None:
-            json['parameterScope'] = self.parameter_scope.value
-        if self.input_parameter is not None:
-            json['inputParameter'] = self.input_parameter
-        if self.value is not None:
-            json['value'] = self.value
-        if self.formula is not None:
-            json['formula'] = self.formula
-        if self.external_source is not None:
-            json['externalSource'] = self.external_source
-        if self.source_type is not None:
-            json['sourceType'] = self.source_type
-        if self.uncertainty is not None:
-            json['uncertainty'] = self.uncertainty.to_json()
+        json: dict = super(NwFactor, self).to_json()
+        if self.impact_category is not None:
+            json['impactCategory'] = self.impact_category.to_json()
+        if self.normalisation_factor is not None:
+            json['normalisationFactor'] = self.normalisation_factor
+        if self.weighting_factor is not None:
+            json['weightingFactor'] = self.weighting_factor
         return json
 
     def read_json(self, json: dict):
-        super(Parameter, self).read_json(json)
-        val = json.get('name')
+        super(NwFactor, self).read_json(json)
+        val = json.get('impactCategory')
         if val is not None:
-            self.name = val
-        val = json.get('description')
+            self.impact_category = Ref()
+            self.impact_category.read_json(val)
+        val = json.get('normalisationFactor')
         if val is not None:
-            self.description = val
-        val = json.get('parameterScope')
+            self.normalisation_factor = val
+        val = json.get('weightingFactor')
         if val is not None:
-            self.parameter_scope = ParameterScope(val)
-        val = json.get('inputParameter')
-        if val is not None:
-            self.input_parameter = val
-        val = json.get('value')
-        if val is not None:
-            self.value = val
-        val = json.get('formula')
-        if val is not None:
-            self.formula = val
-        val = json.get('externalSource')
-        if val is not None:
-            self.external_source = val
-        val = json.get('sourceType')
-        if val is not None:
-            self.source_type = val
-        val = json.get('uncertainty')
-        if val is not None:
-            self.uncertainty = Uncertainty()
-            self.uncertainty.read_json(val)
+            self.weighting_factor = val
 
     @staticmethod
     def from_json(json: dict):
-        instance = Parameter()
+        instance = NwFactor()
         instance.read_json(json)
         return instance
 
@@ -1714,16 +1655,33 @@ class CategorizedEntity(RootEntity):
     category: Ref
         The category of the entity.
 
+    tags: List[str]
+        A list of optional tags. A tag is just a string which should not
+        contain commas (and other special characters).
+
+    library: str
+        If this entity is part of a library, this field contains the identifier
+        of that library. The identifier is typically just the comination of the
+        library name and version.
+
     """
 
     def __init__(self):
         super(CategorizedEntity, self).__init__()
         self.category: Optional[Ref] = None
+        self.tags: Optional[List[str]] = None
+        self.library: Optional[str] = None
 
     def to_json(self) -> dict:
         json: dict = super(CategorizedEntity, self).to_json()
         if self.category is not None:
             json['category'] = self.category.to_json()
+        if self.tags is not None:
+            json['tags'] = []
+            for e in self.tags:
+                json['tags'].append(e)
+        if self.library is not None:
+            json['library'] = self.library
         return json
 
     def read_json(self, json: dict):
@@ -1732,6 +1690,15 @@ class CategorizedEntity(RootEntity):
         if val is not None:
             self.category = Ref()
             self.category.read_json(val)
+        val = json.get('tags')
+        if val is not None:
+            self.tags = []
+            for d in val:
+                e = d
+                self.tags.append(e)
+        val = json.get('library')
+        if val is not None:
+            self.library = val
 
     @staticmethod
     def from_json(json: dict):
@@ -1855,113 +1822,52 @@ class FlowMapEntry(RootEntity):
         return instance
 
 
-class ImpactCategory(RootEntity):
+class NwSet(RootEntity):
     """
-    A LCIA category of a LCIA method (see ImpactMethod) which groups a set of
-    characterisation factors
+    A normalization and weighting set.
 
     Attributes
     ----------
-    reference_unit_name: str
-        The name of the reference unit of the LCIA category (e.g. kg CO2-eq.).
+    weighted_score_unit: str
+        This is the optional unit of the (normalized and) weighted score when
+        this normalization and weighting set was applied on a LCIA result.
 
-    impact_factors: List[ImpactFactor]
-        The characterisation factors of the LCIA category.
+    factors: List[NwFactor]
+        The list of normalization and weighting factors of this set.
 
     """
 
     def __init__(self):
-        super(ImpactCategory, self).__init__()
-        self.reference_unit_name: Optional[str] = None
-        self.impact_factors: Optional[List[ImpactFactor]] = None
+        super(NwSet, self).__init__()
+        self.weighted_score_unit: Optional[str] = None
+        self.factors: Optional[List[NwFactor]] = None
 
     def to_json(self) -> dict:
-        json: dict = super(ImpactCategory, self).to_json()
-        if self.reference_unit_name is not None:
-            json['referenceUnitName'] = self.reference_unit_name
-        if self.impact_factors is not None:
-            json['impactFactors'] = []
-            for e in self.impact_factors:
-                json['impactFactors'].append(e.to_json())
+        json: dict = super(NwSet, self).to_json()
+        if self.weighted_score_unit is not None:
+            json['weightedScoreUnit'] = self.weighted_score_unit
+        if self.factors is not None:
+            json['factors'] = []
+            for e in self.factors:
+                json['factors'].append(e.to_json())
         return json
 
     def read_json(self, json: dict):
-        super(ImpactCategory, self).read_json(json)
-        val = json.get('referenceUnitName')
+        super(NwSet, self).read_json(json)
+        val = json.get('weightedScoreUnit')
         if val is not None:
-            self.reference_unit_name = val
-        val = json.get('impactFactors')
+            self.weighted_score_unit = val
+        val = json.get('factors')
         if val is not None:
-            self.impact_factors = []
+            self.factors = []
             for d in val:
-                e = ImpactFactor()
+                e = NwFactor()
                 e.read_json(d)
-                self.impact_factors.append(e)
+                self.factors.append(e)
 
     @staticmethod
     def from_json(json: dict):
-        instance = ImpactCategory()
-        instance.read_json(json)
-        return instance
-
-
-class Location(RootEntity):
-    """
-    A location like a country, state, city, etc.
-
-    Attributes
-    ----------
-    code: str
-        The code of the location (e.g. an ISO 2-letter country code).
-
-    latitude: float
-        The average latitude of the location.
-
-    longitude: float
-        The average longitude of the location.
-
-    kml: str
-        KML data of the location.
-
-    """
-
-    def __init__(self):
-        super(Location, self).__init__()
-        self.code: Optional[str] = None
-        self.latitude: Optional[float] = None
-        self.longitude: Optional[float] = None
-        self.kml: Optional[str] = None
-
-    def to_json(self) -> dict:
-        json: dict = super(Location, self).to_json()
-        if self.code is not None:
-            json['code'] = self.code
-        if self.latitude is not None:
-            json['latitude'] = self.latitude
-        if self.longitude is not None:
-            json['longitude'] = self.longitude
-        if self.kml is not None:
-            json['kml'] = self.kml
-        return json
-
-    def read_json(self, json: dict):
-        super(Location, self).read_json(json)
-        val = json.get('code')
-        if val is not None:
-            self.code = val
-        val = json.get('latitude')
-        if val is not None:
-            self.latitude = val
-        val = json.get('longitude')
-        if val is not None:
-            self.longitude = val
-        val = json.get('kml')
-        if val is not None:
-            self.kml = val
-
-    @staticmethod
-    def from_json(json: dict):
-        instance = Location()
+        instance = NwSet()
         instance.read_json(json)
         return instance
 
@@ -2509,6 +2415,55 @@ class FlowRef(Ref):
         return instance
 
 
+class ImpactCategory(CategorizedEntity):
+    """
+
+
+    Attributes
+    ----------
+    reference_unit_name: str
+        The name of the reference unit of the LCIA category (e.g. kg CO2-eq.).
+
+    impact_factors: List[ImpactFactor]
+        The characterisation factors of the LCIA category.
+
+    """
+
+    def __init__(self):
+        super(ImpactCategory, self).__init__()
+        self.reference_unit_name: Optional[str] = None
+        self.impact_factors: Optional[List[ImpactFactor]] = None
+
+    def to_json(self) -> dict:
+        json: dict = super(ImpactCategory, self).to_json()
+        if self.reference_unit_name is not None:
+            json['referenceUnitName'] = self.reference_unit_name
+        if self.impact_factors is not None:
+            json['impactFactors'] = []
+            for e in self.impact_factors:
+                json['impactFactors'].append(e.to_json())
+        return json
+
+    def read_json(self, json: dict):
+        super(ImpactCategory, self).read_json(json)
+        val = json.get('referenceUnitName')
+        if val is not None:
+            self.reference_unit_name = val
+        val = json.get('impactFactors')
+        if val is not None:
+            self.impact_factors = []
+            for d in val:
+                e = ImpactFactor()
+                e.read_json(d)
+                self.impact_factors.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ImpactCategory()
+        instance.read_json(json)
+        return instance
+
+
 class ImpactCategoryRef(Ref):
     """
     A reference to a [ImpactCategory] data set.
@@ -2595,6 +2550,148 @@ class ImpactMethod(CategorizedEntity):
     @staticmethod
     def from_json(json: dict):
         instance = ImpactMethod()
+        instance.read_json(json)
+        return instance
+
+
+class Location(CategorizedEntity):
+    """
+    A location like a country, state, city, etc.
+
+    Attributes
+    ----------
+    code: str
+        The code of the location (e.g. an ISO 2-letter country code).
+
+    latitude: float
+        The average latitude of the location.
+
+    longitude: float
+        The average longitude of the location.
+
+    geometry: dict
+        A GeoJSON object.
+
+    """
+
+    def __init__(self):
+        super(Location, self).__init__()
+        self.code: Optional[str] = None
+        self.latitude: Optional[float] = None
+        self.longitude: Optional[float] = None
+        self.geometry: Optional[dict] = None
+
+    def to_json(self) -> dict:
+        json: dict = super(Location, self).to_json()
+        if self.code is not None:
+            json['code'] = self.code
+        if self.latitude is not None:
+            json['latitude'] = self.latitude
+        if self.longitude is not None:
+            json['longitude'] = self.longitude
+        if self.geometry is not None:
+            json['geometry'] = self.geometry
+        return json
+
+    def read_json(self, json: dict):
+        super(Location, self).read_json(json)
+        val = json.get('code')
+        if val is not None:
+            self.code = val
+        val = json.get('latitude')
+        if val is not None:
+            self.latitude = val
+        val = json.get('longitude')
+        if val is not None:
+            self.longitude = val
+        val = json.get('geometry')
+        if val is not None:
+            self.geometry = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Location()
+        instance.read_json(json)
+        return instance
+
+
+class Parameter(CategorizedEntity):
+    """
+    In openLCA, parameters can be defined in different scopes: global, process,
+    or LCIA method. The parameter name can be used in formulas and, thus, need
+    to conform to a specific syntax. Within a scope the parameter name should
+    be unique (otherwise the evaluation is not deterministic). There are two
+    types of parameters in openLCA: input parameters and dependent parameters.
+    An input parameter can have an optional uncertainty distribution but not a
+    formula. A dependent parameter can (should) have a formula (where also
+    other parameters can be used) but no uncertainty distribution.
+
+    Attributes
+    ----------
+    parameter_scope: ParameterScope
+        The scope where the parameter is valid.
+
+    input_parameter: bool
+        Indicates whether the parameter is an input parameter (true) or a
+        dependent/calculated parameter (false). A parameter can have a formula
+        if it is not an input parameter.
+
+    value: float
+        The parameter value.
+
+    formula: str
+        A mathematical expression to calculate the parameter value.
+
+    uncertainty: Uncertainty
+        An uncertainty distribution of the parameter value. This is only valid
+        for input parameters.
+
+    """
+
+    def __init__(self):
+        super(Parameter, self).__init__()
+        self.parameter_scope: Optional[ParameterScope] = None
+        self.input_parameter: Optional[bool] = None
+        self.value: Optional[float] = None
+        self.formula: Optional[str] = None
+        self.uncertainty: Optional[Uncertainty] = None
+
+    def to_json(self) -> dict:
+        json: dict = super(Parameter, self).to_json()
+        if self.parameter_scope is not None:
+            json['parameterScope'] = self.parameter_scope.value
+        if self.input_parameter is not None:
+            json['inputParameter'] = self.input_parameter
+        if self.value is not None:
+            json['value'] = self.value
+        if self.formula is not None:
+            json['formula'] = self.formula
+        if self.uncertainty is not None:
+            json['uncertainty'] = self.uncertainty.to_json()
+        return json
+
+    def read_json(self, json: dict):
+        super(Parameter, self).read_json(json)
+        val = json.get('parameterScope')
+        if val is not None:
+            self.parameter_scope = ParameterScope(val)
+        val = json.get('inputParameter')
+        if val is not None:
+            self.input_parameter = val
+        val = json.get('value')
+        if val is not None:
+            self.value = val
+        val = json.get('formula')
+        if val is not None:
+            self.formula = val
+        val = json.get('uncertainty')
+        if val is not None:
+            self.uncertainty = Uncertainty()
+            self.uncertainty.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Parameter()
         instance.read_json(json)
         return instance
 
@@ -2896,6 +2993,49 @@ class ProductSystem(CategorizedEntity):
     @staticmethod
     def from_json(json: dict):
         instance = ProductSystem()
+        instance.read_json(json)
+        return instance
+
+
+class Project(CategorizedEntity):
+    """
+
+
+    Attributes
+    ----------
+    impact_method: Ref
+
+    nw_set: NwSet
+
+    """
+
+    def __init__(self):
+        super(Project, self).__init__()
+        self.impact_method: Optional[Ref] = None
+        self.nw_set: Optional[NwSet] = None
+
+    def to_json(self) -> dict:
+        json: dict = super(Project, self).to_json()
+        if self.impact_method is not None:
+            json['impactMethod'] = self.impact_method.to_json()
+        if self.nw_set is not None:
+            json['nwSet'] = self.nw_set.to_json()
+        return json
+
+    def read_json(self, json: dict):
+        super(Project, self).read_json(json)
+        val = json.get('impactMethod')
+        if val is not None:
+            self.impact_method = Ref()
+            self.impact_method.read_json(val)
+        val = json.get('nwSet')
+        if val is not None:
+            self.nw_set = NwSet()
+            self.nw_set.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = Project()
         instance.read_json(json)
         return instance
 

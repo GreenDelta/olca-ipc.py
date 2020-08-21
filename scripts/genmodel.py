@@ -53,6 +53,8 @@ def py_type(model_type: str) -> str:
         return 'str'
     if model_type == 'date':
         return 'str'
+    if model_type == 'GeoJSON':
+        return 'dict'
     if model_type.startswith('Ref['):
         return 'Ref'
     if model_type.startswith('List['):
@@ -106,7 +108,8 @@ def print_to_json(c: model.ClassType, m: model.Model):
         for prop in c.properties:
             attr = to_snake_case(prop.name)
             t += off + 'if self.%s is not None:\n' % attr
-            is_primitive = prop.field_type[0].islower()
+            is_primitive = prop.field_type[0].islower() or \
+                           prop.field_type == 'GeoJSON'
             is_enum = m.find_enum(prop.field_type) is not None
             is_list = prop.field_type.startswith('List[')
             if is_primitive:
@@ -148,7 +151,8 @@ def print_read_json(c: model.ClassType, m: model.Model):
         t += off + 'super(%s, self).read_json(json)\n' % c.name
         for prop in c.properties:
             attr = to_snake_case(prop.name)
-            is_primitive = prop.field_type[0].islower()
+            is_primitive = prop.field_type[0].islower() or \
+                           prop.field_type == 'GeoJSON'
             is_enum = m.find_enum(prop.field_type) is not None
             is_list = prop.field_type.startswith('List[')
             t += off + "val = json.get('%s')\n" % prop.name
