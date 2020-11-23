@@ -323,6 +323,44 @@ class Client(object):
         for r in result:
             yield schema.Ref.from_json(r)
 
+    def get_descriptor(self, model_type: Type[T], model_id: str) -> schema.Ref:
+        """
+        Get a descriptor of the model with the given ID.
+
+        Models like product systems can be very large but often we just need
+        a reference to a model (e.g. in a calculation setup). In this case
+        this method can be useful.
+
+        since: openLCA 2.0
+
+        Parameters
+        ----------
+        model_type: T
+            A model class, e.g. olca.ProductSystem
+        model_id: str
+            The ID of the model.
+
+        Returns
+        -------
+        schema.Ref
+            The descriptor of the model.
+
+        Example
+        -------
+        ```
+        import olca
+
+        client = olca.Client()
+        system_ref = client.get_descriptor(
+            olca.ProductSystem,
+            'f50ee15a-968f-4316-a160-4c7741284c62')
+        print(system_ref.to_json())
+        ```
+        """
+        params = {'@type': model_type.__name__, '@id': model_id}
+        result = self.__post('get/descriptor', params)
+        return schema.Ref.from_json(result)
+
     def get(self, model_type: Type[T], model_id: str) -> T:
         params = {'@type': model_type.__name__, '@id': model_id}
         result = self.__post('get/model', params)

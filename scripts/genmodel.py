@@ -147,6 +147,7 @@ def print_read_json(c: model.ClassType, m: model.Model):
     off = '        '
     if len(c.properties) == 0:
         t += off + "self.id = json.get('@id')\n"
+        t += off + "self.olca_type = json.get('@type')\n"
     else:
         t += off + 'super(%s, self).read_json(json)\n' % c.name
         for prop in c.properties:

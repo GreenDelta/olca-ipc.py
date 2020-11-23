@@ -154,6 +154,7 @@ class Entity(object):
 
     def read_json(self, json: dict):
         self.id = json.get('@id')
+        self.olca_type = json.get('@type')
 
     @staticmethod
     def from_json(json: dict):
