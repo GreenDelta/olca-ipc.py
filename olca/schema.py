@@ -90,36 +90,74 @@ class ModelType(Enum):
     An enumeration of the root entity types.
     """
 
-    PROJECT = 'PROJECT'
-    IMPACT_METHOD = 'IMPACT_METHOD'
-    IMPACT_CATEGORY = 'IMPACT_CATEGORY'
-    PRODUCT_SYSTEM = 'PRODUCT_SYSTEM'
-    PROCESS = 'PROCESS'
+    ACTOR = 'ACTOR'
+    CATEGORY = 'CATEGORY'
+    CURRENCY = 'CURRENCY'
+    DQ_SYSTEM = 'DQ_SYSTEM'
     FLOW = 'FLOW'
     FLOW_PROPERTY = 'FLOW_PROPERTY'
-    UNIT_GROUP = 'UNIT_GROUP'
-    UNIT = 'UNIT'
-    ACTOR = 'ACTOR'
-    SOURCE = 'SOURCE'
-    CATEGORY = 'CATEGORY'
+    IMPACT_CATEGORY = 'IMPACT_CATEGORY'
+    IMPACT_METHOD = 'IMPACT_METHOD'
     LOCATION = 'LOCATION'
     NW_SET = 'NW_SET'
+    PARAMETER = 'PARAMETER'
+    PROCESS = 'PROCESS'
+    PRODUCT_SYSTEM = 'PRODUCT_SYSTEM'
+    PROJECT = 'PROJECT'
     SOCIAL_INDICATOR = 'SOCIAL_INDICATOR'
+    SOURCE = 'SOURCE'
+    UNIT = 'UNIT'
+    UNIT_GROUP = 'UNIT_GROUP'
 
 
 class ParameterScope(Enum):
     """
-    The possible scopes of parameters.
+    The possible scopes of parameters. Parameters can be defined globally, in
+    processes, or impact categories. They can be redefined in calculation
+    setups on the project and product system level, but the initial definition
+    is always only global, in a process, or an LCIA category.
     """
 
     PROCESS_SCOPE = 'PROCESS_SCOPE'
-    LCIA_METHOD_SCOPE = 'LCIA_METHOD_SCOPE'
+    """
+    Indicates that the evaluation scope of a parameter is the process where it
+    is defined.
+    """
+
+    IMPACT_SCOPE = 'IMPACT_SCOPE'
+    """
+    Indicates that the evaluation scope of a parameter is the impact category
+    where it is defined.
+    """
+
     GLOBAL_SCOPE = 'GLOBAL_SCOPE'
+    """
+    Indicates that the evaluation scope of a parameter is the global scope.
+    """
 
 
 class ProcessType(Enum):
     LCI_RESULT = 'LCI_RESULT'
     UNIT_PROCESS = 'UNIT_PROCESS'
+
+
+class RiskLevel(Enum):
+    """
+
+    """
+
+    NO_OPPORTUNITY = 'NO_OPPORTUNITY'
+    HIGH_OPPORTUNITY = 'HIGH_OPPORTUNITY'
+    MEDIUM_OPPORTUNITY = 'MEDIUM_OPPORTUNITY'
+    LOW_OPPORTUNITY = 'LOW_OPPORTUNITY'
+    NO_RISK = 'NO_RISK'
+    VERY_LOW_RISK = 'VERY_LOW_RISK'
+    LOW_RISK = 'LOW_RISK'
+    MEDIUM_RISK = 'MEDIUM_RISK'
+    HIGH_RISK = 'HIGH_RISK'
+    VERY_HIGH_RISK = 'VERY_HIGH_RISK'
+    NO_DATA = 'NO_DATA'
+    NOT_APPLICABLE = 'NOT_APPLICABLE'
 
 
 class UncertaintyType(Enum):
@@ -169,11 +207,13 @@ class AllocationFactor(Entity):
 
     Attributes
     ----------
-    product_exchange: Exchange
-        The output product.
-
     allocation_type: AllocationType
         The type of allocation.
+
+    product: FlowRef
+        The output product (or waste input) to which this allocation factor is
+        related. The must be an exchange with this product output (or waste
+        input) in this process.
 
     value: float
         The value of the allocation factor.
@@ -182,54 +222,54 @@ class AllocationFactor(Entity):
         An optional formula from which the value of the allocation factor is
         calculated.
 
-    allocated_exchange: Exchange
-        An input product or elementary flow exchange which is allocated by this
-        factor. This is only valid for causal allocation where allocation
-        factors can be assigned to single exchanges.
+    exchange: ExchangeRef
+        A product input, waste output, or elementary flow exchange which is
+        allocated by this factor. This is only valid for causal allocation
+        where allocation factors can be assigned to single exchanges.
 
     """
 
     def __init__(self):
         super(AllocationFactor, self).__init__()
-        self.product_exchange: Optional[Exchange] = None
         self.allocation_type: Optional[AllocationType] = None
+        self.product: Optional[FlowRef] = None
         self.value: Optional[float] = None
         self.formula: Optional[str] = None
-        self.allocated_exchange: Optional[Exchange] = None
+        self.exchange: Optional[ExchangeRef] = None
 
     def to_json(self) -> dict:
         json: dict = super(AllocationFactor, self).to_json()
-        if self.product_exchange is not None:
-            json['productExchange'] = self.product_exchange.to_json()
         if self.allocation_type is not None:
             json['allocationType'] = self.allocation_type.value
+        if self.product is not None:
+            json['product'] = self.product.to_json()
         if self.value is not None:
             json['value'] = self.value
         if self.formula is not None:
             json['formula'] = self.formula
-        if self.allocated_exchange is not None:
-            json['allocatedExchange'] = self.allocated_exchange.to_json()
+        if self.exchange is not None:
+            json['exchange'] = self.exchange.to_json()
         return json
 
     def read_json(self, json: dict):
         super(AllocationFactor, self).read_json(json)
-        val = json.get('productExchange')
-        if val is not None:
-            self.product_exchange = Exchange()
-            self.product_exchange.read_json(val)
         val = json.get('allocationType')
         if val is not None:
             self.allocation_type = AllocationType(val)
+        val = json.get('product')
+        if val is not None:
+            self.product = FlowRef()
+            self.product.read_json(val)
         val = json.get('value')
         if val is not None:
             self.value = val
         val = json.get('formula')
         if val is not None:
             self.formula = val
-        val = json.get('allocatedExchange')
+        val = json.get('exchange')
         if val is not None:
-            self.allocated_exchange = Exchange()
-            self.allocated_exchange.read_json(val)
+            self.exchange = ExchangeRef()
+            self.exchange.read_json(val)
 
     @staticmethod
     def from_json(json: dict):
@@ -366,9 +406,9 @@ class CalculationSetup(Entity):
         return instance
 
 
-class DqIndicator(Entity):
+class DQIndicator(Entity):
     """
-    An indicator of a data quality system ([DqSystem]).
+    An indicator of a data quality system ([DQSystem]).
 
     Attributes
     ----------
@@ -376,18 +416,18 @@ class DqIndicator(Entity):
 
     position: int
 
-    scores: List[DqScore]
+    scores: List[DQScore]
 
     """
 
     def __init__(self):
-        super(DqIndicator, self).__init__()
+        super(DQIndicator, self).__init__()
         self.name: Optional[str] = None
         self.position: Optional[int] = None
-        self.scores: Optional[List[DqScore]] = None
+        self.scores: Optional[List[DQScore]] = None
 
     def to_json(self) -> dict:
-        json: dict = super(DqIndicator, self).to_json()
+        json: dict = super(DQIndicator, self).to_json()
         if self.name is not None:
             json['name'] = self.name
         if self.position is not None:
@@ -399,7 +439,7 @@ class DqIndicator(Entity):
         return json
 
     def read_json(self, json: dict):
-        super(DqIndicator, self).read_json(json)
+        super(DQIndicator, self).read_json(json)
         val = json.get('name')
         if val is not None:
             self.name = val
@@ -410,21 +450,21 @@ class DqIndicator(Entity):
         if val is not None:
             self.scores = []
             for d in val:
-                e = DqScore()
+                e = DQScore()
                 e.read_json(d)
                 self.scores.append(e)
 
     @staticmethod
     def from_json(json: dict):
-        instance = DqIndicator()
+        instance = DQIndicator()
         instance.read_json(json)
         return instance
 
 
-class DqScore(Entity):
+class DQScore(Entity):
     """
-    An score value of an indicator ([DqIndicator]) in a data quality system
-    ([DqSystem]).
+    An score value of an indicator ([DQIndicator]) in a data quality system
+    ([DQSystem]).
 
     Attributes
     ----------
@@ -439,14 +479,14 @@ class DqScore(Entity):
     """
 
     def __init__(self):
-        super(DqScore, self).__init__()
+        super(DQScore, self).__init__()
         self.position: Optional[int] = None
         self.label: Optional[str] = None
         self.description: Optional[str] = None
         self.uncertainty: Optional[float] = None
 
     def to_json(self) -> dict:
-        json: dict = super(DqScore, self).to_json()
+        json: dict = super(DQScore, self).to_json()
         if self.position is not None:
             json['position'] = self.position
         if self.label is not None:
@@ -458,7 +498,7 @@ class DqScore(Entity):
         return json
 
     def read_json(self, json: dict):
-        super(DqScore, self).read_json(json)
+        super(DQScore, self).read_json(json)
         val = json.get('position')
         if val is not None:
             self.position = val
@@ -474,7 +514,7 @@ class DqScore(Entity):
 
     @staticmethod
     def from_json(json: dict):
-        instance = DqScore()
+        instance = DQScore()
         instance.read_json(json)
         return instance
 
@@ -489,14 +529,23 @@ class Exchange(Entity):
 
     Attributes
     ----------
+    avoided_product: bool
+        Indicates whether this exchange is an avoided product.
+
+    cost_formula: str
+        A formula for calculating the costs of this exchange.
+
+    cost_value: float
+        The costs of this exchange.
+
+    currency: Ref
+        The currency in which the costs of this exchange are given.
+
     internal_id: int
         The process internal ID of the exchange. This is used to identify
         exchanges unambiguously within a process (e.g. when linking exchanges
         in a product system where multiple exchanges with the same flow are
         allowed). The value should be >= 1.
-
-    avoided_product: bool
-        Indicates whether this exchange is an avoided product.
 
     flow: FlowRef
         The reference to the flow of the exchange.
@@ -542,8 +591,11 @@ class Exchange(Entity):
 
     def __init__(self):
         super(Exchange, self).__init__()
-        self.internal_id: Optional[int] = None
         self.avoided_product: Optional[bool] = None
+        self.cost_formula: Optional[str] = None
+        self.cost_value: Optional[float] = None
+        self.currency: Optional[Ref] = None
+        self.internal_id: Optional[int] = None
         self.flow: Optional[FlowRef] = None
         self.flow_property: Optional[Ref] = None
         self.input: Optional[bool] = None
@@ -559,10 +611,16 @@ class Exchange(Entity):
 
     def to_json(self) -> dict:
         json: dict = super(Exchange, self).to_json()
-        if self.internal_id is not None:
-            json['internalId'] = self.internal_id
         if self.avoided_product is not None:
             json['avoidedProduct'] = self.avoided_product
+        if self.cost_formula is not None:
+            json['costFormula'] = self.cost_formula
+        if self.cost_value is not None:
+            json['costValue'] = self.cost_value
+        if self.currency is not None:
+            json['currency'] = self.currency.to_json()
+        if self.internal_id is not None:
+            json['internalId'] = self.internal_id
         if self.flow is not None:
             json['flow'] = self.flow.to_json()
         if self.flow_property is not None:
@@ -591,12 +649,22 @@ class Exchange(Entity):
 
     def read_json(self, json: dict):
         super(Exchange, self).read_json(json)
-        val = json.get('internalId')
-        if val is not None:
-            self.internal_id = val
         val = json.get('avoidedProduct')
         if val is not None:
             self.avoided_product = val
+        val = json.get('costFormula')
+        if val is not None:
+            self.cost_formula = val
+        val = json.get('costValue')
+        if val is not None:
+            self.cost_value = val
+        val = json.get('currency')
+        if val is not None:
+            self.currency = Ref()
+            self.currency.read_json(val)
+        val = json.get('internalId')
+        if val is not None:
+            self.internal_id = val
         val = json.get('flow')
         if val is not None:
             self.flow = FlowRef()
@@ -642,6 +710,42 @@ class Exchange(Entity):
     @staticmethod
     def from_json(json: dict):
         instance = Exchange()
+        instance.read_json(json)
+        return instance
+
+
+class ExchangeRef(Entity):
+    """
+    An instance of this class describes a reference to an exchange in a
+    process. When we reference such an exchange we only need the information to
+    indentify that exchange unambiguously in a process.
+
+    Attributes
+    ----------
+    internal_id: int
+        The internal ID of the exchange.
+
+    """
+
+    def __init__(self):
+        super(ExchangeRef, self).__init__()
+        self.internal_id: Optional[int] = None
+
+    def to_json(self) -> dict:
+        json: dict = super(ExchangeRef, self).to_json()
+        if self.internal_id is not None:
+            json['internalId'] = self.internal_id
+        return json
+
+    def read_json(self, json: dict):
+        super(ExchangeRef, self).read_json(json)
+        val = json.get('internalId')
+        if val is not None:
+            self.internal_id = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ExchangeRef()
         instance.read_json(json)
         return instance
 
@@ -845,6 +949,10 @@ class ImpactFactor(Entity):
     flow: FlowRef
         The [Flow] of the impact assessment factor.
 
+    location: Ref
+        In case of a regionalized impact category, this field can contain the
+        location for which this factor is valid.
+
     flow_property: Ref
         The quantity of the flow to which the LCIA factor is related (e.g.
         Mass).
@@ -866,6 +974,7 @@ class ImpactFactor(Entity):
     def __init__(self):
         super(ImpactFactor, self).__init__()
         self.flow: Optional[FlowRef] = None
+        self.location: Optional[Ref] = None
         self.flow_property: Optional[Ref] = None
         self.unit: Optional[Ref] = None
         self.value: Optional[float] = None
@@ -876,6 +985,8 @@ class ImpactFactor(Entity):
         json: dict = super(ImpactFactor, self).to_json()
         if self.flow is not None:
             json['flow'] = self.flow.to_json()
+        if self.location is not None:
+            json['location'] = self.location.to_json()
         if self.flow_property is not None:
             json['flowProperty'] = self.flow_property.to_json()
         if self.unit is not None:
@@ -894,6 +1005,10 @@ class ImpactFactor(Entity):
         if val is not None:
             self.flow = FlowRef()
             self.flow.read_json(val)
+        val = json.get('location')
+        if val is not None:
+            self.location = Ref()
+            self.location.read_json(val)
         val = json.get('flowProperty')
         if val is not None:
             self.flow_property = Ref()
@@ -973,7 +1088,7 @@ class NwFactor(Entity):
 
     Attributes
     ----------
-    impact_category: Ref
+    impact_category: ImpactCategoryRef
 
     normalisation_factor: float
 
@@ -983,7 +1098,7 @@ class NwFactor(Entity):
 
     def __init__(self):
         super(NwFactor, self).__init__()
-        self.impact_category: Optional[Ref] = None
+        self.impact_category: Optional[ImpactCategoryRef] = None
         self.normalisation_factor: Optional[float] = None
         self.weighting_factor: Optional[float] = None
 
@@ -1001,7 +1116,7 @@ class NwFactor(Entity):
         super(NwFactor, self).read_json(json)
         val = json.get('impactCategory')
         if val is not None:
-            self.impact_category = Ref()
+            self.impact_category = ImpactCategoryRef()
             self.impact_category.read_json(val)
         val = json.get('normalisationFactor')
         if val is not None:
@@ -1023,51 +1138,144 @@ class ParameterRedef(Entity):
 
     Attributes
     ----------
-    name: str
-        The parameter name.
-
-    value: float
-        The (new) value of the parameter.
-
     context: Ref
         The context of the paramater (a process or LCIA method). If no context
         is provided it is assumed that this is a redefinition of a global
         parameter.
 
+    description: str
+        A description of this parameter redefinition.
+
+    name: str
+        The name of the redefined parameter. Note that parameter names are used
+        in formulas so they need to follow specific syntax rules. A
+        redefinition replaces a bound parameter in a specific context and thus
+        has to exactly match the respective name.
+
+    uncertainty: Uncertainty
+        An uncertainty distribution for the redefined parameter value.
+
+    value: float
+        The value of the redefined parameter.
+
     """
 
     def __init__(self):
         super(ParameterRedef, self).__init__()
-        self.name: Optional[str] = None
-        self.value: Optional[float] = None
         self.context: Optional[Ref] = None
+        self.description: Optional[str] = None
+        self.name: Optional[str] = None
+        self.uncertainty: Optional[Uncertainty] = None
+        self.value: Optional[float] = None
 
     def to_json(self) -> dict:
         json: dict = super(ParameterRedef, self).to_json()
-        if self.name is not None:
-            json['name'] = self.name
-        if self.value is not None:
-            json['value'] = self.value
         if self.context is not None:
             json['context'] = self.context.to_json()
+        if self.description is not None:
+            json['description'] = self.description
+        if self.name is not None:
+            json['name'] = self.name
+        if self.uncertainty is not None:
+            json['uncertainty'] = self.uncertainty.to_json()
+        if self.value is not None:
+            json['value'] = self.value
         return json
 
     def read_json(self, json: dict):
         super(ParameterRedef, self).read_json(json)
-        val = json.get('name')
-        if val is not None:
-            self.name = val
-        val = json.get('value')
-        if val is not None:
-            self.value = val
         val = json.get('context')
         if val is not None:
             self.context = Ref()
             self.context.read_json(val)
+        val = json.get('description')
+        if val is not None:
+            self.description = val
+        val = json.get('name')
+        if val is not None:
+            self.name = val
+        val = json.get('uncertainty')
+        if val is not None:
+            self.uncertainty = Uncertainty()
+            self.uncertainty.read_json(val)
+        val = json.get('value')
+        if val is not None:
+            self.value = val
 
     @staticmethod
     def from_json(json: dict):
         instance = ParameterRedef()
+        instance.read_json(json)
+        return instance
+
+
+class ParameterRedefSet(Entity):
+    """
+    An instance of this class is just a set of parameter redefinitions attached
+    to a product system. It can have a name and a description. One of the
+    parameter sets can be defined as the baseline of the product system. In the
+    calculation the baseline set is then taken by default.
+
+    Attributes
+    ----------
+    name: str
+        The name of the parameter set.
+
+    description: str
+        A description of the parameter set.
+
+    is_baseline: bool
+        Indicates if this set of parameter redefinitions is the baseline for a
+        product system.
+
+    parameters: List[ParameterRedef]
+        The parameter redefinitions of this redefinition set.
+
+    """
+
+    def __init__(self):
+        super(ParameterRedefSet, self).__init__()
+        self.name: Optional[str] = None
+        self.description: Optional[str] = None
+        self.is_baseline: Optional[bool] = None
+        self.parameters: Optional[List[ParameterRedef]] = None
+
+    def to_json(self) -> dict:
+        json: dict = super(ParameterRedefSet, self).to_json()
+        if self.name is not None:
+            json['name'] = self.name
+        if self.description is not None:
+            json['description'] = self.description
+        if self.is_baseline is not None:
+            json['isBaseline'] = self.is_baseline
+        if self.parameters is not None:
+            json['parameters'] = []
+            for e in self.parameters:
+                json['parameters'].append(e.to_json())
+        return json
+
+    def read_json(self, json: dict):
+        super(ParameterRedefSet, self).read_json(json)
+        val = json.get('name')
+        if val is not None:
+            self.name = val
+        val = json.get('description')
+        if val is not None:
+            self.description = val
+        val = json.get('isBaseline')
+        if val is not None:
+            self.is_baseline = val
+        val = json.get('parameters')
+        if val is not None:
+            self.parameters = []
+            for d in val:
+                e = ParameterRedef()
+                e.read_json(d)
+                self.parameters.append(e)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = ParameterRedefSet()
         instance.read_json(json)
         return instance
 
@@ -1307,8 +1515,8 @@ class ProcessLink(Entity):
     Attributes
     ----------
     provider: Ref
-        The descriptor of the process that provides a product or a waste
-        treatment.
+        The descriptor of the process or product system that provides a product
+        or a waste treatment.
 
     flow: Ref
         The descriptor of the flow that is exchanged between the two processes.
@@ -1316,7 +1524,7 @@ class ProcessLink(Entity):
     process: Ref
         The descriptor of the process that is linked to the provider.
 
-    exchange: Exchange
+    exchange: ExchangeRef
         The exchange of the linked process (this is useful if the linked
         process has multiple exchanges with the same flow that are linked to
         different provides, e.g. in an electricity mix).
@@ -1328,7 +1536,7 @@ class ProcessLink(Entity):
         self.provider: Optional[Ref] = None
         self.flow: Optional[Ref] = None
         self.process: Optional[Ref] = None
-        self.exchange: Optional[Exchange] = None
+        self.exchange: Optional[ExchangeRef] = None
 
     def to_json(self) -> dict:
         json: dict = super(ProcessLink, self).to_json()
@@ -1358,7 +1566,7 @@ class ProcessLink(Entity):
             self.process.read_json(val)
         val = json.get('exchange')
         if val is not None:
-            self.exchange = Exchange()
+            self.exchange = ExchangeRef()
             self.exchange.read_json(val)
 
     @staticmethod
@@ -1482,6 +1690,94 @@ class SimpleResult(Entity):
     @staticmethod
     def from_json(json: dict):
         instance = SimpleResult()
+        instance.read_json(json)
+        return instance
+
+
+class SocialAspect(Entity):
+    """
+    An instance of this class describes a social aspect related to a social
+    indicator in a process.
+
+    Attributes
+    ----------
+    activity_value: float
+        The value of the activity variable of the related indicator.
+
+    comment: str
+
+    quality: str
+        A data quality entry, e.g. `(3,1,2,4,1)`.
+
+    raw_amount: str
+        The raw amount of the indicator's unit of measurement (not required to
+        be numeric currently)
+
+    risk_level: RiskLevel
+
+    social_indicator: Ref
+
+    source: Ref
+
+    """
+
+    def __init__(self):
+        super(SocialAspect, self).__init__()
+        self.activity_value: Optional[float] = None
+        self.comment: Optional[str] = None
+        self.quality: Optional[str] = None
+        self.raw_amount: Optional[str] = None
+        self.risk_level: Optional[RiskLevel] = None
+        self.social_indicator: Optional[Ref] = None
+        self.source: Optional[Ref] = None
+
+    def to_json(self) -> dict:
+        json: dict = super(SocialAspect, self).to_json()
+        if self.activity_value is not None:
+            json['activityValue'] = self.activity_value
+        if self.comment is not None:
+            json['comment'] = self.comment
+        if self.quality is not None:
+            json['quality'] = self.quality
+        if self.raw_amount is not None:
+            json['rawAmount'] = self.raw_amount
+        if self.risk_level is not None:
+            json['riskLevel'] = self.risk_level.value
+        if self.social_indicator is not None:
+            json['socialIndicator'] = self.social_indicator.to_json()
+        if self.source is not None:
+            json['source'] = self.source.to_json()
+        return json
+
+    def read_json(self, json: dict):
+        super(SocialAspect, self).read_json(json)
+        val = json.get('activityValue')
+        if val is not None:
+            self.activity_value = val
+        val = json.get('comment')
+        if val is not None:
+            self.comment = val
+        val = json.get('quality')
+        if val is not None:
+            self.quality = val
+        val = json.get('rawAmount')
+        if val is not None:
+            self.raw_amount = val
+        val = json.get('riskLevel')
+        if val is not None:
+            self.risk_level = RiskLevel(val)
+        val = json.get('socialIndicator')
+        if val is not None:
+            self.social_indicator = Ref()
+            self.social_indicator.read_json(val)
+        val = json.get('source')
+        if val is not None:
+            self.source = Ref()
+            self.source.read_json(val)
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = SocialAspect()
         instance.read_json(json)
         return instance
 
@@ -2156,7 +2452,7 @@ class Currency(CategorizedEntity):
         return instance
 
 
-class DqSystem(CategorizedEntity):
+class DQSystem(CategorizedEntity):
     """
     A data quality system (DQS) in openLCA describes a pedigree matrix of $m$
     data quality indicators (DQIs) and $n$ data quality scores (DQ scores).
@@ -2188,18 +2484,18 @@ class DqSystem(CategorizedEntity):
 
     source: Ref
 
-    indicators: List[DqIndicator]
+    indicators: List[DQIndicator]
 
     """
 
     def __init__(self):
-        super(DqSystem, self).__init__()
+        super(DQSystem, self).__init__()
         self.has_uncertainties: Optional[bool] = None
         self.source: Optional[Ref] = None
-        self.indicators: Optional[List[DqIndicator]] = None
+        self.indicators: Optional[List[DQIndicator]] = None
 
     def to_json(self) -> dict:
-        json: dict = super(DqSystem, self).to_json()
+        json: dict = super(DQSystem, self).to_json()
         if self.has_uncertainties is not None:
             json['hasUncertainties'] = self.has_uncertainties
         if self.source is not None:
@@ -2211,7 +2507,7 @@ class DqSystem(CategorizedEntity):
         return json
 
     def read_json(self, json: dict):
-        super(DqSystem, self).read_json(json)
+        super(DQSystem, self).read_json(json)
         val = json.get('hasUncertainties')
         if val is not None:
             self.has_uncertainties = val
@@ -2223,13 +2519,13 @@ class DqSystem(CategorizedEntity):
         if val is not None:
             self.indicators = []
             for d in val:
-                e = DqIndicator()
+                e = DQIndicator()
                 e.read_json(d)
                 self.indicators.append(e)
 
     @staticmethod
     def from_json(json: dict):
-        instance = DqSystem()
+        instance = DQSystem()
         instance.read_json(json)
         return instance
 
@@ -2261,6 +2557,17 @@ class Flow(CategorizedEntity):
         the process location where the flow is an input or output. However,
         some data formats define a location as a property of a flow.
 
+    synonyms: str
+        A list of synonyms but packed into a single field. Best is to use
+        semicolons as separator as commas are sometimes used in names of
+        chemicals.
+
+    infrastructure_flow: bool
+        Indicates whether this flow describes an infrastructure product. This
+        field is part of the openLCA schema because of backward compatibility
+        with EcoSpold 1. It does not really have a meaning in openLCA and
+        should not be used anymore.
+
     """
 
     def __init__(self):
@@ -2270,6 +2577,8 @@ class Flow(CategorizedEntity):
         self.formula: Optional[str] = None
         self.flow_properties: Optional[List[FlowPropertyFactor]] = None
         self.location: Optional[Ref] = None
+        self.synonyms: Optional[str] = None
+        self.infrastructure_flow: Optional[bool] = None
 
     def to_json(self) -> dict:
         json: dict = super(Flow, self).to_json()
@@ -2285,6 +2594,10 @@ class Flow(CategorizedEntity):
                 json['flowProperties'].append(e.to_json())
         if self.location is not None:
             json['location'] = self.location.to_json()
+        if self.synonyms is not None:
+            json['synonyms'] = self.synonyms
+        if self.infrastructure_flow is not None:
+            json['infrastructureFlow'] = self.infrastructure_flow
         return json
 
     def read_json(self, json: dict):
@@ -2309,6 +2622,12 @@ class Flow(CategorizedEntity):
         if val is not None:
             self.location = Ref()
             self.location.read_json(val)
+        val = json.get('synonyms')
+        if val is not None:
+            self.synonyms = val
+        val = json.get('infrastructureFlow')
+        if val is not None:
+            self.infrastructure_flow = val
 
     @staticmethod
     def from_json(json: dict):
@@ -2425,6 +2744,10 @@ class ImpactCategory(CategorizedEntity):
     reference_unit_name: str
         The name of the reference unit of the LCIA category (e.g. kg CO2-eq.).
 
+    parameters: List[Parameter]
+        A set of parameters which can be used in formulas of the
+        characterisation factors in this impact category.
+
     impact_factors: List[ImpactFactor]
         The characterisation factors of the LCIA category.
 
@@ -2433,12 +2756,17 @@ class ImpactCategory(CategorizedEntity):
     def __init__(self):
         super(ImpactCategory, self).__init__()
         self.reference_unit_name: Optional[str] = None
+        self.parameters: Optional[List[Parameter]] = None
         self.impact_factors: Optional[List[ImpactFactor]] = None
 
     def to_json(self) -> dict:
         json: dict = super(ImpactCategory, self).to_json()
         if self.reference_unit_name is not None:
             json['referenceUnitName'] = self.reference_unit_name
+        if self.parameters is not None:
+            json['parameters'] = []
+            for e in self.parameters:
+                json['parameters'].append(e.to_json())
         if self.impact_factors is not None:
             json['impactFactors'] = []
             for e in self.impact_factors:
@@ -2450,6 +2778,13 @@ class ImpactCategory(CategorizedEntity):
         val = json.get('referenceUnitName')
         if val is not None:
             self.reference_unit_name = val
+        val = json.get('parameters')
+        if val is not None:
+            self.parameters = []
+            for d in val:
+                e = Parameter()
+                e.read_json(d)
+                self.parameters.append(e)
         val = json.get('impactFactors')
         if val is not None:
             self.impact_factors = []
@@ -2501,23 +2836,22 @@ class ImpactCategoryRef(Ref):
 
 class ImpactMethod(CategorizedEntity):
     """
-    A impact assessment method.
+    An impact assessment method.
 
     Attributes
     ----------
     impact_categories: List[ImpactCategoryRef]
-        The LCIA categories of the method.
+        The impact categories of the method.
 
-    parameters: List[Parameter]
-        A set of method specific parameters which can be used in formulas of
-        the characterisation factors in this method.
+    nw_sets: List[NwSet]
+        The normalization and weighting sets of the method.
 
     """
 
     def __init__(self):
         super(ImpactMethod, self).__init__()
         self.impact_categories: Optional[List[ImpactCategoryRef]] = None
-        self.parameters: Optional[List[Parameter]] = None
+        self.nw_sets: Optional[List[NwSet]] = None
 
     def to_json(self) -> dict:
         json: dict = super(ImpactMethod, self).to_json()
@@ -2525,10 +2859,10 @@ class ImpactMethod(CategorizedEntity):
             json['impactCategories'] = []
             for e in self.impact_categories:
                 json['impactCategories'].append(e.to_json())
-        if self.parameters is not None:
-            json['parameters'] = []
-            for e in self.parameters:
-                json['parameters'].append(e.to_json())
+        if self.nw_sets is not None:
+            json['nwSets'] = []
+            for e in self.nw_sets:
+                json['nwSets'].append(e.to_json())
         return json
 
     def read_json(self, json: dict):
@@ -2540,13 +2874,13 @@ class ImpactMethod(CategorizedEntity):
                 e = ImpactCategoryRef()
                 e.read_json(d)
                 self.impact_categories.append(e)
-        val = json.get('parameters')
+        val = json.get('nwSets')
         if val is not None:
-            self.parameters = []
+            self.nw_sets = []
             for d in val:
-                e = Parameter()
+                e = NwSet()
                 e.read_json(d)
-                self.parameters.append(e)
+                self.nw_sets.append(e)
 
     @staticmethod
     def from_json(json: dict):
@@ -2703,14 +3037,25 @@ class Process(CategorizedEntity):
 
     Attributes
     ----------
-    default_allocation_method: AllocationType
-
     allocation_factors: List[AllocationFactor]
+
+    default_allocation_method: AllocationType
 
     exchanges: List[Exchange]
         The inputs and outputs of the process.
 
-    location: Location
+    last_internal_id: int
+        This field holds the last internal ID that was used in an exchange
+        (which may have been deleted, so it can be larger than the largest
+        internal ID of the exchanges of the process.) The internal ID of an
+        exchange is used to identify exchanges within a process (for updates,
+        data exchanges (see process links), etc.). When you add an exchange to
+        a process, you should increment this field in the process and set the
+        resulting value as the internal ID of that exchange. The sequence of
+        internal IDs should start with `1`.
+
+    location: Ref
+        The location of the process.
 
     parameters: List[Parameter]
 
@@ -2719,16 +3064,16 @@ class Process(CategorizedEntity):
     process_type: ProcessType
 
     dq_system: Ref
-        A reference to a data quality system ([DqSystem]) with which the
+        A reference to a data quality system ([DQSystem]) with which the
         overall quality of the process can be assessed.
 
     exchange_dq_system: Ref
-        A reference to a data quality system ([DqSystem]) with which the
+        A reference to a data quality system ([DQSystem]) with which the
         quality of individual inputs and outputs ([Exchange]s) of the process
         can be assessed.
 
     social_dq_system: Ref
-        A reference to a data quality system ([DqSystem]) with which the
+        A reference to a data quality system ([DQSystem]) with which the
         quality of individual social aspects of the process can be assessed.
 
     dq_entry: str
@@ -2738,14 +3083,24 @@ class Process(CategorizedEntity):
         such a system the data quality indicators have fixed positions and the
         respective values in the `dqEntry` vector map to these positions.
 
+    infrastructure_process: bool
+        Indicates whether this process describes an infrastructure process.
+        This field is part of the openLCA schema because of backward
+        compatibility with EcoSpold 1. It does not really have a meaning in
+        openLCA and should not be used anymore.
+
+    social_aspects: List[SocialAspect]
+        A set of social aspects related to this process.
+
     """
 
     def __init__(self):
         super(Process, self).__init__()
-        self.default_allocation_method: Optional[AllocationType] = None
         self.allocation_factors: Optional[List[AllocationFactor]] = None
+        self.default_allocation_method: Optional[AllocationType] = None
         self.exchanges: Optional[List[Exchange]] = None
-        self.location: Optional[Location] = None
+        self.last_internal_id: Optional[int] = None
+        self.location: Optional[Ref] = None
         self.parameters: Optional[List[Parameter]] = None
         self.process_documentation: Optional[ProcessDocumentation] = None
         self.process_type: Optional[ProcessType] = None
@@ -2753,19 +3108,23 @@ class Process(CategorizedEntity):
         self.exchange_dq_system: Optional[Ref] = None
         self.social_dq_system: Optional[Ref] = None
         self.dq_entry: Optional[str] = None
+        self.infrastructure_process: Optional[bool] = None
+        self.social_aspects: Optional[List[SocialAspect]] = None
 
     def to_json(self) -> dict:
         json: dict = super(Process, self).to_json()
-        if self.default_allocation_method is not None:
-            json['defaultAllocationMethod'] = self.default_allocation_method.value
         if self.allocation_factors is not None:
             json['allocationFactors'] = []
             for e in self.allocation_factors:
                 json['allocationFactors'].append(e.to_json())
+        if self.default_allocation_method is not None:
+            json['defaultAllocationMethod'] = self.default_allocation_method.value
         if self.exchanges is not None:
             json['exchanges'] = []
             for e in self.exchanges:
                 json['exchanges'].append(e.to_json())
+        if self.last_internal_id is not None:
+            json['lastInternalId'] = self.last_internal_id
         if self.location is not None:
             json['location'] = self.location.to_json()
         if self.parameters is not None:
@@ -2784,13 +3143,16 @@ class Process(CategorizedEntity):
             json['socialDqSystem'] = self.social_dq_system.to_json()
         if self.dq_entry is not None:
             json['dqEntry'] = self.dq_entry
+        if self.infrastructure_process is not None:
+            json['infrastructureProcess'] = self.infrastructure_process
+        if self.social_aspects is not None:
+            json['socialAspects'] = []
+            for e in self.social_aspects:
+                json['socialAspects'].append(e.to_json())
         return json
 
     def read_json(self, json: dict):
         super(Process, self).read_json(json)
-        val = json.get('defaultAllocationMethod')
-        if val is not None:
-            self.default_allocation_method = AllocationType(val)
         val = json.get('allocationFactors')
         if val is not None:
             self.allocation_factors = []
@@ -2798,6 +3160,9 @@ class Process(CategorizedEntity):
                 e = AllocationFactor()
                 e.read_json(d)
                 self.allocation_factors.append(e)
+        val = json.get('defaultAllocationMethod')
+        if val is not None:
+            self.default_allocation_method = AllocationType(val)
         val = json.get('exchanges')
         if val is not None:
             self.exchanges = []
@@ -2805,9 +3170,12 @@ class Process(CategorizedEntity):
                 e = Exchange()
                 e.read_json(d)
                 self.exchanges.append(e)
+        val = json.get('lastInternalId')
+        if val is not None:
+            self.last_internal_id = val
         val = json.get('location')
         if val is not None:
-            self.location = Location()
+            self.location = Ref()
             self.location.read_json(val)
         val = json.get('parameters')
         if val is not None:
@@ -2838,6 +3206,16 @@ class Process(CategorizedEntity):
         val = json.get('dqEntry')
         if val is not None:
             self.dq_entry = val
+        val = json.get('infrastructureProcess')
+        if val is not None:
+            self.infrastructure_process = val
+        val = json.get('socialAspects')
+        if val is not None:
+            self.social_aspects = []
+            for d in val:
+                e = SocialAspect()
+                e.read_json(d)
+                self.social_aspects.append(e)
 
     @staticmethod
     def from_json(json: dict):
@@ -2921,6 +3299,10 @@ class ProductSystem(CategorizedEntity):
     process_links: List[ProcessLink]
         The process links of the product system.
 
+    parameter_sets: List[ParameterRedefSet]
+        A list of possible sets of parameter redefinitions for this product
+        system.
+
     """
 
     def __init__(self):
@@ -2932,6 +3314,7 @@ class ProductSystem(CategorizedEntity):
         self.target_unit: Optional[Ref] = None
         self.target_flow_property: Optional[Ref] = None
         self.process_links: Optional[List[ProcessLink]] = None
+        self.parameter_sets: Optional[List[ParameterRedefSet]] = None
 
     def to_json(self) -> dict:
         json: dict = super(ProductSystem, self).to_json()
@@ -2953,6 +3336,10 @@ class ProductSystem(CategorizedEntity):
             json['processLinks'] = []
             for e in self.process_links:
                 json['processLinks'].append(e.to_json())
+        if self.parameter_sets is not None:
+            json['parameterSets'] = []
+            for e in self.parameter_sets:
+                json['parameterSets'].append(e.to_json())
         return json
 
     def read_json(self, json: dict):
@@ -2990,6 +3377,13 @@ class ProductSystem(CategorizedEntity):
                 e = ProcessLink()
                 e.read_json(d)
                 self.process_links.append(e)
+        val = json.get('parameterSets')
+        if val is not None:
+            self.parameter_sets = []
+            for d in val:
+                e = ParameterRedefSet()
+                e.read_json(d)
+                self.parameter_sets.append(e)
 
     @staticmethod
     def from_json(json: dict):
