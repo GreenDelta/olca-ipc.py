@@ -24,6 +24,17 @@ use it, you can just install (and uninstall) it with pip:
 
     pip install -U olca-ipc
 
+If you want to use the current development branch you can
+`download it from Github <https://github.com/GreenDelta/olca-ipc.py/archive/master.zip>`_
+and install it from the extracted folder:
+
+.. code-block:: bash
+
+    # optionally, first uninstall it
+    # pip uninstall olca-ipc
+    cd folder/where/you/extracted/the/zip
+    pip install .
+
 In order to communicate with openLCA, you first need to start an openLCA IPC
 server. You can do this via the user interface in openLCA under
 ``Window > Developer Tools > IPC Server``. The IPC server runs on a specific
