@@ -8,18 +8,20 @@ T = TypeVar('T')
 
 def ref(model_type: T, id: str, name: Optional[str] = None) -> Ref:
     """
-    Creates a new reference object for the given type and ID.
+    Creates a new reference for a data set with the given type and ID.
 
     In the openLCA data format, references are used to point to another
-    data set. A references must have a type and an ID. Other attributes like
-    name, description etc. are optional but often useful when inspecting a
-    data set.
+    data set, e.g. when an input or output of a process points to a flow we do
+    not include the complete flow but just a reference to the flow in the
+    respective exchange. A reference must have a type and an ID. Other
+    attributes like name, description etc. are optional but often useful when
+    inspecting a data set.
 
     Parameters
     ----------
 
     model_type: T
-        The class of the model type of the reference, e.g. olca.schema.Flow
+        The class of the model type of the reference, e.g. olca.Flow
 
     id: str
         The ID (UUID) of the model / data set this reference points to.

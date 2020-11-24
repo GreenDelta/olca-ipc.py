@@ -37,18 +37,20 @@ T = TypeVar(&#39;T&#39;)
 
 def ref(model_type: T, id: str, name: Optional[str] = None) -&gt; Ref:
     &#34;&#34;&#34;
-    Creates a new reference object for the given type and ID.
+    Creates a new reference for a data set with the given type and ID.
 
     In the openLCA data format, references are used to point to another
-    data set. A references must have a type and an ID. Other attributes like
-    name, description etc. are optional but often useful when inspecting a
-    data set.
+    data set, e.g. when an input or output of a process points to a flow we do
+    not include the complete flow but just a reference to the flow in the
+    respective exchange. A reference must have a type and an ID. Other
+    attributes like name, description etc. are optional but often useful when
+    inspecting a data set.
 
     Parameters
     ----------
 
     model_type: T
-        The class of the model type of the reference, e.g. olca.schema.Flow
+        The class of the model type of the reference, e.g. olca.Flow
 
     id: str
         The ID (UUID) of the model / data set this reference points to.
@@ -103,15 +105,17 @@ def ref(model_type: T, id: str, name: Optional[str] = None) -&gt; Ref:
 <span>def <span class="ident">ref</span></span>(<span>model_type: ~T, id: str, name: Union[str, NoneType] = None) ‑> <a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Creates a new reference object for the given type and ID.</p>
+<div class="desc"><p>Creates a new reference for a data set with the given type and ID.</p>
 <p>In the openLCA data format, references are used to point to another
-data set. A references must have a type and an ID. Other attributes like
-name, description etc. are optional but often useful when inspecting a
-data set.</p>
+data set, e.g. when an input or output of a process points to a flow we do
+not include the complete flow but just a reference to the flow in the
+respective exchange. A reference must have a type and an ID. Other
+attributes like name, description etc. are optional but often useful when
+inspecting a data set.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>model_type</code></strong> :&ensp;<code>T</code></dt>
-<dd>The class of the model type of the reference, e.g. olca.schema.Flow</dd>
+<dd>The class of the model type of the reference, e.g. olca.Flow</dd>
 <dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
 <dd>The ID (UUID) of the model / data set this reference points to.</dd>
 <dt><strong><code>name</code></strong> :&ensp;<code>Optional[str]</code></dt>
@@ -129,18 +133,20 @@ data set.</p>
 </summary>
 <pre><code class="python">def ref(model_type: T, id: str, name: Optional[str] = None) -&gt; Ref:
     &#34;&#34;&#34;
-    Creates a new reference object for the given type and ID.
+    Creates a new reference for a data set with the given type and ID.
 
     In the openLCA data format, references are used to point to another
-    data set. A references must have a type and an ID. Other attributes like
-    name, description etc. are optional but often useful when inspecting a
-    data set.
+    data set, e.g. when an input or output of a process points to a flow we do
+    not include the complete flow but just a reference to the flow in the
+    respective exchange. A reference must have a type and an ID. Other
+    attributes like name, description etc. are optional but often useful when
+    inspecting a data set.
 
     Parameters
     ----------
 
     model_type: T
-        The class of the model type of the reference, e.g. olca.schema.Flow
+        The class of the model type of the reference, e.g. olca.Flow
 
     id: str
         The ID (UUID) of the model / data set this reference points to.
