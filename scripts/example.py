@@ -55,6 +55,7 @@ def create_flow(client: olca.Client, name: str,
     """ Create a new flow with the given name and insert it into the database.
     """
     flow = olca.Flow()
+    flow.olca_type = 'Flow'
     flow.id = str(uuid.uuid4())
     flow.name = name
     flow.flow_type = flow_type
