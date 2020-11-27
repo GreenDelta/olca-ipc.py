@@ -44,7 +44,7 @@ def ref(model_type: Union[T, str], uid: str, name: Optional[str] = None) -> Ref:
     r = Ref()
     r.olca_type = model_type if isinstance(model_type, str) \
         else model_type.__name__
-    r.id = id
+    r.id = uid
     if name is not None:
         r.name = name
     return r
