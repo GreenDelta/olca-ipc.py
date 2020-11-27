@@ -274,6 +274,142 @@ def elementary_flow_of(name: str, flow_property: Union[Ref, FlowProperty]) -&gt;
     return flow_of(name, FlowType.ELEMENTARY_FLOW, flow_property)
 
 
+def process_of(name: str) -&gt; Process:
+    &#34;&#34;&#34;
+    Creates a new process.
+
+    Parameters
+    ----------
+    name: str
+        The name of the new process.
+
+    Example
+    -------
+    ```py
+    process = olca.process_of(&#39;Steel production&#39;)
+    ```
+    &#34;&#34;&#34;
+    process = Process()
+    _set_base_attributes(process, name)
+    process.process_type = ProcessType.UNIT_PROCESS
+    return process
+
+
+def exchange_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -&gt; Exchange:
+    &#34;&#34;&#34;
+    Creates a new exchange.
+
+    See the more convenient functions:
+    * input_of
+    * output_of
+
+    Parameters
+    ----------
+    process: Process
+        The process of the new exchange. We update and set the internal
+        IDs of this process and the exchange but we do not add the exchange
+        to the process yet. This is something you need to do after you
+        created the exchange.
+    
+    flow: Union[Ref, Flow]
+        The flow or reference to the flow of this exchange.
+
+    amount: float, optional
+        The amount of the exchange; defaults to 1.0.
+    
+    Example
+    -------
+    ```py
+    units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
+    mass = olca.flow_property_of(&#39;Mass&#39;, units)
+    steel = olca.product_flow_of(&#39;Steel&#39;, mass)
+    process = olca.process_of(&#39;Steel production&#39;)
+    output = exchange_of(process, steel, 1.0)
+    output.quantitative_reference = True
+    process.exchanges = [output]
+    ```
+    &#34;&#34;&#34;
+    if process.last_internal_id is None:
+        internal_id = 1
+    else:
+        internal_id = process.last_internal_id + 1
+    process.last_internal_id = internal_id
+    exchange = Exchange()
+    exchange.internal_id = internal_id
+    exchange.amount = amount
+    exchange.flow = ref(&#39;Flow&#39;, flow.id, flow.name)
+    return exchange
+
+
+def output_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -&gt; Exchange:
+    &#34;&#34;&#34;
+    Creates a new output.
+
+    Parameters
+    ----------
+    process: Process
+        The process of the new exchange. We update and set the internal
+        IDs of this process and the exchange but we do not add the exchange
+        to the process yet. This is something you need to do after you
+        created the exchange.
+
+    flow: Union[Ref, Flow]
+        The flow or reference to the flow of this exchange.
+
+    amount: float, optional
+        The amount of the exchange; defaults to 1.0.
+
+    Example
+    -------
+    ```py
+    units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
+    mass = olca.flow_property_of(&#39;Mass&#39;, units)
+    steel = olca.product_flow_of(&#39;Steel&#39;, mass)
+    process = olca.process_of(&#39;Steel production&#39;)
+    output = olca.output_of(process, steel, 1.0)
+    output.quantitative_reference = True
+    process.exchanges = [output]
+    ```
+    &#34;&#34;&#34;
+    exchange = exchange_of(process, flow, amount)
+    exchange.input = False
+    return exchange
+
+
+def input_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -&gt; Exchange:
+    &#34;&#34;&#34;
+    Creates a new input.
+
+    Parameters
+    ----------
+    process: Process
+        The process of the new exchange. We update and set the internal
+        IDs of this process and the exchange but we do not add the exchange
+        to the process yet. This is something you need to do after you
+        created the exchange.
+
+    flow: Union[Ref, Flow]
+        The flow or reference to the flow of this exchange.
+
+    amount: float, optional
+        The amount of the exchange; defaults to 1.0.
+
+    Example
+    -------
+    ```py
+    units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
+    mass = olca.flow_property_of(&#39;Mass&#39;, units)
+    scrap = olca.waste_flow_of(&#39;Scrap&#39;, mass)
+    process = olca.process_of(&#39;Steel production&#39;)
+    input = olca.input_of(process, scrap, 0.1)
+    process.exchanges = [input]
+    ```
+    &#34;&#34;&#34;
+    exchange = exchange_of(process, flow, amount)
+    exchange.input = True
+    return exchange
+
+
 def _set_base_attributes(entity: RootEntity, name: str):
     entity.id = str(uuid.uuid4())
     entity.name = name
@@ -349,6 +485,85 @@ co2 = olca.elementary_flow_of('CO2', mass)
     ```
     &#34;&#34;&#34;
     return flow_of(name, FlowType.ELEMENTARY_FLOW, flow_property)</code></pre>
+</details>
+</dd>
+<dt id="olca.exchange_of"><code class="name flex">
+<span>def <span class="ident">exchange_of</span></span>(<span>process: <a title="olca.schema.Process" href="schema.html#olca.schema.Process">Process</a>, flow: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Flow" href="schema.html#olca.schema.Flow">Flow</a>], amount=1.0) ‑> <a title="olca.schema.Exchange" href="schema.html#olca.schema.Exchange">Exchange</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a new exchange.</p>
+<p>See the more convenient functions:
+* input_of
+* output_of</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>process</code></strong> :&ensp;<code>Process</code></dt>
+<dd>The process of the new exchange. We update and set the internal
+IDs of this process and the exchange but we do not add the exchange
+to the process yet. This is something you need to do after you
+created the exchange.</dd>
+<dt><strong><code>flow</code></strong> :&ensp;<code>Union[Ref, Flow]</code></dt>
+<dd>The flow or reference to the flow of this exchange.</dd>
+<dt><strong><code>amount</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd>The amount of the exchange; defaults to 1.0.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-py">units = olca.unit_group_of('Units of mass', 'kg')
+mass = olca.flow_property_of('Mass', units)
+steel = olca.product_flow_of('Steel', mass)
+process = olca.process_of('Steel production')
+output = exchange_of(process, steel, 1.0)
+output.quantitative_reference = True
+process.exchanges = [output]
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def exchange_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -&gt; Exchange:
+    &#34;&#34;&#34;
+    Creates a new exchange.
+
+    See the more convenient functions:
+    * input_of
+    * output_of
+
+    Parameters
+    ----------
+    process: Process
+        The process of the new exchange. We update and set the internal
+        IDs of this process and the exchange but we do not add the exchange
+        to the process yet. This is something you need to do after you
+        created the exchange.
+    
+    flow: Union[Ref, Flow]
+        The flow or reference to the flow of this exchange.
+
+    amount: float, optional
+        The amount of the exchange; defaults to 1.0.
+    
+    Example
+    -------
+    ```py
+    units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
+    mass = olca.flow_property_of(&#39;Mass&#39;, units)
+    steel = olca.product_flow_of(&#39;Steel&#39;, mass)
+    process = olca.process_of(&#39;Steel production&#39;)
+    output = exchange_of(process, steel, 1.0)
+    output.quantitative_reference = True
+    process.exchanges = [output]
+    ```
+    &#34;&#34;&#34;
+    if process.last_internal_id is None:
+        internal_id = 1
+    else:
+        internal_id = process.last_internal_id + 1
+    process.last_internal_id = internal_id
+    exchange = Exchange()
+    exchange.internal_id = internal_id
+    exchange.amount = amount
+    exchange.flow = ref(&#39;Flow&#39;, flow.id, flow.name)
+    return exchange</code></pre>
 </details>
 </dd>
 <dt id="olca.flow_of"><code class="name flex">
@@ -465,6 +680,172 @@ fp = olca.flow_property_of('Mass', units)
     _set_base_attributes(fp, name)
     fp.unit_group = ref(&#39;UnitGroup&#39;, unit_group.id, unit_group.name)
     return fp</code></pre>
+</details>
+</dd>
+<dt id="olca.input_of"><code class="name flex">
+<span>def <span class="ident">input_of</span></span>(<span>process: <a title="olca.schema.Process" href="schema.html#olca.schema.Process">Process</a>, flow: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Flow" href="schema.html#olca.schema.Flow">Flow</a>], amount=1.0) ‑> <a title="olca.schema.Exchange" href="schema.html#olca.schema.Exchange">Exchange</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a new input.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>process</code></strong> :&ensp;<code>Process</code></dt>
+<dd>The process of the new exchange. We update and set the internal
+IDs of this process and the exchange but we do not add the exchange
+to the process yet. This is something you need to do after you
+created the exchange.</dd>
+<dt><strong><code>flow</code></strong> :&ensp;<code>Union[Ref, Flow]</code></dt>
+<dd>The flow or reference to the flow of this exchange.</dd>
+<dt><strong><code>amount</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd>The amount of the exchange; defaults to 1.0.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-py">units = olca.unit_group_of('Units of mass', 'kg')
+mass = olca.flow_property_of('Mass', units)
+scrap = olca.waste_flow_of('Scrap', mass)
+process = olca.process_of('Steel production')
+input = olca.input_of(process, scrap, 0.1)
+process.exchanges = [input]
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def input_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -&gt; Exchange:
+    &#34;&#34;&#34;
+    Creates a new input.
+
+    Parameters
+    ----------
+    process: Process
+        The process of the new exchange. We update and set the internal
+        IDs of this process and the exchange but we do not add the exchange
+        to the process yet. This is something you need to do after you
+        created the exchange.
+
+    flow: Union[Ref, Flow]
+        The flow or reference to the flow of this exchange.
+
+    amount: float, optional
+        The amount of the exchange; defaults to 1.0.
+
+    Example
+    -------
+    ```py
+    units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
+    mass = olca.flow_property_of(&#39;Mass&#39;, units)
+    scrap = olca.waste_flow_of(&#39;Scrap&#39;, mass)
+    process = olca.process_of(&#39;Steel production&#39;)
+    input = olca.input_of(process, scrap, 0.1)
+    process.exchanges = [input]
+    ```
+    &#34;&#34;&#34;
+    exchange = exchange_of(process, flow, amount)
+    exchange.input = True
+    return exchange</code></pre>
+</details>
+</dd>
+<dt id="olca.output_of"><code class="name flex">
+<span>def <span class="ident">output_of</span></span>(<span>process: <a title="olca.schema.Process" href="schema.html#olca.schema.Process">Process</a>, flow: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Flow" href="schema.html#olca.schema.Flow">Flow</a>], amount=1.0) ‑> <a title="olca.schema.Exchange" href="schema.html#olca.schema.Exchange">Exchange</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a new output.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>process</code></strong> :&ensp;<code>Process</code></dt>
+<dd>The process of the new exchange. We update and set the internal
+IDs of this process and the exchange but we do not add the exchange
+to the process yet. This is something you need to do after you
+created the exchange.</dd>
+<dt><strong><code>flow</code></strong> :&ensp;<code>Union[Ref, Flow]</code></dt>
+<dd>The flow or reference to the flow of this exchange.</dd>
+<dt><strong><code>amount</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd>The amount of the exchange; defaults to 1.0.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-py">units = olca.unit_group_of('Units of mass', 'kg')
+mass = olca.flow_property_of('Mass', units)
+steel = olca.product_flow_of('Steel', mass)
+process = olca.process_of('Steel production')
+output = olca.output_of(process, steel, 1.0)
+output.quantitative_reference = True
+process.exchanges = [output]
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def output_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -&gt; Exchange:
+    &#34;&#34;&#34;
+    Creates a new output.
+
+    Parameters
+    ----------
+    process: Process
+        The process of the new exchange. We update and set the internal
+        IDs of this process and the exchange but we do not add the exchange
+        to the process yet. This is something you need to do after you
+        created the exchange.
+
+    flow: Union[Ref, Flow]
+        The flow or reference to the flow of this exchange.
+
+    amount: float, optional
+        The amount of the exchange; defaults to 1.0.
+
+    Example
+    -------
+    ```py
+    units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
+    mass = olca.flow_property_of(&#39;Mass&#39;, units)
+    steel = olca.product_flow_of(&#39;Steel&#39;, mass)
+    process = olca.process_of(&#39;Steel production&#39;)
+    output = olca.output_of(process, steel, 1.0)
+    output.quantitative_reference = True
+    process.exchanges = [output]
+    ```
+    &#34;&#34;&#34;
+    exchange = exchange_of(process, flow, amount)
+    exchange.input = False
+    return exchange</code></pre>
+</details>
+</dd>
+<dt id="olca.process_of"><code class="name flex">
+<span>def <span class="ident">process_of</span></span>(<span>name: str) ‑> <a title="olca.schema.Process" href="schema.html#olca.schema.Process">Process</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a new process.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>The name of the new process.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-py">process = olca.process_of('Steel production')
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def process_of(name: str) -&gt; Process:
+    &#34;&#34;&#34;
+    Creates a new process.
+
+    Parameters
+    ----------
+    name: str
+        The name of the new process.
+
+    Example
+    -------
+    ```py
+    process = olca.process_of(&#39;Steel production&#39;)
+    ```
+    &#34;&#34;&#34;
+    process = Process()
+    _set_base_attributes(process, name)
+    process.process_type = ProcessType.UNIT_PROCESS
+    return process</code></pre>
 </details>
 </dd>
 <dt id="olca.product_flow_of"><code class="name flex">
@@ -746,8 +1127,12 @@ scrap = olca.waste_flow_of('Scrap', mass)
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="two-column">
 <li><code><a title="olca.elementary_flow_of" href="#olca.elementary_flow_of">elementary_flow_of</a></code></li>
+<li><code><a title="olca.exchange_of" href="#olca.exchange_of">exchange_of</a></code></li>
 <li><code><a title="olca.flow_of" href="#olca.flow_of">flow_of</a></code></li>
 <li><code><a title="olca.flow_property_of" href="#olca.flow_property_of">flow_property_of</a></code></li>
+<li><code><a title="olca.input_of" href="#olca.input_of">input_of</a></code></li>
+<li><code><a title="olca.output_of" href="#olca.output_of">output_of</a></code></li>
+<li><code><a title="olca.process_of" href="#olca.process_of">process_of</a></code></li>
 <li><code><a title="olca.product_flow_of" href="#olca.product_flow_of">product_flow_of</a></code></li>
 <li><code><a title="olca.ref" href="#olca.ref">ref</a></code></li>
 <li><code><a title="olca.unit_group_of" href="#olca.unit_group_of">unit_group_of</a></code></li>

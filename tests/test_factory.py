@@ -58,6 +58,23 @@ class TestFactory(unittest.TestCase):
         self.assertEqual(co2.name, 'CO2')
         self.assertEqual(co2.flow_properties[0].flow_property.name, 'Mass')
 
+    def test_process(self):
+        process = olca.process_of('Steel production')
+        self.assertEqual(process.olca_type, 'Process')
+        self.assertEqual(process.name, 'Steel production')
+
+    def test_exchange(self):
+        units = olca.unit_group_of('Units of mass', 'kg')
+        mass = olca.flow_property_of('Mass', units)
+        steel = olca.product_flow_of('Steel', mass)
+        process = olca.process_of('Steel production')
+        output = olca.exchange_of(process, steel)
+        output.quantitative_reference = True
+        process.exchanges = [output]
+        self.assertEqual(output.olca_type, 'Exchange')
+        self.assertEqual(output.flow.name, 'Steel')
+        self.assertEqual(output.amount, 1.0)
+
 
 if __name__ == '__main__':
     unittest.main()

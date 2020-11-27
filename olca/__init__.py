@@ -245,6 +245,142 @@ def elementary_flow_of(name: str, flow_property: Union[Ref, FlowProperty]) -> Fl
     return flow_of(name, FlowType.ELEMENTARY_FLOW, flow_property)
 
 
+def process_of(name: str) -> Process:
+    """
+    Creates a new process.
+
+    Parameters
+    ----------
+    name: str
+        The name of the new process.
+
+    Example
+    -------
+    ```py
+    process = olca.process_of('Steel production')
+    ```
+    """
+    process = Process()
+    _set_base_attributes(process, name)
+    process.process_type = ProcessType.UNIT_PROCESS
+    return process
+
+
+def exchange_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -> Exchange:
+    """
+    Creates a new exchange.
+
+    See the more convenient functions:
+    * input_of
+    * output_of
+
+    Parameters
+    ----------
+    process: Process
+        The process of the new exchange. We update and set the internal
+        IDs of this process and the exchange but we do not add the exchange
+        to the process yet. This is something you need to do after you
+        created the exchange.
+    
+    flow: Union[Ref, Flow]
+        The flow or reference to the flow of this exchange.
+
+    amount: float, optional
+        The amount of the exchange; defaults to 1.0.
+    
+    Example
+    -------
+    ```py
+    units = olca.unit_group_of('Units of mass', 'kg')
+    mass = olca.flow_property_of('Mass', units)
+    steel = olca.product_flow_of('Steel', mass)
+    process = olca.process_of('Steel production')
+    output = exchange_of(process, steel, 1.0)
+    output.quantitative_reference = True
+    process.exchanges = [output]
+    ```
+    """
+    if process.last_internal_id is None:
+        internal_id = 1
+    else:
+        internal_id = process.last_internal_id + 1
+    process.last_internal_id = internal_id
+    exchange = Exchange()
+    exchange.internal_id = internal_id
+    exchange.amount = amount
+    exchange.flow = ref('Flow', flow.id, flow.name)
+    return exchange
+
+
+def output_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -> Exchange:
+    """
+    Creates a new output.
+
+    Parameters
+    ----------
+    process: Process
+        The process of the new exchange. We update and set the internal
+        IDs of this process and the exchange but we do not add the exchange
+        to the process yet. This is something you need to do after you
+        created the exchange.
+
+    flow: Union[Ref, Flow]
+        The flow or reference to the flow of this exchange.
+
+    amount: float, optional
+        The amount of the exchange; defaults to 1.0.
+
+    Example
+    -------
+    ```py
+    units = olca.unit_group_of('Units of mass', 'kg')
+    mass = olca.flow_property_of('Mass', units)
+    steel = olca.product_flow_of('Steel', mass)
+    process = olca.process_of('Steel production')
+    output = olca.output_of(process, steel, 1.0)
+    output.quantitative_reference = True
+    process.exchanges = [output]
+    ```
+    """
+    exchange = exchange_of(process, flow, amount)
+    exchange.input = False
+    return exchange
+
+
+def input_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -> Exchange:
+    """
+    Creates a new input.
+
+    Parameters
+    ----------
+    process: Process
+        The process of the new exchange. We update and set the internal
+        IDs of this process and the exchange but we do not add the exchange
+        to the process yet. This is something you need to do after you
+        created the exchange.
+
+    flow: Union[Ref, Flow]
+        The flow or reference to the flow of this exchange.
+
+    amount: float, optional
+        The amount of the exchange; defaults to 1.0.
+
+    Example
+    -------
+    ```py
+    units = olca.unit_group_of('Units of mass', 'kg')
+    mass = olca.flow_property_of('Mass', units)
+    scrap = olca.waste_flow_of('Scrap', mass)
+    process = olca.process_of('Steel production')
+    input = olca.input_of(process, scrap, 0.1)
+    process.exchanges = [input]
+    ```
+    """
+    exchange = exchange_of(process, flow, amount)
+    exchange.input = True
+    return exchange
+
+
 def _set_base_attributes(entity: RootEntity, name: str):
     entity.id = str(uuid.uuid4())
     entity.name = name
