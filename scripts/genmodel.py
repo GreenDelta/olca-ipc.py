@@ -6,7 +6,8 @@ installed, e.g.:
     pip install pyyaml
 
 You also have to configure the YAML_DIR in this script to point to
-the directory where the YAML files are located: 
+the directory where the YAML files are located:
+
     # clone the olca-schema repository to some folder
     cd <folder>
     git clone https://github.com/GreenDelta/olca-schema.git
