@@ -381,6 +381,85 @@ def input_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -> Exchange:
     return exchange
 
 
+def location_of(name: str, code: Optional[str] = None) -> Location:
+    """
+    Creates a new location.
+
+    Parameters
+    ----------
+    name: str
+        The name of the new location.
+
+    code: Optional[str]
+        An optional location code.
+
+    Example
+    -------
+    ```py
+    de = olca.location_of('Germany', 'DE')
+    ```
+    """
+    location = Location()
+    _set_base_attributes(location, name)
+    location.code = code or name
+    return location
+
+
+def parameter_of(name: str, value: Union[str, float],
+                 scope=ParameterScope.GLOBAL_SCOPE) -> Parameter:
+    """
+    Creates a new parameter.
+
+    Parameters
+    ----------
+    name: str
+        The name of the new parameter. Note that parameters can be used
+        in formulas. So that the name of the parameter has to follow
+        specific syntax rules, i.e. it cannot contain whitespaces or
+        special characters.
+    value: Union[str, float]
+        The parameter value. If a string is passed as value into this
+        function we assume that this is a formula and we will create
+        a dependent, calculated parameter. Otherwise we create an
+        input parameter
+    scope: ParameterScope, optional
+        The scope of the parameter. If not specified otherwise this
+        defaults to global scope.
+
+    Example
+    -------
+    ```py
+    import olca
+
+    # create a global input parameter
+    global_scrap_rate = olca.parameter_of('global_scrap_rate', 1.0)
+
+    # create a local calculated parameter of a process
+    local_scrap_rate = olca.parameter_of(
+        'local_scrap_rate',
+        'global_scrap_rate * 0.9',
+        olca.ParameterScope.PROCESS_SCOPE)
+    process = olca.process_of('Steel production')
+    process.parameters = [local_scrap_rate]
+
+    # insert this in a database
+    with olca.Client() as client:
+        client.insert(global_scrap_rate)
+        client.insert(process)
+    ```
+    """
+    param = Parameter()
+    _set_base_attributes(param, name)
+    param.parameter_scope = scope
+    if isinstance(value, str):
+        param.formula = value
+        param.input_parameter = False
+    else:
+        param.value = value
+        param.input_parameter = True
+    return param
+
+
 def _set_base_attributes(entity: RootEntity, name: str):
     entity.id = str(uuid.uuid4())
     entity.name = name

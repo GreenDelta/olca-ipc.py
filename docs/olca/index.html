@@ -410,6 +410,85 @@ def input_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -&gt; Exchang
     return exchange
 
 
+def location_of(name: str, code: Optional[str] = None) -&gt; Location:
+    &#34;&#34;&#34;
+    Creates a new location.
+
+    Parameters
+    ----------
+    name: str
+        The name of the new location.
+
+    code: Optional[str]
+        An optional location code.
+
+    Example
+    -------
+    ```py
+    de = olca.location_of(&#39;Germany&#39;, &#39;DE&#39;)
+    ```
+    &#34;&#34;&#34;
+    location = Location()
+    _set_base_attributes(location, name)
+    location.code = code or name
+    return location
+
+
+def parameter_of(name: str, value: Union[str, float],
+                 scope=ParameterScope.GLOBAL_SCOPE) -&gt; Parameter:
+    &#34;&#34;&#34;
+    Creates a new parameter.
+
+    Parameters
+    ----------
+    name: str
+        The name of the new parameter. Note that parameters can be used
+        in formulas. So that the name of the parameter has to follow
+        specific syntax rules, i.e. it cannot contain whitespaces or
+        special characters.
+    value: Union[str, float]
+        The parameter value. If a string is passed as value into this
+        function we assume that this is a formula and we will create
+        a dependent, calculated parameter. Otherwise we create an
+        input parameter
+    scope: ParameterScope, optional
+        The scope of the parameter. If not specified otherwise this
+        defaults to global scope.
+
+    Example
+    -------
+    ```py
+    import olca
+
+    # create a global input parameter
+    global_scrap_rate = olca.parameter_of(&#39;global_scrap_rate&#39;, 1.0)
+
+    # create a local calculated parameter of a process
+    local_scrap_rate = olca.parameter_of(
+        &#39;local_scrap_rate&#39;,
+        &#39;global_scrap_rate * 0.9&#39;,
+        olca.ParameterScope.PROCESS_SCOPE)
+    process = olca.process_of(&#39;Steel production&#39;)
+    process.parameters = [local_scrap_rate]
+
+    # insert this in a database
+    with olca.Client() as client:
+        client.insert(global_scrap_rate)
+        client.insert(process)
+    ```
+    &#34;&#34;&#34;
+    param = Parameter()
+    _set_base_attributes(param, name)
+    param.parameter_scope = scope
+    if isinstance(value, str):
+        param.formula = value
+        param.input_parameter = False
+    else:
+        param.value = value
+        param.input_parameter = True
+    return param
+
+
 def _set_base_attributes(entity: RootEntity, name: str):
     entity.id = str(uuid.uuid4())
     entity.name = name
@@ -745,6 +824,49 @@ process.exchanges = [input]
     return exchange</code></pre>
 </details>
 </dd>
+<dt id="olca.location_of"><code class="name flex">
+<span>def <span class="ident">location_of</span></span>(<span>name: str, code: Union[str, NoneType] = None) ‑> <a title="olca.schema.Location" href="schema.html#olca.schema.Location">Location</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a new location.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>The name of the new location.</dd>
+<dt><strong><code>code</code></strong> :&ensp;<code>Optional[str]</code></dt>
+<dd>An optional location code.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-py">de = olca.location_of('Germany', 'DE')
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def location_of(name: str, code: Optional[str] = None) -&gt; Location:
+    &#34;&#34;&#34;
+    Creates a new location.
+
+    Parameters
+    ----------
+    name: str
+        The name of the new location.
+
+    code: Optional[str]
+        An optional location code.
+
+    Example
+    -------
+    ```py
+    de = olca.location_of(&#39;Germany&#39;, &#39;DE&#39;)
+    ```
+    &#34;&#34;&#34;
+    location = Location()
+    _set_base_attributes(location, name)
+    location.code = code or name
+    return location</code></pre>
+</details>
+</dd>
 <dt id="olca.output_of"><code class="name flex">
 <span>def <span class="ident">output_of</span></span>(<span>process: <a title="olca.schema.Process" href="schema.html#olca.schema.Process">Process</a>, flow: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Flow" href="schema.html#olca.schema.Flow">Flow</a>], amount=1.0) ‑> <a title="olca.schema.Exchange" href="schema.html#olca.schema.Exchange">Exchange</a></span>
 </code></dt>
@@ -808,6 +930,105 @@ process.exchanges = [output]
     exchange = exchange_of(process, flow, amount)
     exchange.input = False
     return exchange</code></pre>
+</details>
+</dd>
+<dt id="olca.parameter_of"><code class="name flex">
+<span>def <span class="ident">parameter_of</span></span>(<span>name: str, value: Union[str, float], scope=ParameterScope.GLOBAL_SCOPE) ‑> <a title="olca.schema.Parameter" href="schema.html#olca.schema.Parameter">Parameter</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a new parameter.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>The name of the new parameter. Note that parameters can be used
+in formulas. So that the name of the parameter has to follow
+specific syntax rules, i.e. it cannot contain whitespaces or
+special characters.</dd>
+<dt><strong><code>value</code></strong> :&ensp;<code>Union[str, float]</code></dt>
+<dd>The parameter value. If a string is passed as value into this
+function we assume that this is a formula and we will create
+a dependent, calculated parameter. Otherwise we create an
+input parameter</dd>
+<dt><strong><code>scope</code></strong> :&ensp;<code>ParameterScope</code>, optional</dt>
+<dd>The scope of the parameter. If not specified otherwise this
+defaults to global scope.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-py">import olca
+
+# create a global input parameter
+global_scrap_rate = olca.parameter_of('global_scrap_rate', 1.0)
+
+# create a local calculated parameter of a process
+local_scrap_rate = olca.parameter_of(
+    'local_scrap_rate',
+    'global_scrap_rate * 0.9',
+    olca.ParameterScope.PROCESS_SCOPE)
+process = olca.process_of('Steel production')
+process.parameters = [local_scrap_rate]
+
+# insert this in a database
+with olca.Client() as client:
+    client.insert(global_scrap_rate)
+    client.insert(process)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def parameter_of(name: str, value: Union[str, float],
+                 scope=ParameterScope.GLOBAL_SCOPE) -&gt; Parameter:
+    &#34;&#34;&#34;
+    Creates a new parameter.
+
+    Parameters
+    ----------
+    name: str
+        The name of the new parameter. Note that parameters can be used
+        in formulas. So that the name of the parameter has to follow
+        specific syntax rules, i.e. it cannot contain whitespaces or
+        special characters.
+    value: Union[str, float]
+        The parameter value. If a string is passed as value into this
+        function we assume that this is a formula and we will create
+        a dependent, calculated parameter. Otherwise we create an
+        input parameter
+    scope: ParameterScope, optional
+        The scope of the parameter. If not specified otherwise this
+        defaults to global scope.
+
+    Example
+    -------
+    ```py
+    import olca
+
+    # create a global input parameter
+    global_scrap_rate = olca.parameter_of(&#39;global_scrap_rate&#39;, 1.0)
+
+    # create a local calculated parameter of a process
+    local_scrap_rate = olca.parameter_of(
+        &#39;local_scrap_rate&#39;,
+        &#39;global_scrap_rate * 0.9&#39;,
+        olca.ParameterScope.PROCESS_SCOPE)
+    process = olca.process_of(&#39;Steel production&#39;)
+    process.parameters = [local_scrap_rate]
+
+    # insert this in a database
+    with olca.Client() as client:
+        client.insert(global_scrap_rate)
+        client.insert(process)
+    ```
+    &#34;&#34;&#34;
+    param = Parameter()
+    _set_base_attributes(param, name)
+    param.parameter_scope = scope
+    if isinstance(value, str):
+        param.formula = value
+        param.input_parameter = False
+    else:
+        param.value = value
+        param.input_parameter = True
+    return param</code></pre>
 </details>
 </dd>
 <dt id="olca.process_of"><code class="name flex">
@@ -1131,7 +1352,9 @@ scrap = olca.waste_flow_of('Scrap', mass)
 <li><code><a title="olca.flow_of" href="#olca.flow_of">flow_of</a></code></li>
 <li><code><a title="olca.flow_property_of" href="#olca.flow_property_of">flow_property_of</a></code></li>
 <li><code><a title="olca.input_of" href="#olca.input_of">input_of</a></code></li>
+<li><code><a title="olca.location_of" href="#olca.location_of">location_of</a></code></li>
 <li><code><a title="olca.output_of" href="#olca.output_of">output_of</a></code></li>
+<li><code><a title="olca.parameter_of" href="#olca.parameter_of">parameter_of</a></code></li>
 <li><code><a title="olca.process_of" href="#olca.process_of">process_of</a></code></li>
 <li><code><a title="olca.product_flow_of" href="#olca.product_flow_of">product_flow_of</a></code></li>
 <li><code><a title="olca.ref" href="#olca.ref">ref</a></code></li>
