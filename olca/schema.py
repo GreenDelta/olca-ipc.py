@@ -231,6 +231,7 @@ class AllocationFactor(Entity):
 
     def __init__(self):
         super(AllocationFactor, self).__init__()
+        self.olca_type: str = 'AllocationFactor'
         self.allocation_type: Optional[AllocationType] = None
         self.product: Optional[FlowRef] = None
         self.value: Optional[float] = None
@@ -320,6 +321,7 @@ class CalculationSetup(Entity):
 
     def __init__(self):
         super(CalculationSetup, self).__init__()
+        self.olca_type: str = 'CalculationSetup'
         self.calculation_type: Optional[CalculationType] = None
         self.product_system: Optional[Ref] = None
         self.impact_method: Optional[Ref] = None
@@ -422,6 +424,7 @@ class DQIndicator(Entity):
 
     def __init__(self):
         super(DQIndicator, self).__init__()
+        self.olca_type: str = 'DQIndicator'
         self.name: Optional[str] = None
         self.position: Optional[int] = None
         self.scores: Optional[List[DQScore]] = None
@@ -480,6 +483,7 @@ class DQScore(Entity):
 
     def __init__(self):
         super(DQScore, self).__init__()
+        self.olca_type: str = 'DQScore'
         self.position: Optional[int] = None
         self.label: Optional[str] = None
         self.description: Optional[str] = None
@@ -591,6 +595,7 @@ class Exchange(Entity):
 
     def __init__(self):
         super(Exchange, self).__init__()
+        self.olca_type: str = 'Exchange'
         self.avoided_product: Optional[bool] = None
         self.cost_formula: Optional[str] = None
         self.cost_value: Optional[float] = None
@@ -729,6 +734,7 @@ class ExchangeRef(Entity):
 
     def __init__(self):
         super(ExchangeRef, self).__init__()
+        self.olca_type: str = 'ExchangeRef'
         self.internal_id: Optional[int] = None
 
     def to_json(self) -> dict:
@@ -771,13 +777,22 @@ class FlowMapRef(Entity):
         An optional reference to a unit of the flow for which the mapping is
         valid
 
+    provider: ProcessRef
+        In case of a product or waste flow a flow mapping can contain a
+        provider which is the process that produces the product or a waste
+        treatment process that consumes the waste flow. This is useful when we
+        want to apply mappings of product and waste flows on databases and link
+        them in the corresponding processes and product systems.
+
     """
 
     def __init__(self):
         super(FlowMapRef, self).__init__()
+        self.olca_type: str = 'FlowMapRef'
         self.flow: Optional[FlowRef] = None
         self.flow_property: Optional[Ref] = None
         self.unit: Optional[Ref] = None
+        self.provider: Optional[ProcessRef] = None
 
     def to_json(self) -> dict:
         json: dict = super(FlowMapRef, self).to_json()
@@ -787,6 +802,8 @@ class FlowMapRef(Entity):
             json['flowProperty'] = self.flow_property.to_json()
         if self.unit is not None:
             json['unit'] = self.unit.to_json()
+        if self.provider is not None:
+            json['provider'] = self.provider.to_json()
         return json
 
     def read_json(self, json: dict):
@@ -803,6 +820,10 @@ class FlowMapRef(Entity):
         if val is not None:
             self.unit = Ref()
             self.unit.read_json(val)
+        val = json.get('provider')
+        if val is not None:
+            self.provider = ProcessRef()
+            self.provider.read_json(val)
 
     @staticmethod
     def from_json(json: dict):
@@ -853,6 +874,7 @@ class FlowPropertyFactor(Entity):
 
     def __init__(self):
         super(FlowPropertyFactor, self).__init__()
+        self.olca_type: str = 'FlowPropertyFactor'
         self.flow_property: Optional[Ref] = None
         self.conversion_factor: Optional[float] = None
         self.reference_flow_property: Optional[bool] = None
@@ -906,6 +928,7 @@ class FlowResult(Entity):
 
     def __init__(self):
         super(FlowResult, self).__init__()
+        self.olca_type: str = 'FlowResult'
         self.flow: Optional[FlowRef] = None
         self.input: Optional[bool] = None
         self.value: Optional[float] = None
@@ -973,6 +996,7 @@ class ImpactFactor(Entity):
 
     def __init__(self):
         super(ImpactFactor, self).__init__()
+        self.olca_type: str = 'ImpactFactor'
         self.flow: Optional[FlowRef] = None
         self.location: Optional[Ref] = None
         self.flow_property: Optional[Ref] = None
@@ -1051,6 +1075,7 @@ class ImpactResult(Entity):
 
     def __init__(self):
         super(ImpactResult, self).__init__()
+        self.olca_type: str = 'ImpactResult'
         self.impact_category: Optional[ImpactCategoryRef] = None
         self.value: Optional[float] = None
 
@@ -1098,6 +1123,7 @@ class NwFactor(Entity):
 
     def __init__(self):
         super(NwFactor, self).__init__()
+        self.olca_type: str = 'NwFactor'
         self.impact_category: Optional[ImpactCategoryRef] = None
         self.normalisation_factor: Optional[float] = None
         self.weighting_factor: Optional[float] = None
@@ -1162,6 +1188,7 @@ class ParameterRedef(Entity):
 
     def __init__(self):
         super(ParameterRedef, self).__init__()
+        self.olca_type: str = 'ParameterRedef'
         self.context: Optional[Ref] = None
         self.description: Optional[str] = None
         self.name: Optional[str] = None
@@ -1235,6 +1262,7 @@ class ParameterRedefSet(Entity):
 
     def __init__(self):
         super(ParameterRedefSet, self).__init__()
+        self.olca_type: str = 'ParameterRedefSet'
         self.name: Optional[str] = None
         self.description: Optional[str] = None
         self.is_baseline: Optional[bool] = None
@@ -1338,6 +1366,7 @@ class ProcessDocumentation(Entity):
 
     def __init__(self):
         super(ProcessDocumentation, self).__init__()
+        self.olca_type: str = 'ProcessDocumentation'
         self.time_description: Optional[str] = None
         self.valid_until: Optional[str] = None
         self.valid_from: Optional[str] = None
@@ -1533,6 +1562,7 @@ class ProcessLink(Entity):
 
     def __init__(self):
         super(ProcessLink, self).__init__()
+        self.olca_type: str = 'ProcessLink'
         self.provider: Optional[Ref] = None
         self.flow: Optional[Ref] = None
         self.process: Optional[Ref] = None
@@ -1655,6 +1685,7 @@ class SimpleResult(Entity):
 
     def __init__(self):
         super(SimpleResult, self).__init__()
+        self.olca_type: str = 'SimpleResult'
         self.flow_results: Optional[List[FlowResult]] = None
         self.impact_results: Optional[List[ImpactResult]] = None
 
@@ -1723,6 +1754,7 @@ class SocialAspect(Entity):
 
     def __init__(self):
         super(SocialAspect, self).__init__()
+        self.olca_type: str = 'SocialAspect'
         self.activity_value: Optional[float] = None
         self.comment: Optional[str] = None
         self.quality: Optional[str] = None
@@ -1838,6 +1870,7 @@ class Uncertainty(Entity):
 
     def __init__(self):
         super(Uncertainty, self).__init__()
+        self.olca_type: str = 'Uncertainty'
         self.distribution_type: Optional[UncertaintyType] = None
         self.mean: Optional[float] = None
         self.mean_formula: Optional[str] = None
@@ -2024,6 +2057,7 @@ class FlowMap(RootEntity):
 
     def __init__(self):
         super(FlowMap, self).__init__()
+        self.olca_type: str = 'FlowMap'
         self.source: Optional[Ref] = None
         self.target: Optional[Ref] = None
         self.mappings: Optional[List[FlowMapEntry]] = None
@@ -2084,6 +2118,7 @@ class FlowMapEntry(RootEntity):
 
     def __init__(self):
         super(FlowMapEntry, self).__init__()
+        self.olca_type: str = 'FlowMapEntry'
         self.from_: Optional[FlowMapRef] = None
         self.to: Optional[FlowMapRef] = None
         self.conversion_factor: Optional[float] = None
@@ -2136,6 +2171,7 @@ class NwSet(RootEntity):
 
     def __init__(self):
         super(NwSet, self).__init__()
+        self.olca_type: str = 'NwSet'
         self.weighted_score_unit: Optional[str] = None
         self.factors: Optional[List[NwFactor]] = None
 
@@ -2188,6 +2224,7 @@ class Ref(RootEntity):
 
     def __init__(self):
         super(Ref, self).__init__()
+        self.olca_type: str = 'Ref'
         self.category_path: Optional[List[str]] = None
 
     def to_json(self) -> dict:
@@ -2238,6 +2275,7 @@ class Unit(RootEntity):
 
     def __init__(self):
         super(Unit, self).__init__()
+        self.olca_type: str = 'Unit'
         self.conversion_factor: Optional[float] = None
         self.reference_unit: Optional[bool] = None
         self.synonyms: Optional[List[str]] = None
@@ -2302,6 +2340,7 @@ class Actor(CategorizedEntity):
 
     def __init__(self):
         super(Actor, self).__init__()
+        self.olca_type: str = 'Actor'
         self.address: Optional[str] = None
         self.city: Optional[str] = None
         self.country: Optional[str] = None
@@ -2381,6 +2420,7 @@ class Category(CategorizedEntity):
 
     def __init__(self):
         super(Category, self).__init__()
+        self.olca_type: str = 'Category'
         self.model_type: Optional[ModelType] = None
 
     def to_json(self) -> dict:
@@ -2418,6 +2458,7 @@ class Currency(CategorizedEntity):
 
     def __init__(self):
         super(Currency, self).__init__()
+        self.olca_type: str = 'Currency'
         self.code: Optional[str] = None
         self.conversion_factor: Optional[float] = None
         self.reference_currency: Optional[Ref] = None
@@ -2490,6 +2531,7 @@ class DQSystem(CategorizedEntity):
 
     def __init__(self):
         super(DQSystem, self).__init__()
+        self.olca_type: str = 'DQSystem'
         self.has_uncertainties: Optional[bool] = None
         self.source: Optional[Ref] = None
         self.indicators: Optional[List[DQIndicator]] = None
@@ -2572,6 +2614,7 @@ class Flow(CategorizedEntity):
 
     def __init__(self):
         super(Flow, self).__init__()
+        self.olca_type: str = 'Flow'
         self.flow_type: Optional[FlowType] = None
         self.cas: Optional[str] = None
         self.formula: Optional[str] = None
@@ -2654,6 +2697,7 @@ class FlowProperty(CategorizedEntity):
 
     def __init__(self):
         super(FlowProperty, self).__init__()
+        self.olca_type: str = 'FlowProperty'
         self.flow_property_type: Optional[FlowPropertyType] = None
         self.unit_group: Optional[Ref] = None
 
@@ -2755,6 +2799,7 @@ class ImpactCategory(CategorizedEntity):
 
     def __init__(self):
         super(ImpactCategory, self).__init__()
+        self.olca_type: str = 'ImpactCategory'
         self.reference_unit_name: Optional[str] = None
         self.parameters: Optional[List[Parameter]] = None
         self.impact_factors: Optional[List[ImpactFactor]] = None
@@ -2850,6 +2895,7 @@ class ImpactMethod(CategorizedEntity):
 
     def __init__(self):
         super(ImpactMethod, self).__init__()
+        self.olca_type: str = 'ImpactMethod'
         self.impact_categories: Optional[List[ImpactCategoryRef]] = None
         self.nw_sets: Optional[List[NwSet]] = None
 
@@ -2911,6 +2957,7 @@ class Location(CategorizedEntity):
 
     def __init__(self):
         super(Location, self).__init__()
+        self.olca_type: str = 'Location'
         self.code: Optional[str] = None
         self.latitude: Optional[float] = None
         self.longitude: Optional[float] = None
@@ -2985,6 +3032,7 @@ class Parameter(CategorizedEntity):
 
     def __init__(self):
         super(Parameter, self).__init__()
+        self.olca_type: str = 'Parameter'
         self.parameter_scope: Optional[ParameterScope] = None
         self.input_parameter: Optional[bool] = None
         self.value: Optional[float] = None
@@ -3096,6 +3144,7 @@ class Process(CategorizedEntity):
 
     def __init__(self):
         super(Process, self).__init__()
+        self.olca_type: str = 'Process'
         self.allocation_factors: Optional[List[AllocationFactor]] = None
         self.default_allocation_method: Optional[AllocationType] = None
         self.exchanges: Optional[List[Exchange]] = None
@@ -3307,6 +3356,7 @@ class ProductSystem(CategorizedEntity):
 
     def __init__(self):
         super(ProductSystem, self).__init__()
+        self.olca_type: str = 'ProductSystem'
         self.processes: Optional[List[ProcessRef]] = None
         self.reference_process: Optional[ProcessRef] = None
         self.reference_exchange: Optional[Exchange] = None
@@ -3406,6 +3456,7 @@ class Project(CategorizedEntity):
 
     def __init__(self):
         super(Project, self).__init__()
+        self.olca_type: str = 'Project'
         self.impact_method: Optional[Ref] = None
         self.nw_set: Optional[NwSet] = None
 
@@ -3460,6 +3511,7 @@ class SocialIndicator(CategorizedEntity):
 
     def __init__(self):
         super(SocialIndicator, self).__init__()
+        self.olca_type: str = 'SocialIndicator'
         self.activity_variable: Optional[str] = None
         self.activity_quantity: Optional[Ref] = None
         self.activity_unit: Optional[Ref] = None
@@ -3529,6 +3581,7 @@ class Source(CategorizedEntity):
 
     def __init__(self):
         super(Source, self).__init__()
+        self.olca_type: str = 'Source'
         self.url: Optional[str] = None
         self.text_reference: Optional[str] = None
         self.year: Optional[int] = None
@@ -3586,6 +3639,7 @@ class UnitGroup(CategorizedEntity):
 
     def __init__(self):
         super(UnitGroup, self).__init__()
+        self.olca_type: str = 'UnitGroup'
         self.default_flow_property: Optional[Ref] = None
         self.units: Optional[List[Unit]] = None
 

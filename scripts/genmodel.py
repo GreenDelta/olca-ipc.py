@@ -20,8 +20,9 @@ enumerations to the console:
 """
 
 from os import path
+from typing import Optional
 
-import model
+import scripts.model as model
 
 YAML_DIR = path.abspath(path.dirname(__file__)) + '/../../olca-schema/yaml'
 
@@ -76,12 +77,18 @@ def print_class(c: model.ClassType, m: model.Model):
     t += class_attribute_docs(c)
     t += '    """\n\n'
 
+    # constructor
     t += '    def __init__(self):\n'
     if c.name == 'Entity':
         t += '        self.id: str = \'\'\n'
         t += '        self.olca_type: str = \'\'\n'
     else:
         t += '        super(%s, self).__init__()\n' % c.name
+
+    type_label = get_type_label(c)
+    if type_label is not None:
+        t += '        self.olca_type: str = \'%s\'\n' % type_label
+
     for prop in c.properties:
         attr = to_snake_case(prop.name)
         ptype = py_type(prop.field_type)
@@ -90,6 +97,22 @@ def print_class(c: model.ClassType, m: model.Model):
     print_to_json(c, m)
     print_read_json(c, m)
     print_from_json(c)
+
+
+def get_type_label(c: model.ClassType) -> Optional[str]:
+    """
+    Get the type label for the given model class.
+
+    For the data exchange, we need to tag our JSON objects with type labels
+    (the '@type' field). In this function we try to find the correct type
+    label for the class.
+    """
+    super_types = ('Entity', 'RootEntity', 'CategorizedEntity')
+    if c.name in super_types:
+        # no type label for abstract types
+        return None
+    if c.super_class in super_types:
+        return c.name
 
 
 def print_to_json(c: model.ClassType, m: model.Model):
