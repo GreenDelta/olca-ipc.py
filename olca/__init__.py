@@ -42,7 +42,7 @@ def ref(model_type: Union[T, str], uid: str, name: Optional[str] = None) -> Ref:
     ```
     """
     r = Ref()
-    r.olca_type = model_type if isinstance(model_type, str)\
+    r.olca_type = model_type if isinstance(model_type, str) \
         else model_type.__name__
     r.id = id
     if name is not None:
@@ -69,7 +69,6 @@ def unit_of(name='', conversion_factor=1.0) -> Unit:
     -------
 
     ```py
-    import olca
     kg = olca.unit_of('kg')
     ```
     """
@@ -97,7 +96,6 @@ def unit_group_of(name: str, unit: Union[str, Unit]) -> UnitGroup:
     Example
     -------
     ```py
-    import olca
     units = olca.unit_group_of('Units of mass', 'kg')
     ```
     """
@@ -125,7 +123,6 @@ def flow_property_of(name: str,
     Example
     -------
     ```py
-    import olca
     units = olca.unit_group_of('Units of mass', 'kg')
     fp = olca.flow_property_of('Mass', units)
     ```
@@ -138,7 +135,114 @@ def flow_property_of(name: str,
 
 def flow_of(name: str, flow_type: FlowType,
             flow_property: Union[Ref, FlowProperty]):
-    pass
+    """
+    Creates a new flow.
+
+    See also the more convenient methods:
+    * product_flow_of
+    * waste_flow_of
+    * elementary_flow_of
+
+    Parameters
+    ----------
+    name: str
+        The name of the new flow.
+
+    flow_type: FlowType
+        The type of the new flow (product, waste, or elementary flow).
+
+    flow_property: Union[Ref, FlowProperty]
+        The (reference to the) flow property (quantity) of the flow.
+
+    Example
+    -------
+    ```py
+    units = olca.unit_group_of('Units of mass', 'kg')
+    mass = olca.flow_property_of('Mass', units)
+    steel = olca.flow_of('Steel', olca.FlowType.PRODUCT_FLOW, mass)
+    ```
+    """
+
+    flow = Flow()
+    _set_base_attributes(flow, name)
+    flow.flow_type = flow_type
+
+    prop = FlowPropertyFactor()
+    prop.conversion_factor = 1.0
+    prop.reference_flow_property = True
+    prop.flow_property = ref(
+        'FlowProperty', flow_property.id, flow_property.name)
+    flow.flow_properties = [prop]
+    return flow
+
+
+def product_flow_of(name: str, flow_property: Union[Ref, FlowProperty]) -> Flow:
+    """
+    Creates a new product flow.
+
+    Parameters
+    ----------
+    name: str
+        The name of the new flow.
+
+    flow_property: Union[Ref, FlowProperty]
+        The (reference to the) flow property (quantity) of the flow.
+
+    Example
+    -------
+    ```py
+    units = olca.unit_group_of('Units of mass', 'kg')
+    mass = olca.flow_property_of('Mass', units)
+    steel = olca.product_flow_of('Steel', mass)
+    ```
+    """
+    return flow_of(name, FlowType.PRODUCT_FLOW, flow_property)
+
+
+def waste_flow_of(name: str, flow_property: Union[Ref, FlowProperty]) -> Flow:
+    """
+    Creates a new waste flow.
+
+    Parameters
+    ----------
+    name: str
+        The name of the new flow.
+
+    flow_property: Union[Ref, FlowProperty]
+        The (reference to the) flow property (quantity) of the flow.
+
+    Example
+    -------
+    ```py
+    units = olca.unit_group_of('Units of mass', 'kg')
+    mass = olca.flow_property_of('Mass', units)
+    scrap = olca.waste_flow_of('Scrap', mass)
+    ```
+    """
+    return flow_of(name, FlowType.WASTE_FLOW, flow_property)
+
+
+def elementary_flow_of(name: str, flow_property: Union[Ref, FlowProperty]) -> Flow:
+    """
+    Creates a new elementary flow.
+
+    Parameters
+    ----------
+    name: str
+        The name of the new flow.
+
+    flow_property: Union[Ref, FlowProperty]
+        The (reference to the) flow property (quantity) of the flow.
+
+    Example
+    -------
+    ```py
+    units = olca.unit_group_of('Units of mass', 'kg')
+    mass = olca.flow_property_of('Mass', units)
+    co2 = olca.elementary_flow_of('CO2', mass)
+    ```
+    """
+    return flow_of(name, FlowType.ELEMENTARY_FLOW, flow_property)
 
 
 def _set_base_attributes(entity: RootEntity, name: str):
