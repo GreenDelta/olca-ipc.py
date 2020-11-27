@@ -1,7 +1,10 @@
+import datetime
+import uuid
+
 from .ipc import *
 from .schema import *
 
-from typing import Optional, TypeVar
+from typing import Optional, TypeVar, Union
 
 T = TypeVar('T')
 
@@ -44,3 +47,69 @@ def ref(model_type: T, id: str, name: Optional[str] = None) -> Ref:
     if name is not None:
         r.name = name
     return r
+
+
+def unit_of(name='', conversion_factor=1.0) -> Unit:
+    """
+    Creates a new unit with the given name.
+
+    Parameters
+    ----------
+
+    name: str
+        The name of the unit, e.g. 'kg'
+
+    conversion_factor: float, optional
+        An optional conversion factor to the reference unit
+        of the unit group where this unit lives. Defaults
+        to 1.0
+
+    Example
+    -------
+
+    ```py
+    import olca
+    kg = olca.unit_of('kg')
+    ```
+    """
+    unit = Unit()
+    unit.id = str(uuid.uuid4())
+    unit.name = name
+    unit.conversion_factor = conversion_factor
+    unit.reference_unit = conversion_factor == 1.0
+    return unit
+
+
+def unit_group_of(name: str, unit: Union[str, Unit]) -> UnitGroup:
+    """
+    Creates a new unit group with the given name and reference unit.
+
+    Parameters
+    ----------
+    name: str
+        The name of the new unit group.
+
+    unit: Union[str, Unit]
+        The reference unit or the name of the reference unit of
+        the new unit group.
+
+    Example
+    -------
+    ```py
+    import olca
+    units = olca.unit_group_of('Units of mass', 'kg')
+    ```
+    """
+    u: Unit = unit if isinstance(unit, Unit) else unit_of(unit)
+    u.reference_unit = True
+    group = UnitGroup()
+    _set_base_attributes(group, name)
+    group.units = [u]
+    return group
+
+
+def _set_base_attributes(entity: RootEntity, name: str):
+    entity.id = str(uuid.uuid4())
+    entity.name = name
+    entity.version = '00.00.000'
+    entity.last_change = datetime.datetime.utcnow().isoformat() + 'Z'
