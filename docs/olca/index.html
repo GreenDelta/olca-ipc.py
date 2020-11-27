@@ -27,10 +27,13 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from .ipc import *
+<pre><code class="python">import datetime
+import uuid
+
+from .ipc import *
 from .schema import *
 
-from typing import Optional, TypeVar
+from typing import Optional, TypeVar, Union
 
 T = TypeVar(&#39;T&#39;)
 
@@ -72,7 +75,99 @@ def ref(model_type: T, id: str, name: Optional[str] = None) -&gt; Ref:
     r.id = id
     if name is not None:
         r.name = name
-    return r</code></pre>
+    return r
+
+
+def unit_of(name=&#39;&#39;, conversion_factor=1.0) -&gt; Unit:
+    &#34;&#34;&#34;
+    Creates a new unit.
+
+    Parameters
+    ----------
+
+    name: str
+        The name of the unit, e.g. &#39;kg&#39;
+
+    conversion_factor: float, optional
+        An optional conversion factor to the reference unit
+        of the unit group where this unit lives. Defaults
+        to 1.0
+
+    Example
+    -------
+
+    ```py
+    import olca
+    kg = olca.unit_of(&#39;kg&#39;)
+    ```
+    &#34;&#34;&#34;
+    unit = Unit()
+    unit.id = str(uuid.uuid4())
+    unit.name = name
+    unit.conversion_factor = conversion_factor
+    unit.reference_unit = conversion_factor == 1.0
+    return unit
+
+
+def unit_group_of(name: str, unit: Union[str, Unit]) -&gt; UnitGroup:
+    &#34;&#34;&#34;
+    Creates a new unit group.
+
+    Parameters
+    ----------
+    name: str
+        The name of the new unit group.
+
+    unit: Union[str, Unit]
+        The reference unit or the name of the reference unit of
+        the new unit group.
+
+    Example
+    -------
+    ```py
+    import olca
+    units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
+    ```
+    &#34;&#34;&#34;
+    u: Unit = unit if isinstance(unit, Unit) else unit_of(unit)
+    u.reference_unit = True
+    group = UnitGroup()
+    _set_base_attributes(group, name)
+    group.units = [u]
+    return group
+
+
+def flow_property_of(name: str,
+                     unit_group: Union[Ref, UnitGroup]) -&gt; FlowProperty:
+    &#34;&#34;&#34;
+    Creates a new flow property (quantity).
+
+    Parameters
+    ----------
+    name: str
+        The name of the new flow property
+
+    unit_group: Union[Ref, UnitGroup]
+        The unit group or reference to the unit group if this flow property.
+
+    Example
+    -------
+    ```py
+    import olca
+    units = olca.unit
+    ```
+    &#34;&#34;&#34;
+    fp = FlowProperty()
+    _set_base_attributes(fp, name)
+    fp.unit_group = unit_group
+    return fp
+
+
+def _set_base_attributes(entity: RootEntity, name: str):
+    entity.id = str(uuid.uuid4())
+    entity.name = name
+    entity.version = &#39;00.00.000&#39;
+    entity.last_change = datetime.datetime.utcnow().isoformat() + &#39;Z&#39;</code></pre>
 </details>
 </section>
 <section>
@@ -101,6 +196,52 @@ def ref(model_type: T, id: str, name: Optional[str] = None) -&gt; Ref:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="olca.flow_property_of"><code class="name flex">
+<span>def <span class="ident">flow_property_of</span></span>(<span>name: str, unit_group: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.UnitGroup" href="schema.html#olca.schema.UnitGroup">UnitGroup</a>]) ‑> <a title="olca.schema.FlowProperty" href="schema.html#olca.schema.FlowProperty">FlowProperty</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a new flow property (quantity).</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>The name of the new flow property</dd>
+<dt><strong><code>unit_group</code></strong> :&ensp;<code>Union[Ref, UnitGroup]</code></dt>
+<dd>The unit group or reference to the unit group if this flow property.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-py">import olca
+units = olca.unit
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def flow_property_of(name: str,
+                     unit_group: Union[Ref, UnitGroup]) -&gt; FlowProperty:
+    &#34;&#34;&#34;
+    Creates a new flow property (quantity).
+
+    Parameters
+    ----------
+    name: str
+        The name of the new flow property
+
+    unit_group: Union[Ref, UnitGroup]
+        The unit group or reference to the unit group if this flow property.
+
+    Example
+    -------
+    ```py
+    import olca
+    units = olca.unit
+    ```
+    &#34;&#34;&#34;
+    fp = FlowProperty()
+    _set_base_attributes(fp, name)
+    fp.unit_group = unit_group
+    return fp</code></pre>
+</details>
+</dd>
 <dt id="olca.ref"><code class="name flex">
 <span>def <span class="ident">ref</span></span>(<span>model_type: ~T, id: str, name: Union[str, NoneType] = None) ‑> <a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a></span>
 </code></dt>
@@ -171,6 +312,108 @@ inspecting a data set.</p>
     return r</code></pre>
 </details>
 </dd>
+<dt id="olca.unit_group_of"><code class="name flex">
+<span>def <span class="ident">unit_group_of</span></span>(<span>name: str, unit: Union[str, <a title="olca.schema.Unit" href="schema.html#olca.schema.Unit">Unit</a>]) ‑> <a title="olca.schema.UnitGroup" href="schema.html#olca.schema.UnitGroup">UnitGroup</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a new unit group.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>The name of the new unit group.</dd>
+<dt><strong><code>unit</code></strong> :&ensp;<code>Union[str, Unit]</code></dt>
+<dd>The reference unit or the name of the reference unit of
+the new unit group.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-py">import olca
+units = olca.unit_group_of('Units of mass', 'kg')
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def unit_group_of(name: str, unit: Union[str, Unit]) -&gt; UnitGroup:
+    &#34;&#34;&#34;
+    Creates a new unit group.
+
+    Parameters
+    ----------
+    name: str
+        The name of the new unit group.
+
+    unit: Union[str, Unit]
+        The reference unit or the name of the reference unit of
+        the new unit group.
+
+    Example
+    -------
+    ```py
+    import olca
+    units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
+    ```
+    &#34;&#34;&#34;
+    u: Unit = unit if isinstance(unit, Unit) else unit_of(unit)
+    u.reference_unit = True
+    group = UnitGroup()
+    _set_base_attributes(group, name)
+    group.units = [u]
+    return group</code></pre>
+</details>
+</dd>
+<dt id="olca.unit_of"><code class="name flex">
+<span>def <span class="ident">unit_of</span></span>(<span>name='', conversion_factor=1.0) ‑> <a title="olca.schema.Unit" href="schema.html#olca.schema.Unit">Unit</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a new unit.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>The name of the unit, e.g. 'kg'</dd>
+<dt><strong><code>conversion_factor</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd>An optional conversion factor to the reference unit
+of the unit group where this unit lives. Defaults
+to 1.0</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-py">import olca
+kg = olca.unit_of('kg')
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def unit_of(name=&#39;&#39;, conversion_factor=1.0) -&gt; Unit:
+    &#34;&#34;&#34;
+    Creates a new unit.
+
+    Parameters
+    ----------
+
+    name: str
+        The name of the unit, e.g. &#39;kg&#39;
+
+    conversion_factor: float, optional
+        An optional conversion factor to the reference unit
+        of the unit group where this unit lives. Defaults
+        to 1.0
+
+    Example
+    -------
+
+    ```py
+    import olca
+    kg = olca.unit_of(&#39;kg&#39;)
+    ```
+    &#34;&#34;&#34;
+    unit = Unit()
+    unit.id = str(uuid.uuid4())
+    unit.name = name
+    unit.conversion_factor = conversion_factor
+    unit.reference_unit = conversion_factor == 1.0
+    return unit</code></pre>
+</details>
+</dd>
 </dl>
 </section>
 <section>
@@ -192,7 +435,10 @@ inspecting a data set.</p>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="olca.flow_property_of" href="#olca.flow_property_of">flow_property_of</a></code></li>
 <li><code><a title="olca.ref" href="#olca.ref">ref</a></code></li>
+<li><code><a title="olca.unit_group_of" href="#olca.unit_group_of">unit_group_of</a></code></li>
+<li><code><a title="olca.unit_of" href="#olca.unit_of">unit_of</a></code></li>
 </ul>
 </li>
 </ul>

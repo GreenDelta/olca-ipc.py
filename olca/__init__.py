@@ -9,7 +9,7 @@ from typing import Optional, TypeVar, Union
 T = TypeVar('T')
 
 
-def ref(model_type: T, id: str, name: Optional[str] = None) -> Ref:
+def ref(model_type: Union[T, str], uid: str, name: Optional[str] = None) -> Ref:
     """
     Creates a new reference for a data set with the given type and ID.
 
@@ -23,10 +23,10 @@ def ref(model_type: T, id: str, name: Optional[str] = None) -> Ref:
     Parameters
     ----------
 
-    model_type: T
-        The class of the model type of the reference, e.g. olca.Flow
+    model_type: Union[T, str]
+        The class of the model type of the reference, e.g. olca.Flow of 'Flow'
 
-    id: str
+    uid: str
         The ID (UUID) of the model / data set this reference points to.
 
     name: Optional[str]
@@ -42,7 +42,8 @@ def ref(model_type: T, id: str, name: Optional[str] = None) -> Ref:
     ```
     """
     r = Ref()
-    r.olca_type = model_type.__name__
+    r.olca_type = model_type if isinstance(model_type, str)\
+        else model_type.__name__
     r.id = id
     if name is not None:
         r.name = name
@@ -51,7 +52,7 @@ def ref(model_type: T, id: str, name: Optional[str] = None) -> Ref:
 
 def unit_of(name='', conversion_factor=1.0) -> Unit:
     """
-    Creates a new unit with the given name.
+    Creates a new unit.
 
     Parameters
     ----------
@@ -82,7 +83,7 @@ def unit_of(name='', conversion_factor=1.0) -> Unit:
 
 def unit_group_of(name: str, unit: Union[str, Unit]) -> UnitGroup:
     """
-    Creates a new unit group with the given name and reference unit.
+    Creates a new unit group.
 
     Parameters
     ----------
@@ -106,6 +107,38 @@ def unit_group_of(name: str, unit: Union[str, Unit]) -> UnitGroup:
     _set_base_attributes(group, name)
     group.units = [u]
     return group
+
+
+def flow_property_of(name: str,
+                     unit_group: Union[Ref, UnitGroup]) -> FlowProperty:
+    """
+    Creates a new flow property (quantity).
+
+    Parameters
+    ----------
+    name: str
+        The name of the new flow property
+
+    unit_group: Union[Ref, UnitGroup]
+        The unit group or reference to the unit group if this flow property.
+
+    Example
+    -------
+    ```py
+    import olca
+    units = olca.unit_group_of('Units of mass', 'kg')
+    fp = olca.flow_property_of('Mass', units)
+    ```
+    """
+    fp = FlowProperty()
+    _set_base_attributes(fp, name)
+    fp.unit_group = ref('UnitGroup', unit_group.id, unit_group.name)
+    return fp
+
+
+def flow_of(name: str, flow_type: FlowType,
+            flow_property: Union[Ref, FlowProperty]):
+    pass
 
 
 def _set_base_attributes(entity: RootEntity, name: str):

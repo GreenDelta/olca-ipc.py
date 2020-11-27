@@ -16,6 +16,13 @@ class TestFactory(unittest.TestCase):
         self.assertEqual(units.olca_type, 'UnitGroup')
         self.assertEqual(units.units[0].name, 'kg')
 
+    def test_flow_property(self):
+        units = olca.unit_group_of('Units of mass', 'kg')
+        fp = olca.flow_property_of('Mass', units)
+        self.assertEqual(fp.olca_type, 'FlowProperty')
+        self.assertEqual(fp.name, 'Mass')
+        self.assertEqual(fp.unit_group.name, units.name)
+
 
 if __name__ == '__main__':
     unittest.main()
