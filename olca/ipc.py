@@ -1,12 +1,21 @@
+import logging as log
 import os
 
 import requests
 import olca.schema as schema
 
-from enum import Enum
-from typing import Iterator, List, Optional, Type, TypeVar
+from typing import Any, Iterator, List, Optional, Tuple, Type, TypeVar, Union
 
 T = TypeVar('T')
+ModelType = Union[Type[schema.RootEntity], str]
+
+
+def _model_type(param: ModelType) -> str:
+    """Get the @type tag for a JSON request."""
+    if isinstance(param, str):
+        return param
+    else:
+        return param.__name__
 
 
 class ProductResult(schema.Entity):
@@ -174,7 +183,11 @@ class Client(object):
         if model is None:
             return
         json = model.to_json()
-        return self.__post('insert/model', json)
+        resp, err = self.__post('insert/model', json)
+        if err:
+            log.error('failed to insert model: %s', err)
+            return err
+        return resp
 
     def update(self, model: schema.RootEntity):
         """
@@ -183,7 +196,11 @@ class Client(object):
         if model is None:
             return
         json = model.to_json()
-        return self.__post('update/model', json)
+        resp, err = self.__post('update/model', json)
+        if err:
+            log.error('failed to update model: %s', err)
+            return err
+        return resp
 
     def delete(self, model: schema.RootEntity):
         """
@@ -192,7 +209,11 @@ class Client(object):
         if model is None:
             return
         json = model.to_json()
-        return self.__post('delete/model', json)
+        resp, err = self.__post('delete/model', json)
+        if err:
+            log.error('failed to delete model: %s', err)
+            return err
+        return resp
 
     def calculate(self, setup: schema.CalculationSetup) -> schema.SimpleResult:
         """
@@ -226,9 +247,10 @@ class Client(object):
         client.dispose(result)
         ```
         """
-        if setup is None:
-            raise ValueError('Invalid calculation setup')
-        resp = self.__post('calculate', setup.to_json())
+        resp, err = self.__post('calculate', setup.to_json())
+        if err:
+            log.error('calculation failed: %s', err)
+            return schema.SimpleResult()
         return schema.SimpleResult.from_json(resp)
 
     def simulator(self, setup: schema.CalculationSetup) -> schema.Ref:
@@ -280,10 +302,11 @@ class Client(object):
         client.dispose(simulator)
         ```
         """
-        if setup is None:
-            raise ValueError('Invalid calculation setup')
-        r = self.__post('simulator', setup.to_json())
-        return schema.Ref.from_json(r)
+        resp, err = self.__post('simulator', setup.to_json())
+        if err:
+            log.error('failed to create simulator: %s', err)
+            return schema.Ref()
+        return schema.Ref.from_json(resp)
 
     def next_simulation(self, simulator: schema.Ref) -> schema.SimpleResult:
         """
@@ -301,31 +324,57 @@ class Client(object):
         """
         if simulator is None:
             raise ValueError('No simulator given')
-        resp = self.__post('next/simulation', simulator.to_json())
+        resp, err = self.__post('next/simulation', simulator.to_json())
+        if err:
+            log.error('failed to get simulation result: %s', err)
+            return schema.SimpleResult()
         return schema.SimpleResult.from_json(resp)
 
-    def get_descriptors(self, model_type: Type[T]) -> Iterator[schema.Ref]:
+    def get_descriptors(self, model_type: ModelType) -> Iterator[schema.Ref]:
         """
-        Get the list of descriptors of the entities with the given model type.
+        deprecated:: use `get_descriptors_of` instead
+        """
+        return self.get_descriptors_of(model_type)
+
+    def get_descriptors_of(self, model_type: ModelType) -> Iterator[schema.Ref]:
+        """
+        Get the descriptors of the entities with the type from the database.
 
         Parameters
         ----------
-        model_type: T
-            A class, e.g. olca.Flow
+        model_type: ModelType
+            The model type, e.g. olca.Flow or `'Flow'`
 
         Returns
         -------
         Iterator[schema.Ref]
             An iterator with Ref objects.
+
+        Example:
+        --------
+        ```py
+        import olca
+
+        with Client() as client:
+            for a in client.get_descriptors('Actor'):
+                print('found Actor: %s' % a.name)
+            for s in client.get_descriptors(olca.Source):
+                print('found Source: %s' % s.name)
+        ```
+
         """
-        params = {'@type': model_type.__name__}
-        result = self.__post('get/descriptors', params)
+        params = {'@type': _model_type(model_type)}
+        result, err = self.__post('get/descriptors', params)
+        if err:
+            log.error('failed to get descriptors of type %s: %s',
+                      model_type, err)
+            return []
         for r in result:
             yield schema.Ref.from_json(r)
 
-    def get_descriptor(self, model_type: Type[T], model_id: str) -> schema.Ref:
+    def get_descriptor(self, model_type: ModelType, uid='', name='') -> schema.Ref:
         """
-        Get a descriptor of the model with the given ID.
+        Get a descriptor of the model with the given ID or name from the database.
 
         Models like product systems can be very large but often we just need
         a reference to a model (e.g. in a calculation setup). In this case
@@ -335,10 +384,12 @@ class Client(object):
 
         Parameters
         ----------
-        model_type: T
-            A model class, e.g. olca.ProductSystem
-        model_id: str
+        model_type: ModelType
+            The type of the model, e.g. olca.ProductSystem or `'ProductSystem'`
+        uid: str, optional
             The ID of the model.
+        name: str, optional
+            The name of the model.
 
         Returns
         -------
@@ -357,7 +408,7 @@ class Client(object):
         print(system_ref.to_json())
         ```
         """
-        params = {'@type': model_type.__name__, '@id': model_id}
+        params = {'@type': model_type.__name__, '@id': uid}
         result = self.__post('get/descriptor', params)
         return schema.Ref.from_json(result)
 
@@ -629,9 +680,11 @@ class Client(object):
         ```
         """
 
-        raw = self.__post('get/inventory/total_requirements', {
+        raw, err = self.__post('get/inventory/total_requirements', {
             'resultId': result.id
         })
+        if err:
+            log.error('failed to get total requirements %s', err)
         return [ProductResult.from_json(it) for it in raw]
 
     def lcia(self, result: schema.SimpleResult) -> List[schema.ImpactResult]:
@@ -654,9 +707,12 @@ class Client(object):
         ```
         """
 
-        raw = self.__post('get/impacts', {
+        raw, err = self.__post('get/impacts', {
             'resultId': result.id,
         })
+        if err:
+            log.error('failed to get impact results: %s', err)
+            return []
         return [schema.ImpactResult.from_json(it) for it in raw]
 
     def lcia_flow_contributions(self, result: schema.SimpleResult,
@@ -687,10 +743,13 @@ class Client(object):
         ```
         """
 
-        raw = self.__post('get/impacts/contributions/flows', {
+        raw, err = self.__post('get/impacts/contributions/flows', {
             'resultId': result.id,
             'impactCategory': impact.to_json(),
         })
+        if err:
+            log.error('failed to get contribution items: %s', err)
+            return []
         return [ContributionItem.from_json(it) for it in raw]
 
     def lcia_location_contributions(self, result: schema.SimpleResult,
@@ -723,10 +782,13 @@ class Client(object):
         ```
         """
 
-        raw = self.__post('get/impacts/contributions/locations', {
+        raw, err = self.__post('get/impacts/contributions/locations', {
             'resultId': result.id,
             'impactCategory': impact.to_json(),
         })
+        if err:
+            log.error('Failed to get contribution items: %s', err)
+            return []
         return [ContributionItem.from_json(it) for it in raw]
 
     def lcia_process_contributions(self, result: schema.SimpleResult,
@@ -759,13 +821,21 @@ class Client(object):
         ```
         """
 
-        raw = self.__post('get/impacts/contributions/processes', {
+        raw, err = self.__post('get/impacts/contributions/processes', {
             'resultId': result.id,
             'impactCategory': impact.to_json(),
         })
+        if err:
+            log.error('Failed to get contribution items: %s', err)
+            return []
         return [ContributionItem.from_json(it) for it in raw]
 
-    def __post(self, method: str, params):
+    def __post(self, method: str, params) -> Tuple[Any, Optional[str]]:
+        """
+        Performs a request with the given parameters.
+
+        It returns a tuple (result, error).
+        """
         req = {
             'jsonrpc': '2.0',
             'id': self.next_id,
@@ -776,10 +846,10 @@ class Client(object):
         resp = requests.post(self.url, json=req).json()  # type: dict
         err = resp.get('error')  # type: dict
         if err is not None:
-            msg = '%i: %s' % (err.get('code'), err.get('message'))
-            raise Exception(msg)
+            err_msg = '%i: %s' % (err.get('code'), err.get('message'))
+            return None, err_msg
         result = resp.get('result')
         if result is None:
-            raise Exception(
-                'No error and no result: invalid JSON-RPC response')
-        return result
+            err_msg = 'No error and no result: invalid JSON-RPC response'
+            return None, err_msg
+        return result, None
