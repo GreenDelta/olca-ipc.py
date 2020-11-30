@@ -36,9 +36,9 @@ class ProductResult(schema.Entity):
 
     def __init__(self):
         super(ProductResult, self).__init__()
-        process: Optional[schema.Ref] = None
-        product: Optional[schema.Ref] = None
-        amount: Optional[float] = None
+        self.process: Optional[schema.Ref] = None
+        self.product: Optional[schema.Ref] = None
+        self.amount: Optional[float] = None
 
     def to_json(self) -> dict:
         json: dict = super(ProductResult, self).to_json()
@@ -91,11 +91,11 @@ class ContributionItem(schema.Entity):
 
     def __init__(self):
         super(ContributionItem, self).__init__()
-        item: Optional[schema.Ref] = None
-        amount: Optional[float] = None
-        share: Optional[float] = None
-        rest: Optional[bool] = None
-        unit: Optional[str] = None
+        self.item: Optional[schema.Ref] = None
+        self.amount: Optional[float] = None
+        self.share: Optional[float] = None
+        self.rest: Optional[bool] = None
+        self.unit: Optional[str] = None
 
     def to_json(self) -> dict:
         json: dict = super(ContributionItem, self).to_json()
@@ -332,12 +332,6 @@ class Client(object):
 
     def get_descriptors(self, model_type: ModelType) -> Iterator[schema.Ref]:
         """
-        deprecated:: use `get_descriptors_of` instead
-        """
-        return self.get_descriptors_of(model_type)
-
-    def get_descriptors_of(self, model_type: ModelType) -> Iterator[schema.Ref]:
-        """
         Get the descriptors of the entities with the type from the database.
 
         Parameters
@@ -372,7 +366,8 @@ class Client(object):
         for r in result:
             yield schema.Ref.from_json(r)
 
-    def get_descriptor(self, model_type: ModelType, uid='', name='') -> schema.Ref:
+    def get_descriptor(self, model_type: ModelType,
+                       uid='', name='') -> Optional[schema.Ref]:
         """
         Get a descriptor of the model with the given ID or name from the database.
 
@@ -408,16 +403,33 @@ class Client(object):
         print(system_ref.to_json())
         ```
         """
-        params = {'@type': model_type.__name__, '@id': uid}
-        result = self.__post('get/descriptor', params)
+
+        params = {'@type': _model_type(model_type)}
+        if uid != '':
+            params['@id'] = uid
+        if name != '':
+            params['name'] = name
+        result, err = self.__post('get/descriptor', params)
+        if err:
+            log.error('failed to get descriptor: %s', err)
+            return None
         return schema.Ref.from_json(result)
 
-    def get(self, model_type: Type[T], model_id: str) -> T:
-        params = {'@type': model_type.__name__, '@id': model_id}
-        result = self.__post('get/model', params)
+    def get(self, model_type: ModelType,
+            uid='', name='') -> Optional[schema.RootEntity]:
+        params = {'@type': _model_type(model_type)}
+        if uid != '':
+            params['@id'] = uid
+        if name != '':
+            params['name'] = name
+        result, err = self.__post('get/model', params)
+        if err:
+            log.error('failed to get entity of type %s: %s',
+                      model_type, err)
+            return None
         return model_type.from_json(result)
 
-    def get_all(self, model_type: Type[T]) -> Iterator[T]:
+    def get_all(self, model_type: ModelType) -> Iterator[schema.RootEntity]:
         """
         Returns a generator for all instances of the given type from the
         database. Note that this will first fetch the complete JSON list from
@@ -436,11 +448,14 @@ class Client(object):
         ```
         """
         params = {'@type': model_type.__name__}
-        result = self.__post('get/models', params)
+        result, err = self.__post('get/models', params)
+        if err:
+            log.error('failed to get all of type %s: %s',
+                      model_type, err)
         for r in result:
             yield model_type.from_json(r)
 
-    def find(self, model_type, name: str) -> schema.Ref:
+    def find(self, model_type: ModelType, name: str) -> schema.Ref:
         """Searches for a data set with the given type and name.
 
         :param model_type: The class of the data set, e.g. `olca.Flow`.
@@ -465,7 +480,9 @@ class Client(object):
             '@id': result.id,
             'path': abs_path
         }
-        self.__post('export/excel', params)
+        _, err = self.__post('export/excel', params)
+        if err:
+            log.error('Excel export to %s failed: %s', path, err)
 
     def dispose(self, entity: schema.Entity):
         """
@@ -501,7 +518,9 @@ class Client(object):
         if entity is None:
             return
         arg = {'@type': type(entity).__name__, '@id': entity.id}
-        return self.__post('dispose', arg)
+        _, err = self.__post('dispose', arg)
+        if err:
+            log.error('failed to dispose object: %s', err)
 
     def shutdown_server(self):
         """
@@ -510,11 +529,12 @@ class Client(object):
         This method is probably most useful when running a headless server
         (a server without openLCA user interface).
         """
-        self.__post('runtime/shutdown', None)
+        _, err = self.__post('runtime/shutdown', None)
+        if err:
+            log.error('failed to shutdown server: %s', err)
 
-    def create_product_system(self, process_id: str,
-                              default_providers='prefer',
-                              preferred_type='LCI_RESULT'):
+    def create_product_system(self, process_id: str, default_providers='prefer',
+                              preferred_type='LCI_RESULT') -> Optional[schema.Ref]:
         """
         Creates a product system from the process with the given ID.
 
@@ -560,11 +580,14 @@ class Client(object):
         ```
         """
 
-        r = self.__post('create/product_system', {
+        r, err = self.__post('create/product_system', {
             'processId': process_id,
             'preferredType': preferred_type,
             'providerLinking': default_providers,
         })
+        if err:
+            log.error('failed to create product system: %s', err)
+            return None
         return schema.Ref.from_json(r)
 
     def lci_inputs(self, result: schema.SimpleResult) -> List[schema.FlowResult]:
@@ -580,9 +603,12 @@ class Client(object):
         client.dispose(result)
         ```
         """
-        raw = self.__post('get/inventory/inputs', {
+        raw, err = self.__post('get/inventory/inputs', {
             'resultId': result.id,
         })
+        if err:
+            log.error('failed to get LCI inputs')
+            return []
         return [schema.FlowResult.from_json(it) for it in raw]
 
     def lci_outputs(self, result: schema.SimpleResult) -> list:
@@ -598,9 +624,12 @@ class Client(object):
         client.dispose(result)
         ```
         """
-        raw = self.__post('get/inventory/outputs', {
+        raw, err = self.__post('get/inventory/outputs', {
             'resultId': result.id,
         })
+        if err:
+            log.error('failed to get LCI outputs: %s', err)
+            return []
         return [schema.FlowResult.from_json(it) for it in raw]
 
     def lci_location_contributions(self, result: schema.SimpleResult,
@@ -635,10 +664,13 @@ class Client(object):
         client.dispose(result)
         ```
         """
-        raw = self.__post('get/inventory/contributions/locations', {
+        raw, err = self.__post('get/inventory/contributions/locations', {
             'resultId': result.id,
             'flow': flow.to_json(),
         })
+        if err:
+            log.error('failed to ger contributions by location')
+            return []
         return [ContributionItem.from_json(it) for it in raw]
 
     def lci_total_requirements(self, result: schema.SimpleResult) -> List[ProductResult]:
@@ -685,6 +717,7 @@ class Client(object):
         })
         if err:
             log.error('failed to get total requirements %s', err)
+            return []
         return [ProductResult.from_json(it) for it in raw]
 
     def lcia(self, result: schema.SimpleResult) -> List[schema.ImpactResult]:
