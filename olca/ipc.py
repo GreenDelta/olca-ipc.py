@@ -18,6 +18,13 @@ def _model_type(param: ModelType) -> str:
         return param.__name__
 
 
+def _model_class(param: ModelType) -> Type[schema.RootEntity]:
+    if isinstance(param, str):
+        return schema.__dict__[param]
+    else:
+        return param
+
+
 class ProductResult(schema.Entity):
     """
     The ProductResult type is not an olca-schema type but a return
@@ -427,7 +434,7 @@ class Client(object):
             log.error('failed to get entity of type %s: %s',
                       model_type, err)
             return None
-        return model_type.from_json(result)
+        return _model_class(model_type).from_json(result)
 
     def get_all(self, model_type: ModelType) -> Iterator[schema.RootEntity]:
         """
@@ -452,8 +459,9 @@ class Client(object):
         if err:
             log.error('failed to get all of type %s: %s',
                       model_type, err)
+        clazz = _model_class(model_type)
         for r in result:
-            yield model_type.from_json(r)
+            yield clazz.from_json(r)
 
     def find(self, model_type: ModelType, name: str) -> schema.Ref:
         """Searches for a data set with the given type and name.
