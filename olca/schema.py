@@ -1,6 +1,10 @@
+# DO NOT CHANGE THIS CODE AS THIS IS GENERATED AUTOMATICALLY
+
 # This module contains a Python API of the JSON-LD based
 # openLCA data exchange model.package schema.
 # For more information see http://greendelta.github.io/olca-schema/
+
+import json as jsonlib
 
 from enum import Enum
 from typing import List, Optional
@@ -180,6 +184,12 @@ class Entity(object):
     def __init__(self):
         self.id: str = ''
         self.olca_type: str = ''
+
+    def _repr_html_(self):
+        code = jsonlib.dumps(self.to_json(), indent=2, sort_keys=True)
+        if len(code) > 10000:
+            code = code[0:10000] + '...'
+        return '<pre><code class="language-json">%s</code></pre>' % code
 
     def to_json(self) -> dict:
         o_type = self.olca_type

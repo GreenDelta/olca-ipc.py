@@ -95,6 +95,17 @@ def print_class(c: model.ClassType, m: model.Model):
         ptype = py_type(prop.field_type)
         t += '        self.%s: Optional[%s] = None\n' % (attr, ptype)
     print(t)
+
+    # generate _repr_html_ for nice display in Jupyter notebooks
+    if c.name == 'Entity':
+        r = '''    def _repr_html_(self):
+        code = jsonlib.dumps(self.to_json(), indent=2, sort_keys=True)
+        if len(code) > 10000:
+            code = code[0:10000] + '...'
+        return '<pre><code class="language-json">%s</code></pre>' % code
+        '''
+        print(r)
+
     print_to_json(c, m)
     print_read_json(c, m)
     print_from_json(c)
@@ -290,10 +301,12 @@ def format_doc(doc: str, indent: int = 4) -> str:
 
 
 if __name__ == '__main__':
+    print('# DO NOT CHANGE THIS CODE AS THIS IS GENERATED AUTOMATICALLY\n')
     print('# This module contains a Python API of the JSON-LD based')
     print('# openLCA data exchange model.package schema.')
     print('# For more information see '
           'http://greendelta.github.io/olca-schema/\n')
+    print('import json as jsonlib\n')
     print('from enum import Enum')
     print('from typing import List, Optional\n')
 
