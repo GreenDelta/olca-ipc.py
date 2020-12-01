@@ -266,7 +266,10 @@ def process_of(name: str) -> Process:
     return process
 
 
-def exchange_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -> Exchange:
+def exchange_of(process: Process,
+                flow: Union[Ref, Flow],
+                amount: Union[str, float] = 1.0,
+                unit: Optional[Union[Ref, Unit]] = None) -> Exchange:
     """
     Creates a new exchange.
 
@@ -285,8 +288,14 @@ def exchange_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -> Exchang
     flow: Union[Ref, Flow]
         The flow or reference to the flow of this exchange.
 
-    amount: float, optional
-        The amount of the exchange; defaults to 1.0.
+    amount: Union[str, float], optional
+        The amount of the exchange; defaults to 1.0. Strings a floating point
+        numbers are allowed. If a string is passed as amount, we assume that
+        it is a valid formula.
+
+    unit: Union[Ref, Unit], optional
+        The unit of the exchange. If not provided the exchange amount is given
+        in the reference unit of the linked flow.
     
     Example
     -------
@@ -307,28 +316,25 @@ def exchange_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -> Exchang
     process.last_internal_id = internal_id
     exchange = Exchange()
     exchange.internal_id = internal_id
-    exchange.amount = amount
+    if isinstance(amount, str):
+        exchange.amount_formula = amount
+    else:
+        exchange.amount = amount
     exchange.flow = ref('Flow', flow.id, flow.name)
+    if unit:
+        exchange.unit = ref('Unit', unit.id, unit.name)
     return exchange
 
 
-def output_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -> Exchange:
+def output_of(process: Process,
+              flow: Union[Ref, Flow],
+              amount: Union[str, float] = 1.0,
+              unit: Optional[Union[Ref, Unit]] = None) -> Exchange:
     """
     Creates a new output.
 
-    Parameters
-    ----------
-    process: Process
-        The process of the new exchange. We update and set the internal
-        IDs of this process and the exchange but we do not add the exchange
-        to the process yet. This is something you need to do after you
-        created the exchange.
-
-    flow: Union[Ref, Flow]
-        The flow or reference to the flow of this exchange.
-
-    amount: float, optional
-        The amount of the exchange; defaults to 1.0.
+    This is the same as `exchange_of` but it sets the the exchange as an
+    output additionally.
 
     Example
     -------
@@ -342,28 +348,20 @@ def output_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -> Exchange:
     process.exchanges = [output]
     ```
     """
-    exchange = exchange_of(process, flow, amount)
+    exchange = exchange_of(process, flow, amount, unit)
     exchange.input = False
     return exchange
 
 
-def input_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -> Exchange:
+def input_of(process: Process,
+             flow: Union[Ref, Flow],
+             amount: Union[str, float] = 1.0,
+             unit: Optional[Union[Ref, Unit]] = None) -> Exchange:
     """
     Creates a new input.
 
-    Parameters
-    ----------
-    process: Process
-        The process of the new exchange. We update and set the internal
-        IDs of this process and the exchange but we do not add the exchange
-        to the process yet. This is something you need to do after you
-        created the exchange.
-
-    flow: Union[Ref, Flow]
-        The flow or reference to the flow of this exchange.
-
-    amount: float, optional
-        The amount of the exchange; defaults to 1.0.
+    This is the same as `exchange_of` but it sets the the exchange as an
+    input additionally.
 
     Example
     -------
@@ -376,7 +374,7 @@ def input_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -> Exchange:
     process.exchanges = [input]
     ```
     """
-    exchange = exchange_of(process, flow, amount)
+    exchange = exchange_of(process, flow, amount, unit)
     exchange.input = True
     return exchange
 
