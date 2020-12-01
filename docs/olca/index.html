@@ -73,7 +73,7 @@ def ref(model_type: Union[T, str], uid: str, name: Optional[str] = None) -&gt; R
     r = Ref()
     r.olca_type = model_type if isinstance(model_type, str) \
         else model_type.__name__
-    r.id = id
+    r.id = uid
     if name is not None:
         r.name = name
     return r
@@ -295,7 +295,10 @@ def process_of(name: str) -&gt; Process:
     return process
 
 
-def exchange_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -&gt; Exchange:
+def exchange_of(process: Process,
+                flow: Union[Ref, Flow],
+                amount: Union[str, float] = 1.0,
+                unit: Optional[Union[Ref, Unit]] = None) -&gt; Exchange:
     &#34;&#34;&#34;
     Creates a new exchange.
 
@@ -314,8 +317,14 @@ def exchange_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -&gt; Exch
     flow: Union[Ref, Flow]
         The flow or reference to the flow of this exchange.
 
-    amount: float, optional
-        The amount of the exchange; defaults to 1.0.
+    amount: Union[str, float], optional
+        The amount of the exchange; defaults to 1.0. Strings a floating point
+        numbers are allowed. If a string is passed as amount, we assume that
+        it is a valid formula.
+
+    unit: Union[Ref, Unit], optional
+        The unit of the exchange. If not provided the exchange amount is given
+        in the reference unit of the linked flow.
     
     Example
     -------
@@ -336,28 +345,25 @@ def exchange_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -&gt; Exch
     process.last_internal_id = internal_id
     exchange = Exchange()
     exchange.internal_id = internal_id
-    exchange.amount = amount
+    if isinstance(amount, str):
+        exchange.amount_formula = amount
+    else:
+        exchange.amount = amount
     exchange.flow = ref(&#39;Flow&#39;, flow.id, flow.name)
+    if unit:
+        exchange.unit = ref(&#39;Unit&#39;, unit.id, unit.name)
     return exchange
 
 
-def output_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -&gt; Exchange:
+def output_of(process: Process,
+              flow: Union[Ref, Flow],
+              amount: Union[str, float] = 1.0,
+              unit: Optional[Union[Ref, Unit]] = None) -&gt; Exchange:
     &#34;&#34;&#34;
     Creates a new output.
 
-    Parameters
-    ----------
-    process: Process
-        The process of the new exchange. We update and set the internal
-        IDs of this process and the exchange but we do not add the exchange
-        to the process yet. This is something you need to do after you
-        created the exchange.
-
-    flow: Union[Ref, Flow]
-        The flow or reference to the flow of this exchange.
-
-    amount: float, optional
-        The amount of the exchange; defaults to 1.0.
+    This is the same as `exchange_of` but it sets the the exchange as an
+    output additionally.
 
     Example
     -------
@@ -371,28 +377,20 @@ def output_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -&gt; Exchan
     process.exchanges = [output]
     ```
     &#34;&#34;&#34;
-    exchange = exchange_of(process, flow, amount)
+    exchange = exchange_of(process, flow, amount, unit)
     exchange.input = False
     return exchange
 
 
-def input_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -&gt; Exchange:
+def input_of(process: Process,
+             flow: Union[Ref, Flow],
+             amount: Union[str, float] = 1.0,
+             unit: Optional[Union[Ref, Unit]] = None) -&gt; Exchange:
     &#34;&#34;&#34;
     Creates a new input.
 
-    Parameters
-    ----------
-    process: Process
-        The process of the new exchange. We update and set the internal
-        IDs of this process and the exchange but we do not add the exchange
-        to the process yet. This is something you need to do after you
-        created the exchange.
-
-    flow: Union[Ref, Flow]
-        The flow or reference to the flow of this exchange.
-
-    amount: float, optional
-        The amount of the exchange; defaults to 1.0.
+    This is the same as `exchange_of` but it sets the the exchange as an
+    input additionally.
 
     Example
     -------
@@ -405,7 +403,7 @@ def input_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -&gt; Exchang
     process.exchanges = [input]
     ```
     &#34;&#34;&#34;
-    exchange = exchange_of(process, flow, amount)
+    exchange = exchange_of(process, flow, amount, unit)
     exchange.input = True
     return exchange
 
@@ -567,7 +565,7 @@ co2 = olca.elementary_flow_of('CO2', mass)
 </details>
 </dd>
 <dt id="olca.exchange_of"><code class="name flex">
-<span>def <span class="ident">exchange_of</span></span>(<span>process: <a title="olca.schema.Process" href="schema.html#olca.schema.Process">Process</a>, flow: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Flow" href="schema.html#olca.schema.Flow">Flow</a>], amount=1.0) ‑> <a title="olca.schema.Exchange" href="schema.html#olca.schema.Exchange">Exchange</a></span>
+<span>def <span class="ident">exchange_of</span></span>(<span>process: <a title="olca.schema.Process" href="schema.html#olca.schema.Process">Process</a>, flow: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Flow" href="schema.html#olca.schema.Flow">Flow</a>], amount: Union[str, float] = 1.0, unit: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Unit" href="schema.html#olca.schema.Unit">Unit</a>, NoneType] = None) ‑> <a title="olca.schema.Exchange" href="schema.html#olca.schema.Exchange">Exchange</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Creates a new exchange.</p>
@@ -583,8 +581,13 @@ to the process yet. This is something you need to do after you
 created the exchange.</dd>
 <dt><strong><code>flow</code></strong> :&ensp;<code>Union[Ref, Flow]</code></dt>
 <dd>The flow or reference to the flow of this exchange.</dd>
-<dt><strong><code>amount</code></strong> :&ensp;<code>float</code>, optional</dt>
-<dd>The amount of the exchange; defaults to 1.0.</dd>
+<dt><strong><code>amount</code></strong> :&ensp;<code>Union[str, float]</code>, optional</dt>
+<dd>The amount of the exchange; defaults to 1.0. Strings a floating point
+numbers are allowed. If a string is passed as amount, we assume that
+it is a valid formula.</dd>
+<dt><strong><code>unit</code></strong> :&ensp;<code>Union[Ref, Unit]</code>, optional</dt>
+<dd>The unit of the exchange. If not provided the exchange amount is given
+in the reference unit of the linked flow.</dd>
 </dl>
 <h2 id="example">Example</h2>
 <pre><code class="language-py">units = olca.unit_group_of('Units of mass', 'kg')
@@ -599,7 +602,10 @@ process.exchanges = [output]
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def exchange_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -&gt; Exchange:
+<pre><code class="python">def exchange_of(process: Process,
+                flow: Union[Ref, Flow],
+                amount: Union[str, float] = 1.0,
+                unit: Optional[Union[Ref, Unit]] = None) -&gt; Exchange:
     &#34;&#34;&#34;
     Creates a new exchange.
 
@@ -618,8 +624,14 @@ process.exchanges = [output]
     flow: Union[Ref, Flow]
         The flow or reference to the flow of this exchange.
 
-    amount: float, optional
-        The amount of the exchange; defaults to 1.0.
+    amount: Union[str, float], optional
+        The amount of the exchange; defaults to 1.0. Strings a floating point
+        numbers are allowed. If a string is passed as amount, we assume that
+        it is a valid formula.
+
+    unit: Union[Ref, Unit], optional
+        The unit of the exchange. If not provided the exchange amount is given
+        in the reference unit of the linked flow.
     
     Example
     -------
@@ -640,8 +652,13 @@ process.exchanges = [output]
     process.last_internal_id = internal_id
     exchange = Exchange()
     exchange.internal_id = internal_id
-    exchange.amount = amount
+    if isinstance(amount, str):
+        exchange.amount_formula = amount
+    else:
+        exchange.amount = amount
     exchange.flow = ref(&#39;Flow&#39;, flow.id, flow.name)
+    if unit:
+        exchange.unit = ref(&#39;Unit&#39;, unit.id, unit.name)
     return exchange</code></pre>
 </details>
 </dd>
@@ -762,22 +779,12 @@ fp = olca.flow_property_of('Mass', units)
 </details>
 </dd>
 <dt id="olca.input_of"><code class="name flex">
-<span>def <span class="ident">input_of</span></span>(<span>process: <a title="olca.schema.Process" href="schema.html#olca.schema.Process">Process</a>, flow: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Flow" href="schema.html#olca.schema.Flow">Flow</a>], amount=1.0) ‑> <a title="olca.schema.Exchange" href="schema.html#olca.schema.Exchange">Exchange</a></span>
+<span>def <span class="ident">input_of</span></span>(<span>process: <a title="olca.schema.Process" href="schema.html#olca.schema.Process">Process</a>, flow: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Flow" href="schema.html#olca.schema.Flow">Flow</a>], amount: Union[str, float] = 1.0, unit: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Unit" href="schema.html#olca.schema.Unit">Unit</a>, NoneType] = None) ‑> <a title="olca.schema.Exchange" href="schema.html#olca.schema.Exchange">Exchange</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Creates a new input.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>process</code></strong> :&ensp;<code>Process</code></dt>
-<dd>The process of the new exchange. We update and set the internal
-IDs of this process and the exchange but we do not add the exchange
-to the process yet. This is something you need to do after you
-created the exchange.</dd>
-<dt><strong><code>flow</code></strong> :&ensp;<code>Union[Ref, Flow]</code></dt>
-<dd>The flow or reference to the flow of this exchange.</dd>
-<dt><strong><code>amount</code></strong> :&ensp;<code>float</code>, optional</dt>
-<dd>The amount of the exchange; defaults to 1.0.</dd>
-</dl>
+<p>This is the same as <code><a title="olca.exchange_of" href="#olca.exchange_of">exchange_of()</a></code> but it sets the the exchange as an
+input additionally.</p>
 <h2 id="example">Example</h2>
 <pre><code class="language-py">units = olca.unit_group_of('Units of mass', 'kg')
 mass = olca.flow_property_of('Mass', units)
@@ -790,23 +797,15 @@ process.exchanges = [input]
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def input_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -&gt; Exchange:
+<pre><code class="python">def input_of(process: Process,
+             flow: Union[Ref, Flow],
+             amount: Union[str, float] = 1.0,
+             unit: Optional[Union[Ref, Unit]] = None) -&gt; Exchange:
     &#34;&#34;&#34;
     Creates a new input.
 
-    Parameters
-    ----------
-    process: Process
-        The process of the new exchange. We update and set the internal
-        IDs of this process and the exchange but we do not add the exchange
-        to the process yet. This is something you need to do after you
-        created the exchange.
-
-    flow: Union[Ref, Flow]
-        The flow or reference to the flow of this exchange.
-
-    amount: float, optional
-        The amount of the exchange; defaults to 1.0.
+    This is the same as `exchange_of` but it sets the the exchange as an
+    input additionally.
 
     Example
     -------
@@ -819,7 +818,7 @@ process.exchanges = [input]
     process.exchanges = [input]
     ```
     &#34;&#34;&#34;
-    exchange = exchange_of(process, flow, amount)
+    exchange = exchange_of(process, flow, amount, unit)
     exchange.input = True
     return exchange</code></pre>
 </details>
@@ -868,22 +867,12 @@ process.exchanges = [input]
 </details>
 </dd>
 <dt id="olca.output_of"><code class="name flex">
-<span>def <span class="ident">output_of</span></span>(<span>process: <a title="olca.schema.Process" href="schema.html#olca.schema.Process">Process</a>, flow: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Flow" href="schema.html#olca.schema.Flow">Flow</a>], amount=1.0) ‑> <a title="olca.schema.Exchange" href="schema.html#olca.schema.Exchange">Exchange</a></span>
+<span>def <span class="ident">output_of</span></span>(<span>process: <a title="olca.schema.Process" href="schema.html#olca.schema.Process">Process</a>, flow: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Flow" href="schema.html#olca.schema.Flow">Flow</a>], amount: Union[str, float] = 1.0, unit: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Unit" href="schema.html#olca.schema.Unit">Unit</a>, NoneType] = None) ‑> <a title="olca.schema.Exchange" href="schema.html#olca.schema.Exchange">Exchange</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Creates a new output.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>process</code></strong> :&ensp;<code>Process</code></dt>
-<dd>The process of the new exchange. We update and set the internal
-IDs of this process and the exchange but we do not add the exchange
-to the process yet. This is something you need to do after you
-created the exchange.</dd>
-<dt><strong><code>flow</code></strong> :&ensp;<code>Union[Ref, Flow]</code></dt>
-<dd>The flow or reference to the flow of this exchange.</dd>
-<dt><strong><code>amount</code></strong> :&ensp;<code>float</code>, optional</dt>
-<dd>The amount of the exchange; defaults to 1.0.</dd>
-</dl>
+<p>This is the same as <code><a title="olca.exchange_of" href="#olca.exchange_of">exchange_of()</a></code> but it sets the the exchange as an
+output additionally.</p>
 <h2 id="example">Example</h2>
 <pre><code class="language-py">units = olca.unit_group_of('Units of mass', 'kg')
 mass = olca.flow_property_of('Mass', units)
@@ -897,23 +886,15 @@ process.exchanges = [output]
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def output_of(process: Process, flow: Union[Ref, Flow], amount=1.0) -&gt; Exchange:
+<pre><code class="python">def output_of(process: Process,
+              flow: Union[Ref, Flow],
+              amount: Union[str, float] = 1.0,
+              unit: Optional[Union[Ref, Unit]] = None) -&gt; Exchange:
     &#34;&#34;&#34;
     Creates a new output.
 
-    Parameters
-    ----------
-    process: Process
-        The process of the new exchange. We update and set the internal
-        IDs of this process and the exchange but we do not add the exchange
-        to the process yet. This is something you need to do after you
-        created the exchange.
-
-    flow: Union[Ref, Flow]
-        The flow or reference to the flow of this exchange.
-
-    amount: float, optional
-        The amount of the exchange; defaults to 1.0.
+    This is the same as `exchange_of` but it sets the the exchange as an
+    output additionally.
 
     Example
     -------
@@ -927,7 +908,7 @@ process.exchanges = [output]
     process.exchanges = [output]
     ```
     &#34;&#34;&#34;
-    exchange = exchange_of(process, flow, amount)
+    exchange = exchange_of(process, flow, amount, unit)
     exchange.input = False
     return exchange</code></pre>
 </details>
@@ -1178,7 +1159,7 @@ inspecting a data set.</p>
     r = Ref()
     r.olca_type = model_type if isinstance(model_type, str) \
         else model_type.__name__
-    r.id = id
+    r.id = uid
     if name is not None:
         r.name = name
     return r</code></pre>

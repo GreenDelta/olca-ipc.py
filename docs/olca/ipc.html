@@ -27,15 +27,31 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import os
+<pre><code class="python">import logging as log
+import os
 
 import requests
 import olca.schema as schema
 
-from enum import Enum
-from typing import Iterator, List, Optional, Type, TypeVar
+from typing import Any, Iterator, List, Optional, Tuple, Type, TypeVar, Union
 
 T = TypeVar(&#39;T&#39;)
+ModelType = Union[Type[schema.RootEntity], str]
+
+
+def _model_type(param: ModelType) -&gt; str:
+    &#34;&#34;&#34;Get the @type tag for a JSON request.&#34;&#34;&#34;
+    if isinstance(param, str):
+        return param
+    else:
+        return param.__name__
+
+
+def _model_class(param: ModelType) -&gt; Type[schema.RootEntity]:
+    if isinstance(param, str):
+        return schema.__dict__[param]
+    else:
+        return param
 
 
 class ProductResult(schema.Entity):
@@ -56,9 +72,9 @@ class ProductResult(schema.Entity):
 
     def __init__(self):
         super(ProductResult, self).__init__()
-        process: Optional[schema.Ref] = None
-        product: Optional[schema.Ref] = None
-        amount: Optional[float] = None
+        self.process: Optional[schema.Ref] = None
+        self.product: Optional[schema.Ref] = None
+        self.amount: Optional[float] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(ProductResult, self).to_json()
@@ -111,11 +127,11 @@ class ContributionItem(schema.Entity):
 
     def __init__(self):
         super(ContributionItem, self).__init__()
-        item: Optional[schema.Ref] = None
-        amount: Optional[float] = None
-        share: Optional[float] = None
-        rest: Optional[bool] = None
-        unit: Optional[str] = None
+        self.item: Optional[schema.Ref] = None
+        self.amount: Optional[float] = None
+        self.share: Optional[float] = None
+        self.rest: Optional[bool] = None
+        self.unit: Optional[str] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(ContributionItem, self).to_json()
@@ -174,6 +190,15 @@ class Client(object):
         self.url = &#39;http://localhost:%i&#39; % port
         self.next_id = 1
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        return
+
+    def close(self):
+        return
+
     def insert(self, model: schema.RootEntity):
         &#34;&#34;&#34;
         Inserts the given model into the database of the IPC server.
@@ -203,7 +228,11 @@ class Client(object):
         if model is None:
             return
         json = model.to_json()
-        return self.__post(&#39;insert/model&#39;, json)
+        resp, err = self.__post(&#39;insert/model&#39;, json)
+        if err:
+            log.error(&#39;failed to insert model: %s&#39;, err)
+            return err
+        return resp
 
     def update(self, model: schema.RootEntity):
         &#34;&#34;&#34;
@@ -212,7 +241,11 @@ class Client(object):
         if model is None:
             return
         json = model.to_json()
-        return self.__post(&#39;update/model&#39;, json)
+        resp, err = self.__post(&#39;update/model&#39;, json)
+        if err:
+            log.error(&#39;failed to update model: %s&#39;, err)
+            return err
+        return resp
 
     def delete(self, model: schema.RootEntity):
         &#34;&#34;&#34;
@@ -221,7 +254,11 @@ class Client(object):
         if model is None:
             return
         json = model.to_json()
-        return self.__post(&#39;delete/model&#39;, json)
+        resp, err = self.__post(&#39;delete/model&#39;, json)
+        if err:
+            log.error(&#39;failed to delete model: %s&#39;, err)
+            return err
+        return resp
 
     def calculate(self, setup: schema.CalculationSetup) -&gt; schema.SimpleResult:
         &#34;&#34;&#34;
@@ -255,9 +292,10 @@ class Client(object):
         client.dispose(result)
         ```
         &#34;&#34;&#34;
-        if setup is None:
-            raise ValueError(&#39;Invalid calculation setup&#39;)
-        resp = self.__post(&#39;calculate&#39;, setup.to_json())
+        resp, err = self.__post(&#39;calculate&#39;, setup.to_json())
+        if err:
+            log.error(&#39;calculation failed: %s&#39;, err)
+            return schema.SimpleResult()
         return schema.SimpleResult.from_json(resp)
 
     def simulator(self, setup: schema.CalculationSetup) -&gt; schema.Ref:
@@ -309,10 +347,11 @@ class Client(object):
         client.dispose(simulator)
         ```
         &#34;&#34;&#34;
-        if setup is None:
-            raise ValueError(&#39;Invalid calculation setup&#39;)
-        r = self.__post(&#39;simulator&#39;, setup.to_json())
-        return schema.Ref.from_json(r)
+        resp, err = self.__post(&#39;simulator&#39;, setup.to_json())
+        if err:
+            log.error(&#39;failed to create simulator: %s&#39;, err)
+            return schema.Ref()
+        return schema.Ref.from_json(resp)
 
     def next_simulation(self, simulator: schema.Ref) -&gt; schema.SimpleResult:
         &#34;&#34;&#34;
@@ -330,31 +369,52 @@ class Client(object):
         &#34;&#34;&#34;
         if simulator is None:
             raise ValueError(&#39;No simulator given&#39;)
-        resp = self.__post(&#39;next/simulation&#39;, simulator.to_json())
+        resp, err = self.__post(&#39;next/simulation&#39;, simulator.to_json())
+        if err:
+            log.error(&#39;failed to get simulation result: %s&#39;, err)
+            return schema.SimpleResult()
         return schema.SimpleResult.from_json(resp)
 
-    def get_descriptors(self, model_type: Type[T]) -&gt; Iterator[schema.Ref]:
+    def get_descriptors(self, model_type: ModelType) -&gt; Iterator[schema.Ref]:
         &#34;&#34;&#34;
-        Get the list of descriptors of the entities with the given model type.
+        Get the descriptors of the entities with the type from the database.
 
         Parameters
         ----------
-        model_type: T
-            A class, e.g. olca.Flow
+        model_type: ModelType
+            The model type, e.g. olca.Flow or `&#39;Flow&#39;`
 
         Returns
         -------
         Iterator[schema.Ref]
             An iterator with Ref objects.
+
+        Example:
+        --------
+        ```py
+        import olca
+
+        with Client() as client:
+            for a in client.get_descriptors(&#39;Actor&#39;):
+                print(&#39;found Actor: %s&#39; % a.name)
+            for s in client.get_descriptors(olca.Source):
+                print(&#39;found Source: %s&#39; % s.name)
+        ```
+
         &#34;&#34;&#34;
-        params = {&#39;@type&#39;: model_type.__name__}
-        result = self.__post(&#39;get/descriptors&#39;, params)
+        params = {&#39;@type&#39;: _model_type(model_type)}
+        result, err = self.__post(&#39;get/descriptors&#39;, params)
+        if err:
+            log.error(&#39;failed to get descriptors of type %s: %s&#39;,
+                      model_type, err)
+            return []
         for r in result:
             yield schema.Ref.from_json(r)
 
-    def get_descriptor(self, model_type: Type[T], model_id: str) -&gt; schema.Ref:
+    def get_descriptor(self, model_type: ModelType,
+                       uid=&#39;&#39;, name=&#39;&#39;) -&gt; Optional[schema.Ref]:
         &#34;&#34;&#34;
-        Get a descriptor of the model with the given ID.
+        Get a descriptor of the model with the given ID or name from the database.
 
         Models like product systems can be very large but often we just need
         a reference to a model (e.g. in a calculation setup). In this case
@@ -364,10 +424,12 @@ class Client(object):
 
         Parameters
         ----------
-        model_type: T
-            A model class, e.g. olca.ProductSystem
-        model_id: str
+        model_type: ModelType
+            The type of the model, e.g. olca.ProductSystem or `&#39;ProductSystem&#39;`
+        uid: str, optional
             The ID of the model.
+        name: str, optional
+            The name of the model.
 
         Returns
         -------
@@ -386,16 +448,33 @@ class Client(object):
         print(system_ref.to_json())
         ```
         &#34;&#34;&#34;
-        params = {&#39;@type&#39;: model_type.__name__, &#39;@id&#39;: model_id}
-        result = self.__post(&#39;get/descriptor&#39;, params)
+
+        params = {&#39;@type&#39;: _model_type(model_type)}
+        if uid != &#39;&#39;:
+            params[&#39;@id&#39;] = uid
+        if name != &#39;&#39;:
+            params[&#39;name&#39;] = name
+        result, err = self.__post(&#39;get/descriptor&#39;, params)
+        if err:
+            log.error(&#39;failed to get descriptor: %s&#39;, err)
+            return None
         return schema.Ref.from_json(result)
 
-    def get(self, model_type: Type[T], model_id: str) -&gt; T:
-        params = {&#39;@type&#39;: model_type.__name__, &#39;@id&#39;: model_id}
-        result = self.__post(&#39;get/model&#39;, params)
-        return model_type.from_json(result)
+    def get(self, model_type: ModelType,
+            uid=&#39;&#39;, name=&#39;&#39;) -&gt; Optional[schema.RootEntity]:
+        params = {&#39;@type&#39;: _model_type(model_type)}
+        if uid != &#39;&#39;:
+            params[&#39;@id&#39;] = uid
+        if name != &#39;&#39;:
+            params[&#39;name&#39;] = name
+        result, err = self.__post(&#39;get/model&#39;, params)
+        if err:
+            log.error(&#39;failed to get entity of type %s: %s&#39;,
+                      model_type, err)
+            return None
+        return _model_class(model_type).from_json(result)
 
-    def get_all(self, model_type: Type[T]) -&gt; Iterator[T]:
+    def get_all(self, model_type: ModelType) -&gt; Iterator[schema.RootEntity]:
         &#34;&#34;&#34;
         Returns a generator for all instances of the given type from the
         database. Note that this will first fetch the complete JSON list from
@@ -414,11 +493,15 @@ class Client(object):
         ```
         &#34;&#34;&#34;
         params = {&#39;@type&#39;: model_type.__name__}
-        result = self.__post(&#39;get/models&#39;, params)
+        result, err = self.__post(&#39;get/models&#39;, params)
+        if err:
+            log.error(&#39;failed to get all of type %s: %s&#39;,
+                      model_type, err)
+        clazz = _model_class(model_type)
         for r in result:
-            yield model_type.from_json(r)
+            yield clazz.from_json(r)
 
-    def find(self, model_type, name: str) -&gt; schema.Ref:
+    def find(self, model_type: ModelType, name: str) -&gt; schema.Ref:
         &#34;&#34;&#34;Searches for a data set with the given type and name.
 
         :param model_type: The class of the data set, e.g. `olca.Flow`.
@@ -430,6 +513,42 @@ class Client(object):
         for d in self.get_descriptors(model_type):
             if d.name == name:
                 return d
+
+    def get_providers_of(self, flow: Union[schema.Ref, schema.Flow]) \
+            -&gt; Iterator[schema.ProcessRef]:
+        &#34;&#34;&#34;
+        Get the providers for the given flow.
+
+        For products, these are the processes that have an output of the given
+        product. For waste flows, these are the waste treatment processes that
+        have this flow on the input side. Elementary flows do not have a
+        provider.
+
+        Parameters
+        ----------
+        flow: Union[schema.Ref, schema.Flow]
+            The flow or reference to the flow for which the providers should be
+            returned.
+
+        Example
+        -------
+        ```py
+        steel = client.get(&#39;Flow&#39;, &#39;Steel&#39;)
+        for provider in client.get_providers_of(steel):
+            print(provider.name)
+        ```
+        &#34;&#34;&#34;
+        params = {
+            &#39;@type&#39;: &#39;Flow&#39;,
+            &#39;@id&#39;: flow.id,
+            &#39;name&#39;: flow.name,
+        }
+        providers, err = self.__post(&#39;get/providers&#39;, params)
+        if err:
+            log.error(&#39;failed to get providers: %s&#39;, err)
+            return []
+        for obj in providers:
+            yield schema.ProcessRef.from_json(obj)
 
     def excel_export(self, result: schema.SimpleResult, path: str):
         &#34;&#34;&#34;Export the given result to an Excel file with the given path.
@@ -443,7 +562,9 @@ class Client(object):
             &#39;@id&#39;: result.id,
             &#39;path&#39;: abs_path
         }
-        self.__post(&#39;export/excel&#39;, params)
+        _, err = self.__post(&#39;export/excel&#39;, params)
+        if err:
+            log.error(&#39;Excel export to %s failed: %s&#39;, path, err)
 
     def dispose(self, entity: schema.Entity):
         &#34;&#34;&#34;
@@ -479,7 +600,9 @@ class Client(object):
         if entity is None:
             return
         arg = {&#39;@type&#39;: type(entity).__name__, &#39;@id&#39;: entity.id}
-        return self.__post(&#39;dispose&#39;, arg)
+        _, err = self.__post(&#39;dispose&#39;, arg)
+        if err:
+            log.error(&#39;failed to dispose object: %s&#39;, err)
 
     def shutdown_server(self):
         &#34;&#34;&#34;
@@ -488,11 +611,12 @@ class Client(object):
         This method is probably most useful when running a headless server
         (a server without openLCA user interface).
         &#34;&#34;&#34;
-        self.__post(&#39;runtime/shutdown&#39;, None)
+        _, err = self.__post(&#39;runtime/shutdown&#39;, None)
+        if err:
+            log.error(&#39;failed to shutdown server: %s&#39;, err)
 
-    def create_product_system(self, process_id: str,
-                              default_providers=&#39;prefer&#39;,
-                              preferred_type=&#39;LCI_RESULT&#39;):
+    def create_product_system(self, process_id: str, default_providers=&#39;prefer&#39;,
+                              preferred_type=&#39;LCI_RESULT&#39;) -&gt; Optional[schema.Ref]:
         &#34;&#34;&#34;
         Creates a product system from the process with the given ID.
 
@@ -538,11 +662,14 @@ class Client(object):
         ```
         &#34;&#34;&#34;
 
-        r = self.__post(&#39;create/product_system&#39;, {
+        r, err = self.__post(&#39;create/product_system&#39;, {
             &#39;processId&#39;: process_id,
             &#39;preferredType&#39;: preferred_type,
             &#39;providerLinking&#39;: default_providers,
         })
+        if err:
+            log.error(&#39;failed to create product system: %s&#39;, err)
+            return None
         return schema.Ref.from_json(r)
 
     def lci_inputs(self, result: schema.SimpleResult) -&gt; List[schema.FlowResult]:
@@ -558,9 +685,12 @@ class Client(object):
         client.dispose(result)
         ```
         &#34;&#34;&#34;
-        raw = self.__post(&#39;get/inventory/inputs&#39;, {
+        raw, err = self.__post(&#39;get/inventory/inputs&#39;, {
             &#39;resultId&#39;: result.id,
         })
+        if err:
+            log.error(&#39;failed to get LCI inputs&#39;)
+            return []
         return [schema.FlowResult.from_json(it) for it in raw]
 
     def lci_outputs(self, result: schema.SimpleResult) -&gt; list:
@@ -576,9 +706,12 @@ class Client(object):
         client.dispose(result)
         ```
         &#34;&#34;&#34;
-        raw = self.__post(&#39;get/inventory/outputs&#39;, {
+        raw, err = self.__post(&#39;get/inventory/outputs&#39;, {
             &#39;resultId&#39;: result.id,
         })
+        if err:
+            log.error(&#39;failed to get LCI outputs: %s&#39;, err)
+            return []
         return [schema.FlowResult.from_json(it) for it in raw]
 
     def lci_location_contributions(self, result: schema.SimpleResult,
@@ -613,10 +746,13 @@ class Client(object):
         client.dispose(result)
         ```
         &#34;&#34;&#34;
-        raw = self.__post(&#39;get/inventory/contributions/locations&#39;, {
+        raw, err = self.__post(&#39;get/inventory/contributions/locations&#39;, {
             &#39;resultId&#39;: result.id,
             &#39;flow&#39;: flow.to_json(),
         })
+        if err:
+            log.error(&#39;failed to ger contributions by location&#39;)
+            return []
         return [ContributionItem.from_json(it) for it in raw]
 
     def lci_total_requirements(self, result: schema.SimpleResult) -&gt; List[ProductResult]:
@@ -658,9 +794,12 @@ class Client(object):
         ```
         &#34;&#34;&#34;
 
-        raw = self.__post(&#39;get/inventory/total_requirements&#39;, {
+        raw, err = self.__post(&#39;get/inventory/total_requirements&#39;, {
             &#39;resultId&#39;: result.id
         })
+        if err:
+            log.error(&#39;failed to get total requirements %s&#39;, err)
+            return []
         return [ProductResult.from_json(it) for it in raw]
 
     def lcia(self, result: schema.SimpleResult) -&gt; List[schema.ImpactResult]:
@@ -683,9 +822,12 @@ class Client(object):
         ```
         &#34;&#34;&#34;
 
-        raw = self.__post(&#39;get/impacts&#39;, {
+        raw, err = self.__post(&#39;get/impacts&#39;, {
             &#39;resultId&#39;: result.id,
         })
+        if err:
+            log.error(&#39;failed to get impact results: %s&#39;, err)
+            return []
         return [schema.ImpactResult.from_json(it) for it in raw]
 
     def lcia_flow_contributions(self, result: schema.SimpleResult,
@@ -716,10 +858,13 @@ class Client(object):
         ```
         &#34;&#34;&#34;
 
-        raw = self.__post(&#39;get/impacts/contributions/flows&#39;, {
+        raw, err = self.__post(&#39;get/impacts/contributions/flows&#39;, {
             &#39;resultId&#39;: result.id,
             &#39;impactCategory&#39;: impact.to_json(),
         })
+        if err:
+            log.error(&#39;failed to get contribution items: %s&#39;, err)
+            return []
         return [ContributionItem.from_json(it) for it in raw]
 
     def lcia_location_contributions(self, result: schema.SimpleResult,
@@ -752,10 +897,13 @@ class Client(object):
         ```
         &#34;&#34;&#34;
 
-        raw = self.__post(&#39;get/impacts/contributions/locations&#39;, {
+        raw, err = self.__post(&#39;get/impacts/contributions/locations&#39;, {
             &#39;resultId&#39;: result.id,
             &#39;impactCategory&#39;: impact.to_json(),
         })
+        if err:
+            log.error(&#39;Failed to get contribution items: %s&#39;, err)
+            return []
         return [ContributionItem.from_json(it) for it in raw]
 
     def lcia_process_contributions(self, result: schema.SimpleResult,
@@ -788,13 +936,21 @@ class Client(object):
         ```
         &#34;&#34;&#34;
 
-        raw = self.__post(&#39;get/impacts/contributions/processes&#39;, {
+        raw, err = self.__post(&#39;get/impacts/contributions/processes&#39;, {
             &#39;resultId&#39;: result.id,
             &#39;impactCategory&#39;: impact.to_json(),
         })
+        if err:
+            log.error(&#39;Failed to get contribution items: %s&#39;, err)
+            return []
         return [ContributionItem.from_json(it) for it in raw]
 
-    def __post(self, method: str, params):
+    def __post(self, method: str, params) -&gt; Tuple[Any, Optional[str]]:
+        &#34;&#34;&#34;
+        Performs a request with the given parameters.
+
+        It returns a tuple (result, error).
+        &#34;&#34;&#34;
         req = {
             &#39;jsonrpc&#39;: &#39;2.0&#39;,
             &#39;id&#39;: self.next_id,
@@ -805,13 +961,13 @@ class Client(object):
         resp = requests.post(self.url, json=req).json()  # type: dict
         err = resp.get(&#39;error&#39;)  # type: dict
         if err is not None:
-            msg = &#39;%i: %s&#39; % (err.get(&#39;code&#39;), err.get(&#39;message&#39;))
-            raise Exception(msg)
+            err_msg = &#39;%i: %s&#39; % (err.get(&#39;code&#39;), err.get(&#39;message&#39;))
+            return None, err_msg
         result = resp.get(&#39;result&#39;)
         if result is None:
-            raise Exception(
-                &#39;No error and no result: invalid JSON-RPC response&#39;)
-        return result</code></pre>
+            err_msg = &#39;No error and no result: invalid JSON-RPC response&#39;
+            return None, err_msg
+        return result, None</code></pre>
 </details>
 </section>
 <section>
@@ -858,6 +1014,15 @@ that are executed via this client are thus executed on that database.</p>
         self.url = &#39;http://localhost:%i&#39; % port
         self.next_id = 1
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        return
+
+    def close(self):
+        return
+
     def insert(self, model: schema.RootEntity):
         &#34;&#34;&#34;
         Inserts the given model into the database of the IPC server.
@@ -887,7 +1052,11 @@ that are executed via this client are thus executed on that database.</p>
         if model is None:
             return
         json = model.to_json()
-        return self.__post(&#39;insert/model&#39;, json)
+        resp, err = self.__post(&#39;insert/model&#39;, json)
+        if err:
+            log.error(&#39;failed to insert model: %s&#39;, err)
+            return err
+        return resp
 
     def update(self, model: schema.RootEntity):
         &#34;&#34;&#34;
@@ -896,7 +1065,11 @@ that are executed via this client are thus executed on that database.</p>
         if model is None:
             return
         json = model.to_json()
-        return self.__post(&#39;update/model&#39;, json)
+        resp, err = self.__post(&#39;update/model&#39;, json)
+        if err:
+            log.error(&#39;failed to update model: %s&#39;, err)
+            return err
+        return resp
 
     def delete(self, model: schema.RootEntity):
         &#34;&#34;&#34;
@@ -905,7 +1078,11 @@ that are executed via this client are thus executed on that database.</p>
         if model is None:
             return
         json = model.to_json()
-        return self.__post(&#39;delete/model&#39;, json)
+        resp, err = self.__post(&#39;delete/model&#39;, json)
+        if err:
+            log.error(&#39;failed to delete model: %s&#39;, err)
+            return err
+        return resp
 
     def calculate(self, setup: schema.CalculationSetup) -&gt; schema.SimpleResult:
         &#34;&#34;&#34;
@@ -939,9 +1116,10 @@ that are executed via this client are thus executed on that database.</p>
         client.dispose(result)
         ```
         &#34;&#34;&#34;
-        if setup is None:
-            raise ValueError(&#39;Invalid calculation setup&#39;)
-        resp = self.__post(&#39;calculate&#39;, setup.to_json())
+        resp, err = self.__post(&#39;calculate&#39;, setup.to_json())
+        if err:
+            log.error(&#39;calculation failed: %s&#39;, err)
+            return schema.SimpleResult()
         return schema.SimpleResult.from_json(resp)
 
     def simulator(self, setup: schema.CalculationSetup) -&gt; schema.Ref:
@@ -993,10 +1171,11 @@ that are executed via this client are thus executed on that database.</p>
         client.dispose(simulator)
         ```
         &#34;&#34;&#34;
-        if setup is None:
-            raise ValueError(&#39;Invalid calculation setup&#39;)
-        r = self.__post(&#39;simulator&#39;, setup.to_json())
-        return schema.Ref.from_json(r)
+        resp, err = self.__post(&#39;simulator&#39;, setup.to_json())
+        if err:
+            log.error(&#39;failed to create simulator: %s&#39;, err)
+            return schema.Ref()
+        return schema.Ref.from_json(resp)
 
     def next_simulation(self, simulator: schema.Ref) -&gt; schema.SimpleResult:
         &#34;&#34;&#34;
@@ -1014,31 +1193,52 @@ that are executed via this client are thus executed on that database.</p>
         &#34;&#34;&#34;
         if simulator is None:
             raise ValueError(&#39;No simulator given&#39;)
-        resp = self.__post(&#39;next/simulation&#39;, simulator.to_json())
+        resp, err = self.__post(&#39;next/simulation&#39;, simulator.to_json())
+        if err:
+            log.error(&#39;failed to get simulation result: %s&#39;, err)
+            return schema.SimpleResult()
         return schema.SimpleResult.from_json(resp)
 
-    def get_descriptors(self, model_type: Type[T]) -&gt; Iterator[schema.Ref]:
+    def get_descriptors(self, model_type: ModelType) -&gt; Iterator[schema.Ref]:
         &#34;&#34;&#34;
-        Get the list of descriptors of the entities with the given model type.
+        Get the descriptors of the entities with the type from the database.
 
         Parameters
         ----------
-        model_type: T
-            A class, e.g. olca.Flow
+        model_type: ModelType
+            The model type, e.g. olca.Flow or `&#39;Flow&#39;`
 
         Returns
         -------
         Iterator[schema.Ref]
             An iterator with Ref objects.
+
+        Example:
+        --------
+        ```py
+        import olca
+
+        with Client() as client:
+            for a in client.get_descriptors(&#39;Actor&#39;):
+                print(&#39;found Actor: %s&#39; % a.name)
+            for s in client.get_descriptors(olca.Source):
+                print(&#39;found Source: %s&#39; % s.name)
+        ```
+
         &#34;&#34;&#34;
-        params = {&#39;@type&#39;: model_type.__name__}
-        result = self.__post(&#39;get/descriptors&#39;, params)
+        params = {&#39;@type&#39;: _model_type(model_type)}
+        result, err = self.__post(&#39;get/descriptors&#39;, params)
+        if err:
+            log.error(&#39;failed to get descriptors of type %s: %s&#39;,
+                      model_type, err)
+            return []
         for r in result:
             yield schema.Ref.from_json(r)
 
-    def get_descriptor(self, model_type: Type[T], model_id: str) -&gt; schema.Ref:
+    def get_descriptor(self, model_type: ModelType,
+                       uid=&#39;&#39;, name=&#39;&#39;) -&gt; Optional[schema.Ref]:
         &#34;&#34;&#34;
-        Get a descriptor of the model with the given ID.
+        Get a descriptor of the model with the given ID or name from the database.
 
         Models like product systems can be very large but often we just need
         a reference to a model (e.g. in a calculation setup). In this case
@@ -1048,10 +1248,12 @@ that are executed via this client are thus executed on that database.</p>
 
         Parameters
         ----------
-        model_type: T
-            A model class, e.g. olca.ProductSystem
-        model_id: str
+        model_type: ModelType
+            The type of the model, e.g. olca.ProductSystem or `&#39;ProductSystem&#39;`
+        uid: str, optional
             The ID of the model.
+        name: str, optional
+            The name of the model.
 
         Returns
         -------
@@ -1070,16 +1272,33 @@ that are executed via this client are thus executed on that database.</p>
         print(system_ref.to_json())
         ```
         &#34;&#34;&#34;
-        params = {&#39;@type&#39;: model_type.__name__, &#39;@id&#39;: model_id}
-        result = self.__post(&#39;get/descriptor&#39;, params)
+
+        params = {&#39;@type&#39;: _model_type(model_type)}
+        if uid != &#39;&#39;:
+            params[&#39;@id&#39;] = uid
+        if name != &#39;&#39;:
+            params[&#39;name&#39;] = name
+        result, err = self.__post(&#39;get/descriptor&#39;, params)
+        if err:
+            log.error(&#39;failed to get descriptor: %s&#39;, err)
+            return None
         return schema.Ref.from_json(result)
 
-    def get(self, model_type: Type[T], model_id: str) -&gt; T:
-        params = {&#39;@type&#39;: model_type.__name__, &#39;@id&#39;: model_id}
-        result = self.__post(&#39;get/model&#39;, params)
-        return model_type.from_json(result)
+    def get(self, model_type: ModelType,
+            uid=&#39;&#39;, name=&#39;&#39;) -&gt; Optional[schema.RootEntity]:
+        params = {&#39;@type&#39;: _model_type(model_type)}
+        if uid != &#39;&#39;:
+            params[&#39;@id&#39;] = uid
+        if name != &#39;&#39;:
+            params[&#39;name&#39;] = name
+        result, err = self.__post(&#39;get/model&#39;, params)
+        if err:
+            log.error(&#39;failed to get entity of type %s: %s&#39;,
+                      model_type, err)
+            return None
+        return _model_class(model_type).from_json(result)
 
-    def get_all(self, model_type: Type[T]) -&gt; Iterator[T]:
+    def get_all(self, model_type: ModelType) -&gt; Iterator[schema.RootEntity]:
         &#34;&#34;&#34;
         Returns a generator for all instances of the given type from the
         database. Note that this will first fetch the complete JSON list from
@@ -1098,11 +1317,15 @@ that are executed via this client are thus executed on that database.</p>
         ```
         &#34;&#34;&#34;
         params = {&#39;@type&#39;: model_type.__name__}
-        result = self.__post(&#39;get/models&#39;, params)
+        result, err = self.__post(&#39;get/models&#39;, params)
+        if err:
+            log.error(&#39;failed to get all of type %s: %s&#39;,
+                      model_type, err)
+        clazz = _model_class(model_type)
         for r in result:
-            yield model_type.from_json(r)
+            yield clazz.from_json(r)
 
-    def find(self, model_type, name: str) -&gt; schema.Ref:
+    def find(self, model_type: ModelType, name: str) -&gt; schema.Ref:
         &#34;&#34;&#34;Searches for a data set with the given type and name.
 
         :param model_type: The class of the data set, e.g. `olca.Flow`.
@@ -1114,6 +1337,42 @@ that are executed via this client are thus executed on that database.</p>
         for d in self.get_descriptors(model_type):
             if d.name == name:
                 return d
+
+    def get_providers_of(self, flow: Union[schema.Ref, schema.Flow]) \
+            -&gt; Iterator[schema.ProcessRef]:
+        &#34;&#34;&#34;
+        Get the providers for the given flow.
+
+        For products, these are the processes that have an output of the given
+        product. For waste flows, these are the waste treatment processes that
+        have this flow on the input side. Elementary flows do not have a
+        provider.
+
+        Parameters
+        ----------
+        flow: Union[schema.Ref, schema.Flow]
+            The flow or reference to the flow for which the providers should be
+            returned.
+
+        Example
+        -------
+        ```py
+        steel = client.get(&#39;Flow&#39;, &#39;Steel&#39;)
+        for provider in client.get_providers_of(steel):
+            print(provider.name)
+        ```
+        &#34;&#34;&#34;
+        params = {
+            &#39;@type&#39;: &#39;Flow&#39;,
+            &#39;@id&#39;: flow.id,
+            &#39;name&#39;: flow.name,
+        }
+        providers, err = self.__post(&#39;get/providers&#39;, params)
+        if err:
+            log.error(&#39;failed to get providers: %s&#39;, err)
+            return []
+        for obj in providers:
+            yield schema.ProcessRef.from_json(obj)
 
     def excel_export(self, result: schema.SimpleResult, path: str):
         &#34;&#34;&#34;Export the given result to an Excel file with the given path.
@@ -1127,7 +1386,9 @@ that are executed via this client are thus executed on that database.</p>
             &#39;@id&#39;: result.id,
             &#39;path&#39;: abs_path
         }
-        self.__post(&#39;export/excel&#39;, params)
+        _, err = self.__post(&#39;export/excel&#39;, params)
+        if err:
+            log.error(&#39;Excel export to %s failed: %s&#39;, path, err)
 
     def dispose(self, entity: schema.Entity):
         &#34;&#34;&#34;
@@ -1163,7 +1424,9 @@ that are executed via this client are thus executed on that database.</p>
         if entity is None:
             return
         arg = {&#39;@type&#39;: type(entity).__name__, &#39;@id&#39;: entity.id}
-        return self.__post(&#39;dispose&#39;, arg)
+        _, err = self.__post(&#39;dispose&#39;, arg)
+        if err:
+            log.error(&#39;failed to dispose object: %s&#39;, err)
 
     def shutdown_server(self):
         &#34;&#34;&#34;
@@ -1172,11 +1435,12 @@ that are executed via this client are thus executed on that database.</p>
         This method is probably most useful when running a headless server
         (a server without openLCA user interface).
         &#34;&#34;&#34;
-        self.__post(&#39;runtime/shutdown&#39;, None)
+        _, err = self.__post(&#39;runtime/shutdown&#39;, None)
+        if err:
+            log.error(&#39;failed to shutdown server: %s&#39;, err)
 
-    def create_product_system(self, process_id: str,
-                              default_providers=&#39;prefer&#39;,
-                              preferred_type=&#39;LCI_RESULT&#39;):
+    def create_product_system(self, process_id: str, default_providers=&#39;prefer&#39;,
+                              preferred_type=&#39;LCI_RESULT&#39;) -&gt; Optional[schema.Ref]:
         &#34;&#34;&#34;
         Creates a product system from the process with the given ID.
 
@@ -1222,11 +1486,14 @@ that are executed via this client are thus executed on that database.</p>
         ```
         &#34;&#34;&#34;
 
-        r = self.__post(&#39;create/product_system&#39;, {
+        r, err = self.__post(&#39;create/product_system&#39;, {
             &#39;processId&#39;: process_id,
             &#39;preferredType&#39;: preferred_type,
             &#39;providerLinking&#39;: default_providers,
         })
+        if err:
+            log.error(&#39;failed to create product system: %s&#39;, err)
+            return None
         return schema.Ref.from_json(r)
 
     def lci_inputs(self, result: schema.SimpleResult) -&gt; List[schema.FlowResult]:
@@ -1242,9 +1509,12 @@ that are executed via this client are thus executed on that database.</p>
         client.dispose(result)
         ```
         &#34;&#34;&#34;
-        raw = self.__post(&#39;get/inventory/inputs&#39;, {
+        raw, err = self.__post(&#39;get/inventory/inputs&#39;, {
             &#39;resultId&#39;: result.id,
         })
+        if err:
+            log.error(&#39;failed to get LCI inputs&#39;)
+            return []
         return [schema.FlowResult.from_json(it) for it in raw]
 
     def lci_outputs(self, result: schema.SimpleResult) -&gt; list:
@@ -1260,9 +1530,12 @@ that are executed via this client are thus executed on that database.</p>
         client.dispose(result)
         ```
         &#34;&#34;&#34;
-        raw = self.__post(&#39;get/inventory/outputs&#39;, {
+        raw, err = self.__post(&#39;get/inventory/outputs&#39;, {
             &#39;resultId&#39;: result.id,
         })
+        if err:
+            log.error(&#39;failed to get LCI outputs: %s&#39;, err)
+            return []
         return [schema.FlowResult.from_json(it) for it in raw]
 
     def lci_location_contributions(self, result: schema.SimpleResult,
@@ -1297,10 +1570,13 @@ that are executed via this client are thus executed on that database.</p>
         client.dispose(result)
         ```
         &#34;&#34;&#34;
-        raw = self.__post(&#39;get/inventory/contributions/locations&#39;, {
+        raw, err = self.__post(&#39;get/inventory/contributions/locations&#39;, {
             &#39;resultId&#39;: result.id,
             &#39;flow&#39;: flow.to_json(),
         })
+        if err:
+            log.error(&#39;failed to ger contributions by location&#39;)
+            return []
         return [ContributionItem.from_json(it) for it in raw]
 
     def lci_total_requirements(self, result: schema.SimpleResult) -&gt; List[ProductResult]:
@@ -1342,9 +1618,12 @@ that are executed via this client are thus executed on that database.</p>
         ```
         &#34;&#34;&#34;
 
-        raw = self.__post(&#39;get/inventory/total_requirements&#39;, {
+        raw, err = self.__post(&#39;get/inventory/total_requirements&#39;, {
             &#39;resultId&#39;: result.id
         })
+        if err:
+            log.error(&#39;failed to get total requirements %s&#39;, err)
+            return []
         return [ProductResult.from_json(it) for it in raw]
 
     def lcia(self, result: schema.SimpleResult) -&gt; List[schema.ImpactResult]:
@@ -1367,9 +1646,12 @@ that are executed via this client are thus executed on that database.</p>
         ```
         &#34;&#34;&#34;
 
-        raw = self.__post(&#39;get/impacts&#39;, {
+        raw, err = self.__post(&#39;get/impacts&#39;, {
             &#39;resultId&#39;: result.id,
         })
+        if err:
+            log.error(&#39;failed to get impact results: %s&#39;, err)
+            return []
         return [schema.ImpactResult.from_json(it) for it in raw]
 
     def lcia_flow_contributions(self, result: schema.SimpleResult,
@@ -1400,10 +1682,13 @@ that are executed via this client are thus executed on that database.</p>
         ```
         &#34;&#34;&#34;
 
-        raw = self.__post(&#39;get/impacts/contributions/flows&#39;, {
+        raw, err = self.__post(&#39;get/impacts/contributions/flows&#39;, {
             &#39;resultId&#39;: result.id,
             &#39;impactCategory&#39;: impact.to_json(),
         })
+        if err:
+            log.error(&#39;failed to get contribution items: %s&#39;, err)
+            return []
         return [ContributionItem.from_json(it) for it in raw]
 
     def lcia_location_contributions(self, result: schema.SimpleResult,
@@ -1436,10 +1721,13 @@ that are executed via this client are thus executed on that database.</p>
         ```
         &#34;&#34;&#34;
 
-        raw = self.__post(&#39;get/impacts/contributions/locations&#39;, {
+        raw, err = self.__post(&#39;get/impacts/contributions/locations&#39;, {
             &#39;resultId&#39;: result.id,
             &#39;impactCategory&#39;: impact.to_json(),
         })
+        if err:
+            log.error(&#39;Failed to get contribution items: %s&#39;, err)
+            return []
         return [ContributionItem.from_json(it) for it in raw]
 
     def lcia_process_contributions(self, result: schema.SimpleResult,
@@ -1472,13 +1760,21 @@ that are executed via this client are thus executed on that database.</p>
         ```
         &#34;&#34;&#34;
 
-        raw = self.__post(&#39;get/impacts/contributions/processes&#39;, {
+        raw, err = self.__post(&#39;get/impacts/contributions/processes&#39;, {
             &#39;resultId&#39;: result.id,
             &#39;impactCategory&#39;: impact.to_json(),
         })
+        if err:
+            log.error(&#39;Failed to get contribution items: %s&#39;, err)
+            return []
         return [ContributionItem.from_json(it) for it in raw]
 
-    def __post(self, method: str, params):
+    def __post(self, method: str, params) -&gt; Tuple[Any, Optional[str]]:
+        &#34;&#34;&#34;
+        Performs a request with the given parameters.
+
+        It returns a tuple (result, error).
+        &#34;&#34;&#34;
         req = {
             &#39;jsonrpc&#39;: &#39;2.0&#39;,
             &#39;id&#39;: self.next_id,
@@ -1489,13 +1785,13 @@ that are executed via this client are thus executed on that database.</p>
         resp = requests.post(self.url, json=req).json()  # type: dict
         err = resp.get(&#39;error&#39;)  # type: dict
         if err is not None:
-            msg = &#39;%i: %s&#39; % (err.get(&#39;code&#39;), err.get(&#39;message&#39;))
-            raise Exception(msg)
+            err_msg = &#39;%i: %s&#39; % (err.get(&#39;code&#39;), err.get(&#39;message&#39;))
+            return None, err_msg
         result = resp.get(&#39;result&#39;)
         if result is None:
-            raise Exception(
-                &#39;No error and no result: invalid JSON-RPC response&#39;)
-        return result</code></pre>
+            err_msg = &#39;No error and no result: invalid JSON-RPC response&#39;
+            return None, err_msg
+        return result, None</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
@@ -1564,14 +1860,28 @@ client.dispose(result)
     client.dispose(result)
     ```
     &#34;&#34;&#34;
-    if setup is None:
-        raise ValueError(&#39;Invalid calculation setup&#39;)
-    resp = self.__post(&#39;calculate&#39;, setup.to_json())
+    resp, err = self.__post(&#39;calculate&#39;, setup.to_json())
+    if err:
+        log.error(&#39;calculation failed: %s&#39;, err)
+        return schema.SimpleResult()
     return schema.SimpleResult.from_json(resp)</code></pre>
 </details>
 </dd>
+<dt id="olca.ipc.Client.close"><code class="name flex">
+<span>def <span class="ident">close</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def close(self):
+    return</code></pre>
+</details>
+</dd>
 <dt id="olca.ipc.Client.create_product_system"><code class="name flex">
-<span>def <span class="ident">create_product_system</span></span>(<span>self, process_id: str, default_providers='prefer', preferred_type='LCI_RESULT')</span>
+<span>def <span class="ident">create_product_system</span></span>(<span>self, process_id: str, default_providers='prefer', preferred_type='LCI_RESULT') ‑> Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Creates a product system from the process with the given ID.</p>
@@ -1612,9 +1922,8 @@ print('Created product system %s' % ref.id)
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def create_product_system(self, process_id: str,
-                          default_providers=&#39;prefer&#39;,
-                          preferred_type=&#39;LCI_RESULT&#39;):
+<pre><code class="python">def create_product_system(self, process_id: str, default_providers=&#39;prefer&#39;,
+                          preferred_type=&#39;LCI_RESULT&#39;) -&gt; Optional[schema.Ref]:
     &#34;&#34;&#34;
     Creates a product system from the process with the given ID.
 
@@ -1660,11 +1969,14 @@ print('Created product system %s' % ref.id)
     ```
     &#34;&#34;&#34;
 
-    r = self.__post(&#39;create/product_system&#39;, {
+    r, err = self.__post(&#39;create/product_system&#39;, {
         &#39;processId&#39;: process_id,
         &#39;preferredType&#39;: preferred_type,
         &#39;providerLinking&#39;: default_providers,
     })
+    if err:
+        log.error(&#39;failed to create product system: %s&#39;, err)
+        return None
     return schema.Ref.from_json(r)</code></pre>
 </details>
 </dd>
@@ -1684,7 +1996,11 @@ print('Created product system %s' % ref.id)
     if model is None:
         return
     json = model.to_json()
-    return self.__post(&#39;delete/model&#39;, json)</code></pre>
+    resp, err = self.__post(&#39;delete/model&#39;, json)
+    if err:
+        log.error(&#39;failed to delete model: %s&#39;, err)
+        return err
+    return resp</code></pre>
 </details>
 </dd>
 <dt id="olca.ipc.Client.dispose"><code class="name flex">
@@ -1752,7 +2068,9 @@ print(response)  # should print `ok`
     if entity is None:
         return
     arg = {&#39;@type&#39;: type(entity).__name__, &#39;@id&#39;: entity.id}
-    return self.__post(&#39;dispose&#39;, arg)</code></pre>
+    _, err = self.__post(&#39;dispose&#39;, arg)
+    if err:
+        log.error(&#39;failed to dispose object: %s&#39;, err)</code></pre>
 </details>
 </dd>
 <dt id="olca.ipc.Client.excel_export"><code class="name flex">
@@ -1779,11 +2097,13 @@ written.</p></div>
         &#39;@id&#39;: result.id,
         &#39;path&#39;: abs_path
     }
-    self.__post(&#39;export/excel&#39;, params)</code></pre>
+    _, err = self.__post(&#39;export/excel&#39;, params)
+    if err:
+        log.error(&#39;Excel export to %s failed: %s&#39;, path, err)</code></pre>
 </details>
 </dd>
 <dt id="olca.ipc.Client.find"><code class="name flex">
-<span>def <span class="ident">find</span></span>(<span>self, model_type, name: str) ‑> <a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a></span>
+<span>def <span class="ident">find</span></span>(<span>self, model_type: Union[Type[<a title="olca.schema.RootEntity" href="schema.html#olca.schema.RootEntity">RootEntity</a>], str], name: str) ‑> <a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Searches for a data set with the given type and name.</p>
@@ -1796,7 +2116,7 @@ set in the database.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def find(self, model_type, name: str) -&gt; schema.Ref:
+<pre><code class="python">def find(self, model_type: ModelType, name: str) -&gt; schema.Ref:
     &#34;&#34;&#34;Searches for a data set with the given type and name.
 
     :param model_type: The class of the data set, e.g. `olca.Flow`.
@@ -1811,7 +2131,7 @@ set in the database.</p></div>
 </details>
 </dd>
 <dt id="olca.ipc.Client.get"><code class="name flex">
-<span>def <span class="ident">get</span></span>(<span>self, model_type: Type[~T], model_id: str) ‑> ~T</span>
+<span>def <span class="ident">get</span></span>(<span>self, model_type: Union[Type[<a title="olca.schema.RootEntity" href="schema.html#olca.schema.RootEntity">RootEntity</a>], str], uid='', name='') ‑> Union[<a title="olca.schema.RootEntity" href="schema.html#olca.schema.RootEntity">RootEntity</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1819,14 +2139,23 @@ set in the database.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get(self, model_type: Type[T], model_id: str) -&gt; T:
-    params = {&#39;@type&#39;: model_type.__name__, &#39;@id&#39;: model_id}
-    result = self.__post(&#39;get/model&#39;, params)
-    return model_type.from_json(result)</code></pre>
+<pre><code class="python">def get(self, model_type: ModelType,
+        uid=&#39;&#39;, name=&#39;&#39;) -&gt; Optional[schema.RootEntity]:
+    params = {&#39;@type&#39;: _model_type(model_type)}
+    if uid != &#39;&#39;:
+        params[&#39;@id&#39;] = uid
+    if name != &#39;&#39;:
+        params[&#39;name&#39;] = name
+    result, err = self.__post(&#39;get/model&#39;, params)
+    if err:
+        log.error(&#39;failed to get entity of type %s: %s&#39;,
+                  model_type, err)
+        return None
+    return _model_class(model_type).from_json(result)</code></pre>
 </details>
 </dd>
 <dt id="olca.ipc.Client.get_all"><code class="name flex">
-<span>def <span class="ident">get_all</span></span>(<span>self, model_type: Type[~T]) ‑> Iterator[~T]</span>
+<span>def <span class="ident">get_all</span></span>(<span>self, model_type: Union[Type[<a title="olca.schema.RootEntity" href="schema.html#olca.schema.RootEntity">RootEntity</a>], str]) ‑> Iterator[<a title="olca.schema.RootEntity" href="schema.html#olca.schema.RootEntity">RootEntity</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns a generator for all instances of the given type from the
@@ -1845,7 +2174,7 @@ for c in currencies:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_all(self, model_type: Type[T]) -&gt; Iterator[T]:
+<pre><code class="python">def get_all(self, model_type: ModelType) -&gt; Iterator[schema.RootEntity]:
     &#34;&#34;&#34;
     Returns a generator for all instances of the given type from the
     database. Note that this will first fetch the complete JSON list from
@@ -1864,26 +2193,32 @@ for c in currencies:
     ```
     &#34;&#34;&#34;
     params = {&#39;@type&#39;: model_type.__name__}
-    result = self.__post(&#39;get/models&#39;, params)
+    result, err = self.__post(&#39;get/models&#39;, params)
+    if err:
+        log.error(&#39;failed to get all of type %s: %s&#39;,
+                  model_type, err)
+    clazz = _model_class(model_type)
     for r in result:
-        yield model_type.from_json(r)</code></pre>
+        yield clazz.from_json(r)</code></pre>
 </details>
 </dd>
 <dt id="olca.ipc.Client.get_descriptor"><code class="name flex">
-<span>def <span class="ident">get_descriptor</span></span>(<span>self, model_type: Type[~T], model_id: str) ‑> <a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a></span>
+<span>def <span class="ident">get_descriptor</span></span>(<span>self, model_type: Union[Type[<a title="olca.schema.RootEntity" href="schema.html#olca.schema.RootEntity">RootEntity</a>], str], uid='', name='') ‑> Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Get a descriptor of the model with the given ID.</p>
+<div class="desc"><p>Get a descriptor of the model with the given ID or name from the database.</p>
 <p>Models like product systems can be very large but often we just need
 a reference to a model (e.g. in a calculation setup). In this case
 this method can be useful.</p>
 <p>since: openLCA 2.0</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>model_type</code></strong> :&ensp;<code>T</code></dt>
-<dd>A model class, e.g. olca.ProductSystem</dd>
-<dt><strong><code>model_id</code></strong> :&ensp;<code>str</code></dt>
+<dt><strong><code>model_type</code></strong> :&ensp;<code>ModelType</code></dt>
+<dd>The type of the model, e.g. olca.ProductSystem or <code>'ProductSystem'</code></dd>
+<dt><strong><code>uid</code></strong> :&ensp;<code>str</code>, optional</dt>
 <dd>The ID of the model.</dd>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The name of the model.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -1903,9 +2238,10 @@ print(system_ref.to_json())
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_descriptor(self, model_type: Type[T], model_id: str) -&gt; schema.Ref:
+<pre><code class="python">def get_descriptor(self, model_type: ModelType,
+                   uid=&#39;&#39;, name=&#39;&#39;) -&gt; Optional[schema.Ref]:
     &#34;&#34;&#34;
-    Get a descriptor of the model with the given ID.
+    Get a descriptor of the model with the given ID or name from the database.
 
     Models like product systems can be very large but often we just need
     a reference to a model (e.g. in a calculation setup). In this case
@@ -1915,10 +2251,12 @@ print(system_ref.to_json())
 
     Parameters
     ----------
-    model_type: T
-        A model class, e.g. olca.ProductSystem
-    model_id: str
+    model_type: ModelType
+        The type of the model, e.g. olca.ProductSystem or `&#39;ProductSystem&#39;`
+    uid: str, optional
         The ID of the model.
+    name: str, optional
+        The name of the model.
 
     Returns
     -------
@@ -1937,48 +2275,143 @@ print(system_ref.to_json())
     print(system_ref.to_json())
     ```
     &#34;&#34;&#34;
-    params = {&#39;@type&#39;: model_type.__name__, &#39;@id&#39;: model_id}
-    result = self.__post(&#39;get/descriptor&#39;, params)
+
+    params = {&#39;@type&#39;: _model_type(model_type)}
+    if uid != &#39;&#39;:
+        params[&#39;@id&#39;] = uid
+    if name != &#39;&#39;:
+        params[&#39;name&#39;] = name
+    result, err = self.__post(&#39;get/descriptor&#39;, params)
+    if err:
+        log.error(&#39;failed to get descriptor: %s&#39;, err)
+        return None
     return schema.Ref.from_json(result)</code></pre>
 </details>
 </dd>
 <dt id="olca.ipc.Client.get_descriptors"><code class="name flex">
-<span>def <span class="ident">get_descriptors</span></span>(<span>self, model_type: Type[~T]) ‑> Iterator[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>]</span>
+<span>def <span class="ident">get_descriptors</span></span>(<span>self, model_type: Union[Type[<a title="olca.schema.RootEntity" href="schema.html#olca.schema.RootEntity">RootEntity</a>], str]) ‑> Iterator[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Get the list of descriptors of the entities with the given model type.</p>
+<div class="desc"><p>Get the descriptors of the entities with the type from the database.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>model_type</code></strong> :&ensp;<code>T</code></dt>
-<dd>A class, e.g. olca.Flow</dd>
+<dt><strong><code>model_type</code></strong> :&ensp;<code>ModelType</code></dt>
+<dd>The model type, e.g. olca.Flow or <code>'Flow'</code></dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>Iterator[schema.Ref]</code></dt>
 <dd>An iterator with Ref objects.</dd>
-</dl></div>
+</dl>
+<h2 id="example">Example:</h2>
+<pre><code class="language-py">import olca
+
+with Client() as client:
+    for a in client.get_descriptors('Actor'):
+        print('found Actor: %s' % a.name)
+    for s in client.get_descriptors(olca.Source):
+        print('found Source: %s' % s.name)
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_descriptors(self, model_type: Type[T]) -&gt; Iterator[schema.Ref]:
+<pre><code class="python">def get_descriptors(self, model_type: ModelType) -&gt; Iterator[schema.Ref]:
     &#34;&#34;&#34;
-    Get the list of descriptors of the entities with the given model type.
+    Get the descriptors of the entities with the type from the database.
 
     Parameters
     ----------
-    model_type: T
-        A class, e.g. olca.Flow
+    model_type: ModelType
+        The model type, e.g. olca.Flow or `&#39;Flow&#39;`
 
     Returns
     -------
     Iterator[schema.Ref]
         An iterator with Ref objects.
+
+    Example:
+    --------
+    ```py
+    import olca
+
+    with Client() as client:
+        for a in client.get_descriptors(&#39;Actor&#39;):
+            print(&#39;found Actor: %s&#39; % a.name)
+        for s in client.get_descriptors(olca.Source):
+            print(&#39;found Source: %s&#39; % s.name)
+    ```
+
     &#34;&#34;&#34;
-    params = {&#39;@type&#39;: model_type.__name__}
-    result = self.__post(&#39;get/descriptors&#39;, params)
+    params = {&#39;@type&#39;: _model_type(model_type)}
+    result, err = self.__post(&#39;get/descriptors&#39;, params)
+    if err:
+        log.error(&#39;failed to get descriptors of type %s: %s&#39;,
+                  model_type, err)
+        return []
     for r in result:
         yield schema.Ref.from_json(r)</code></pre>
+</details>
+</dd>
+<dt id="olca.ipc.Client.get_providers_of"><code class="name flex">
+<span>def <span class="ident">get_providers_of</span></span>(<span>self, flow: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Flow" href="schema.html#olca.schema.Flow">Flow</a>]) ‑> Iterator[<a title="olca.schema.ProcessRef" href="schema.html#olca.schema.ProcessRef">ProcessRef</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get the providers for the given flow.</p>
+<p>For products, these are the processes that have an output of the given
+product. For waste flows, these are the waste treatment processes that
+have this flow on the input side. Elementary flows do not have a
+provider.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>flow</code></strong> :&ensp;<code>Union[schema.Ref, schema.Flow]</code></dt>
+<dd>The flow or reference to the flow for which the providers should be
+returned.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code class="language-py">steel = client.get('Flow', 'Steel')
+for provider in client.get_providers_of(steel):
+    print(provider.name)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_providers_of(self, flow: Union[schema.Ref, schema.Flow]) \
+        -&gt; Iterator[schema.ProcessRef]:
+    &#34;&#34;&#34;
+    Get the providers for the given flow.
+
+    For products, these are the processes that have an output of the given
+    product. For waste flows, these are the waste treatment processes that
+    have this flow on the input side. Elementary flows do not have a
+    provider.
+
+    Parameters
+    ----------
+    flow: Union[schema.Ref, schema.Flow]
+        The flow or reference to the flow for which the providers should be
+        returned.
+
+    Example
+    -------
+    ```py
+    steel = client.get(&#39;Flow&#39;, &#39;Steel&#39;)
+    for provider in client.get_providers_of(steel):
+        print(provider.name)
+    ```
+    &#34;&#34;&#34;
+    params = {
+        &#39;@type&#39;: &#39;Flow&#39;,
+        &#39;@id&#39;: flow.id,
+        &#39;name&#39;: flow.name,
+    }
+    providers, err = self.__post(&#39;get/providers&#39;, params)
+    if err:
+        log.error(&#39;failed to get providers: %s&#39;, err)
+        return []
+    for obj in providers:
+        yield schema.ProcessRef.from_json(obj)</code></pre>
 </details>
 </dd>
 <dt id="olca.ipc.Client.insert"><code class="name flex">
@@ -2037,7 +2470,11 @@ print(response)
     if model is None:
         return
     json = model.to_json()
-    return self.__post(&#39;insert/model&#39;, json)</code></pre>
+    resp, err = self.__post(&#39;insert/model&#39;, json)
+    if err:
+        log.error(&#39;failed to insert model: %s&#39;, err)
+        return err
+    return resp</code></pre>
 </details>
 </dd>
 <dt id="olca.ipc.Client.lci_inputs"><code class="name flex">
@@ -2068,9 +2505,12 @@ client.dispose(result)
     client.dispose(result)
     ```
     &#34;&#34;&#34;
-    raw = self.__post(&#39;get/inventory/inputs&#39;, {
+    raw, err = self.__post(&#39;get/inventory/inputs&#39;, {
         &#39;resultId&#39;: result.id,
     })
+    if err:
+        log.error(&#39;failed to get LCI inputs&#39;)
+        return []
     return [schema.FlowResult.from_json(it) for it in raw]</code></pre>
 </details>
 </dd>
@@ -2138,10 +2578,13 @@ client.dispose(result)
     client.dispose(result)
     ```
     &#34;&#34;&#34;
-    raw = self.__post(&#39;get/inventory/contributions/locations&#39;, {
+    raw, err = self.__post(&#39;get/inventory/contributions/locations&#39;, {
         &#39;resultId&#39;: result.id,
         &#39;flow&#39;: flow.to_json(),
     })
+    if err:
+        log.error(&#39;failed to ger contributions by location&#39;)
+        return []
     return [ContributionItem.from_json(it) for it in raw]</code></pre>
 </details>
 </dd>
@@ -2173,9 +2616,12 @@ client.dispose(result)
     client.dispose(result)
     ```
     &#34;&#34;&#34;
-    raw = self.__post(&#39;get/inventory/outputs&#39;, {
+    raw, err = self.__post(&#39;get/inventory/outputs&#39;, {
         &#39;resultId&#39;: result.id,
     })
+    if err:
+        log.error(&#39;failed to get LCI outputs: %s&#39;, err)
+        return []
     return [schema.FlowResult.from_json(it) for it in raw]</code></pre>
 </details>
 </dd>
@@ -2256,9 +2702,12 @@ client.dispose(result)
     ```
     &#34;&#34;&#34;
 
-    raw = self.__post(&#39;get/inventory/total_requirements&#39;, {
+    raw, err = self.__post(&#39;get/inventory/total_requirements&#39;, {
         &#39;resultId&#39;: result.id
     })
+    if err:
+        log.error(&#39;failed to get total requirements %s&#39;, err)
+        return []
     return [ProductResult.from_json(it) for it in raw]</code></pre>
 </details>
 </dd>
@@ -2303,9 +2752,12 @@ client.dispose(result)
     ```
     &#34;&#34;&#34;
 
-    raw = self.__post(&#39;get/impacts&#39;, {
+    raw, err = self.__post(&#39;get/impacts&#39;, {
         &#39;resultId&#39;: result.id,
     })
+    if err:
+        log.error(&#39;failed to get impact results: %s&#39;, err)
+        return []
     return [schema.ImpactResult.from_json(it) for it in raw]</code></pre>
 </details>
 </dd>
@@ -2364,10 +2816,13 @@ client.dispose(result)
     ```
     &#34;&#34;&#34;
 
-    raw = self.__post(&#39;get/impacts/contributions/flows&#39;, {
+    raw, err = self.__post(&#39;get/impacts/contributions/flows&#39;, {
         &#39;resultId&#39;: result.id,
         &#39;impactCategory&#39;: impact.to_json(),
     })
+    if err:
+        log.error(&#39;failed to get contribution items: %s&#39;, err)
+        return []
     return [ContributionItem.from_json(it) for it in raw]</code></pre>
 </details>
 </dd>
@@ -2429,10 +2884,13 @@ client.dispose(result)
     ```
     &#34;&#34;&#34;
 
-    raw = self.__post(&#39;get/impacts/contributions/locations&#39;, {
+    raw, err = self.__post(&#39;get/impacts/contributions/locations&#39;, {
         &#39;resultId&#39;: result.id,
         &#39;impactCategory&#39;: impact.to_json(),
     })
+    if err:
+        log.error(&#39;Failed to get contribution items: %s&#39;, err)
+        return []
     return [ContributionItem.from_json(it) for it in raw]</code></pre>
 </details>
 </dd>
@@ -2494,10 +2952,13 @@ client.dispose(result)
     ```
     &#34;&#34;&#34;
 
-    raw = self.__post(&#39;get/impacts/contributions/processes&#39;, {
+    raw, err = self.__post(&#39;get/impacts/contributions/processes&#39;, {
         &#39;resultId&#39;: result.id,
         &#39;impactCategory&#39;: impact.to_json(),
     })
+    if err:
+        log.error(&#39;Failed to get contribution items: %s&#39;, err)
+        return []
     return [ContributionItem.from_json(it) for it in raw]</code></pre>
 </details>
 </dd>
@@ -2535,7 +2996,10 @@ simulation step.</dd>
     &#34;&#34;&#34;
     if simulator is None:
         raise ValueError(&#39;No simulator given&#39;)
-    resp = self.__post(&#39;next/simulation&#39;, simulator.to_json())
+    resp, err = self.__post(&#39;next/simulation&#39;, simulator.to_json())
+    if err:
+        log.error(&#39;failed to get simulation result: %s&#39;, err)
+        return schema.SimpleResult()
     return schema.SimpleResult.from_json(resp)</code></pre>
 </details>
 </dd>
@@ -2557,7 +3021,9 @@ simulation step.</dd>
     This method is probably most useful when running a headless server
     (a server without openLCA user interface).
     &#34;&#34;&#34;
-    self.__post(&#39;runtime/shutdown&#39;, None)</code></pre>
+    _, err = self.__post(&#39;runtime/shutdown&#39;, None)
+    if err:
+        log.error(&#39;failed to shutdown server: %s&#39;, err)</code></pre>
 </details>
 </dd>
 <dt id="olca.ipc.Client.simulator"><code class="name flex">
@@ -2658,10 +3124,11 @@ client.dispose(simulator)
     client.dispose(simulator)
     ```
     &#34;&#34;&#34;
-    if setup is None:
-        raise ValueError(&#39;Invalid calculation setup&#39;)
-    r = self.__post(&#39;simulator&#39;, setup.to_json())
-    return schema.Ref.from_json(r)</code></pre>
+    resp, err = self.__post(&#39;simulator&#39;, setup.to_json())
+    if err:
+        log.error(&#39;failed to create simulator: %s&#39;, err)
+        return schema.Ref()
+    return schema.Ref.from_json(resp)</code></pre>
 </details>
 </dd>
 <dt id="olca.ipc.Client.update"><code class="name flex">
@@ -2680,7 +3147,11 @@ client.dispose(simulator)
     if model is None:
         return
     json = model.to_json()
-    return self.__post(&#39;update/model&#39;, json)</code></pre>
+    resp, err = self.__post(&#39;update/model&#39;, json)
+    if err:
+        log.error(&#39;failed to update model: %s&#39;, err)
+        return err
+    return resp</code></pre>
 </details>
 </dd>
 </dl>
@@ -2724,11 +3195,11 @@ as the olca.schema.Entity type.</p>
 
     def __init__(self):
         super(ContributionItem, self).__init__()
-        item: Optional[schema.Ref] = None
-        amount: Optional[float] = None
-        share: Optional[float] = None
-        rest: Optional[bool] = None
-        unit: Optional[str] = None
+        self.item: Optional[schema.Ref] = None
+        self.amount: Optional[float] = None
+        self.share: Optional[float] = None
+        self.rest: Optional[bool] = None
+        self.unit: Optional[str] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(ContributionItem, self).to_json()
@@ -2880,9 +3351,9 @@ as the olca.schema.Entity type.</p>
 
     def __init__(self):
         super(ProductResult, self).__init__()
-        process: Optional[schema.Ref] = None
-        product: Optional[schema.Ref] = None
-        amount: Optional[float] = None
+        self.process: Optional[schema.Ref] = None
+        self.product: Optional[schema.Ref] = None
+        self.amount: Optional[float] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(ProductResult, self).to_json()
@@ -3001,6 +3472,7 @@ def from_json(json: dict):
 <h4><code><a title="olca.ipc.Client" href="#olca.ipc.Client">Client</a></code></h4>
 <ul class="">
 <li><code><a title="olca.ipc.Client.calculate" href="#olca.ipc.Client.calculate">calculate</a></code></li>
+<li><code><a title="olca.ipc.Client.close" href="#olca.ipc.Client.close">close</a></code></li>
 <li><code><a title="olca.ipc.Client.create_product_system" href="#olca.ipc.Client.create_product_system">create_product_system</a></code></li>
 <li><code><a title="olca.ipc.Client.delete" href="#olca.ipc.Client.delete">delete</a></code></li>
 <li><code><a title="olca.ipc.Client.dispose" href="#olca.ipc.Client.dispose">dispose</a></code></li>
@@ -3010,6 +3482,7 @@ def from_json(json: dict):
 <li><code><a title="olca.ipc.Client.get_all" href="#olca.ipc.Client.get_all">get_all</a></code></li>
 <li><code><a title="olca.ipc.Client.get_descriptor" href="#olca.ipc.Client.get_descriptor">get_descriptor</a></code></li>
 <li><code><a title="olca.ipc.Client.get_descriptors" href="#olca.ipc.Client.get_descriptors">get_descriptors</a></code></li>
+<li><code><a title="olca.ipc.Client.get_providers_of" href="#olca.ipc.Client.get_providers_of">get_providers_of</a></code></li>
 <li><code><a title="olca.ipc.Client.insert" href="#olca.ipc.Client.insert">insert</a></code></li>
 <li><code><a title="olca.ipc.Client.lci_inputs" href="#olca.ipc.Client.lci_inputs">lci_inputs</a></code></li>
 <li><code><a title="olca.ipc.Client.lci_location_contributions" href="#olca.ipc.Client.lci_location_contributions">lci_location_contributions</a></code></li>

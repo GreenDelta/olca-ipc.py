@@ -161,6 +161,15 @@ class Client(object):
         self.url = 'http://localhost:%i' % port
         self.next_id = 1
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        return
+
+    def close(self):
+        return
+
     def insert(self, model: schema.RootEntity):
         """
         Inserts the given model into the database of the IPC server.
@@ -475,6 +484,42 @@ class Client(object):
         for d in self.get_descriptors(model_type):
             if d.name == name:
                 return d
+
+    def get_providers_of(self, flow: Union[schema.Ref, schema.Flow]) \
+            -> Iterator[schema.ProcessRef]:
+        """
+        Get the providers for the given flow.
+
+        For products, these are the processes that have an output of the given
+        product. For waste flows, these are the waste treatment processes that
+        have this flow on the input side. Elementary flows do not have a
+        provider.
+
+        Parameters
+        ----------
+        flow: Union[schema.Ref, schema.Flow]
+            The flow or reference to the flow for which the providers should be
+            returned.
+
+        Example
+        -------
+        ```py
+        steel = client.get('Flow', 'Steel')
+        for provider in client.get_providers_of(steel):
+            print(provider.name)
+        ```
+        """
+        params = {
+            '@type': 'Flow',
+            '@id': flow.id,
+            'name': flow.name,
+        }
+        providers, err = self.__post('get/providers', params)
+        if err:
+            log.error('failed to get providers: %s', err)
+            return []
+        for obj in providers:
+            yield schema.ProcessRef.from_json(obj)
 
     def excel_export(self, result: schema.SimpleResult, path: str):
         """Export the given result to an Excel file with the given path.

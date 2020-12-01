@@ -27,9 +27,13 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python"># This module contains a Python API of the JSON-LD based
+<pre><code class="python"># DO NOT CHANGE THIS CODE AS THIS IS GENERATED AUTOMATICALLY
+
+# This module contains a Python API of the JSON-LD based
 # openLCA data exchange model.package schema.
 # For more information see http://greendelta.github.io/olca-schema/
+
+import json as jsonlib
 
 from enum import Enum
 from typing import List, Optional
@@ -209,6 +213,12 @@ class Entity(object):
     def __init__(self):
         self.id: str = &#39;&#39;
         self.olca_type: str = &#39;&#39;
+
+    def _repr_html_(self):
+        code = jsonlib.dumps(self.to_json(), indent=2, sort_keys=True)
+        if len(code) &gt; 10000:
+            code = code[0:10000] + &#39;...&#39;
+        return &#39;&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;%s&lt;/code&gt;&lt;/pre&gt;&#39; % code
 
     def to_json(self) -&gt; dict:
         o_type = self.olca_type
@@ -5482,6 +5492,12 @@ def from_json(json: dict):
     def __init__(self):
         self.id: str = &#39;&#39;
         self.olca_type: str = &#39;&#39;
+
+    def _repr_html_(self):
+        code = jsonlib.dumps(self.to_json(), indent=2, sort_keys=True)
+        if len(code) &gt; 10000:
+            code = code[0:10000] + &#39;...&#39;
+        return &#39;&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;%s&lt;/code&gt;&lt;/pre&gt;&#39; % code
 
     def to_json(self) -&gt; dict:
         o_type = self.olca_type
