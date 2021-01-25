@@ -1,6 +1,13 @@
 olca-ipc.py
 ===========
 
+.. note::
+    Not all features and bug-fixes are currently available on the version
+    on PyPi.org. If you want to use the latest development version, just install
+    it directly from the master branch, e.g. with ``pip``:
+
+    ``pip install -U git+https://github.com/GreenDelta/olca-ipc.py.git/@master``
+
 openLCA provides an `implementation <https://github.com/GreenDelta/olca-modules/tree/master/olca-ipc>`_
 of an `JSON-RPC <http://www.jsonrpc.org/specification>`_ based protocol for
 inter-process communication (IPC). With this, it is possible to call functions
