@@ -68,7 +68,7 @@ class AllocationTest(unittest.TestCase):
             print('test with allocation method = %s ...' % method)
             setup.allocation_method = method
             result = client.calculate(setup)
-            # get the result for 'e'; when there is not allocation applied
+            # get the result for 'e'; when there is no allocation applied
             # we also have a result for ' q' in our list
             fr = next(r for r in result.flow_results if r.flow.id == e.id)
             self.assertFalse(fr.input)
