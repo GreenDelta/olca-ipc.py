@@ -280,10 +280,7 @@ def exchange_of(process: Process,
     Parameters
     ----------
     process: Process
-        The process of the new exchange. We update and set the internal
-        IDs of this process and the exchange but we do not add the exchange
-        to the process yet. This is something you need to do after you
-        created the exchange.
+        The process of the new exchange.
     
     flow: Union[Ref, Flow]
         The flow or reference to the flow of this exchange.
@@ -306,7 +303,6 @@ def exchange_of(process: Process,
     process = olca.process_of('Steel production')
     output = exchange_of(process, steel, 1.0)
     output.quantitative_reference = True
-    process.exchanges = [output]
     ```
     """
     if process.last_internal_id is None:
@@ -323,6 +319,10 @@ def exchange_of(process: Process,
     exchange.flow = ref('Flow', flow.id, flow.name)
     if unit:
         exchange.unit = ref('Unit', unit.id, unit.name)
+    if process.exchanges is None:
+        process.exchanges = [exchange]
+    else:
+        process.exchanges.append(exchange)
     return exchange
 
 
@@ -345,7 +345,6 @@ def output_of(process: Process,
     process = olca.process_of('Steel production')
     output = olca.output_of(process, steel, 1.0)
     output.quantitative_reference = True
-    process.exchanges = [output]
     ```
     """
     exchange = exchange_of(process, flow, amount, unit)
@@ -371,7 +370,6 @@ def input_of(process: Process,
     scrap = olca.waste_flow_of('Scrap', mass)
     process = olca.process_of('Steel production')
     input = olca.input_of(process, scrap, 0.1)
-    process.exchanges = [input]
     ```
     """
     exchange = exchange_of(process, flow, amount, unit)
@@ -456,6 +454,53 @@ def parameter_of(name: str, value: Union[str, float],
         param.value = value
         param.input_parameter = True
     return param
+
+
+def physical_allocation_of(
+        process: Process,
+        product: Union[Ref, Flow],
+        amount: Union[str, float]) -> AllocationFactor:
+    f = _allocation_of(process, product, amount)
+    f.allocation_type = AllocationType.PHYSICAL_ALLOCATION
+    return f
+
+
+def economic_allocation_of(
+        process: Process,
+        product: Union[Ref, Flow],
+        amount: Union[str, float]) -> AllocationFactor:
+    f = _allocation_of(process, product, amount)
+    f.allocation_type = AllocationType.ECONOMIC_ALLOCATION
+    return f
+
+
+def causal_allocation_of(
+        process: Process,
+        product: Union[Ref, Flow],
+        amount: Union[str, float],
+        exchange: Union[Exchange, ExchangeRef]) -> AllocationFactor:
+    f = _allocation_of(process, product, amount)
+    f.allocation_type = AllocationType.CAUSAL_ALLOCATION
+    f.exchange = ExchangeRef()
+    f.exchange.internal_id = exchange.internal_id
+    return f
+
+
+def _allocation_of(
+        process: Process,
+        product: Union[Ref, Flow],
+        amount: Union[str, float]) -> AllocationFactor:
+    f = AllocationFactor()
+    f.product = ref(Flow, product.id, product.name)
+    if isinstance(amount, str):
+        f.formula = amount
+    else:
+        f.value = amount
+    if process.allocation_factors is None:
+        process.allocation_factors = [f]
+    else:
+        process.allocation_factors.append(f)
+    return f
 
 
 def _set_base_attributes(entity: RootEntity, name: str):

@@ -70,7 +70,7 @@ class TestFactory(unittest.TestCase):
         process = olca.process_of('Steel production')
         output = olca.exchange_of(process, steel)
         output.quantitative_reference = True
-        process.exchanges = [output]
+        self.assertEqual(1, len(process.exchanges))
         self.assertEqual(output.olca_type, 'Exchange')
         self.assertEqual(output.flow.name, 'Steel')
         self.assertEqual(output.amount, 1.0)
