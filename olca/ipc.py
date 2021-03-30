@@ -3,6 +3,7 @@ import os
 
 import requests
 import olca.schema as schema
+import olca.upstream_tree as utree
 
 from typing import Any, Iterator, List, Optional, Tuple, Type, TypeVar, Union
 
@@ -915,6 +916,91 @@ class Client(object):
             log.error('Failed to get contribution items: %s', err)
             return []
         return [ContributionItem.from_json(it) for it in raw]
+
+    def upstream_tree_of(self, result: schema.SimpleResult, ref: schema.Ref,
+                         max_depth=5, min_contribution=0.1,
+                         max_recursion_depth=3) -> Optional[utree.UpstreamTree]:
+        """
+        Get an upstream tree for an impact category or flow.
+
+        This function is only available in openLCA 2.x.
+
+        Parameters
+        ----------
+        result: olca.schema.SimpleResult
+            The previously calculated result. This needs to be an upstream
+            result.
+
+        ref: olca.schema.Ref
+            The result reference of the upstream tree: a flow or impact
+            category reference.
+
+        max_depth: int
+            The maximum number of levels of the tree. A value < 0 means
+            unlimited. In this case reasonable recursion limits are
+            required if the underlying product system has cycles.
+
+        min_contribution: float
+            In addition to the maximum tree depth, this parameter describes
+            the minimum upstream contribution of a node in the tree. A value
+            < 0 means that there is no minimum contribution.
+
+        max_recursion_depth: int
+            When the max. tree depth is unlimited and the underlying product
+            system has cycles, this parameter indicates how often a process
+            can occur in a tree path. It defines the maximum number of
+            expansions of a loop in a tree path.
+
+        Example
+        -------
+        ```python
+        client = olca.Client()
+
+        # create the calculation setup and run the calculation
+        setup = olca.CalculationSetup()
+        setup.calculation_type = olca.CalculationType.UPSTREAM_ANALYSIS
+        setup.product_system = olca.ref(
+            olca.ProductSystem,
+            '7d1cbce0-b5b3-47ba-95b5-014ab3c7f569'
+        )
+        setup.impact_method = olca.ref(
+            olca.ImpactMethod,
+            '99b9d86b-ec6f-4610-ba9f-68ebfe5691dd'
+        )
+        setup.amount = 1.0
+        result = client.calculate(setup)
+
+        # calculate the upstream tree and traverse it
+        impact = olca.ref(
+            olca.ImpactCategory,
+            '2a26b243-23cb-4f90-baab-239d3d7397fa')
+        tree = client.upstream_tree_of(result, impact)
+
+        def traversal_handler(n: Tuple[UpstreamNode, int]):
+            (node, depth) = n
+            print('%s+ %s %.3f' % (
+                '  ' * depth,
+                node.product.process.name,
+                node.result
+            ))
+
+        tree.traverse(traversal_handler)
+
+        # dispose the result
+        client.dispose(result)
+        ```
+        """
+        raw, err = self.__post('get/upstream/tree', {
+            'resultId': result.id,
+            'ref': ref.to_json(),
+            'maxDepth': max_depth,
+            'minContribution': min_contribution,
+            'maxRecursionDepth': max_recursion_depth
+        })
+        if err:
+            log.error('Failed to get upstream tree: %s', err)
+            return None
+        return utree.UpstreamTree.from_json(raw)
 
     def __post(self, method: str, params) -> Tuple[Any, Optional[str]]:
         """
