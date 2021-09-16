@@ -5,6 +5,8 @@ import requests
 import olca.schema as schema
 import olca.upstream_tree as utree
 
+from dataclasses import dataclass
+
 from typing import Any, Iterator, List, Optional, Tuple, Type, TypeVar, Union
 
 T = TypeVar('T')
@@ -26,6 +28,7 @@ def _model_class(param: ModelType) -> Type[schema.RootEntity]:
         return param
 
 
+@dataclass
 class ProductResult(schema.Entity):
     """
     The ProductResult type is not an olca-schema type but a return
@@ -41,12 +44,9 @@ class ProductResult(schema.Entity):
     amount: float
 
     """
-
-    def __init__(self):
-        super(ProductResult, self).__init__()
-        self.process: Optional[schema.Ref] = None
-        self.product: Optional[schema.Ref] = None
-        self.amount: Optional[float] = None
+    process: Optional[schema.Ref] = None
+    product: Optional[schema.Ref] = None
+    amount: Optional[float] = None
 
     def to_json(self) -> dict:
         json: dict = super(ProductResult, self).to_json()
@@ -77,6 +77,7 @@ class ProductResult(schema.Entity):
         return instance
 
 
+@dataclass
 class ContributionItem(schema.Entity):
     """
     The ContributionItem type is not an olca-schema type but a return
@@ -97,13 +98,11 @@ class ContributionItem(schema.Entity):
 
     """
 
-    def __init__(self):
-        super(ContributionItem, self).__init__()
-        self.item: Optional[schema.Ref] = None
-        self.amount: Optional[float] = None
-        self.share: Optional[float] = None
-        self.rest: Optional[bool] = None
-        self.unit: Optional[str] = None
+    item: Optional[schema.Ref] = None
+    amount: Optional[float] = None
+    share: Optional[float] = None
+    rest: Optional[bool] = None
+    unit: Optional[str] = None
 
     def to_json(self) -> dict:
         json: dict = super(ContributionItem, self).to_json()
@@ -487,7 +486,7 @@ class Client(object):
                 return d
 
     def get_providers_of(self, flow: Union[schema.Ref, schema.Flow]) \
-            -> Iterator[schema.ProcessRef]:
+            -> Iterator[schema.Ref]:
         """
         Get the providers for the given flow.
 
@@ -520,7 +519,7 @@ class Client(object):
             log.error('failed to get providers: %s', err)
             return []
         for obj in providers:
-            yield schema.ProcessRef.from_json(obj)
+            yield schema.Ref.from_json(obj)
 
     def excel_export(self, result: schema.SimpleResult, path: str):
         """Export the given result to an Excel file with the given path.

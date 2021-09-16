@@ -25,8 +25,8 @@ from typing import Optional
 
 import scripts.model as model
 
-YAML_DIR = path.abspath(path.dirname(__file__)) + '/../../olca-schema/yaml'
-
+# YAML_DIR = path.abspath(path.dirname(__file__)) + '/../../olca-schema/yaml'
+YAML_DIR = '/Users/miguel/GreenDelta/devProjects/olca-schema/yaml'
 
 def to_snake_case(identifier: str) -> str:
     s = ''
@@ -61,7 +61,7 @@ def py_type(model_type: str) -> str:
         return 'Ref'
     if model_type.startswith('List['):
         list_type = py_type(list_elem_type(model_type))
-        return 'List[%s]' % list_type
+        return f'list[{list_type}]'
     return model_type
 
 
@@ -70,7 +70,8 @@ def print_class(c: model.ClassType, m: model.Model):
 
     # class declaration
     parent = c.super_class if c.super_class is not None else 'object'
-    t = '\nclass %s(%s):\n' % (c.name, py_type(parent))
+    t = '\n@dataclass\n'
+    t += f'class {c.name}({py_type(parent)}):\n'
 
     # comment
     t += '    """\n'
@@ -78,22 +79,19 @@ def print_class(c: model.ClassType, m: model.Model):
     t += class_attribute_docs(c)
     t += '    """\n\n'
 
-    # constructor
-    t += '    def __init__(self):\n'
+    # attributes
     if c.name == 'Entity':
-        t += '        self.id: str = \'\'\n'
-        t += '        self.olca_type: str = \'\'\n'
-    else:
-        t += '        super(%s, self).__init__()\n' % c.name
+        t += '    id: str = \'\'\n'
+        t += '    olca_type: str = \'\'\n'
 
     type_label = get_type_label(c)
     if type_label is not None:
-        t += '        self.olca_type: str = \'%s\'\n' % type_label
+        t += f'    olca_type: str = \'{type_label}\'\n'
 
     for prop in c.properties:
         attr = to_snake_case(prop.name)
         ptype = py_type(prop.field_type)
-        t += '        self.%s: Optional[%s] = None\n' % (attr, ptype)
+        t += f'    {attr}: Optional[{ptype}] = None\n'
     print(t)
 
     # generate _repr_html_ for nice display in Jupyter notebooks
@@ -102,7 +100,7 @@ def print_class(c: model.ClassType, m: model.Model):
         code = jsonlib.dumps(self.to_json(), indent=2, sort_keys=True)
         if len(code) > 10000:
             code = code[0:10000] + '...'
-        return '<pre><code class="language-json">%s</code></pre>' % code
+        return f'<pre><code class="language-json">{code}</code></pre>'
         '''
         print(r)
 
@@ -139,41 +137,41 @@ def print_to_json(c: model.ClassType, m: model.Model):
         t += off + "    json['@id'] = self.id\n"
         t += off + 'return json\n'
     else:
-        t += off + 'json: dict = super(%s, self).to_json()\n' % c.name
+        t += off + f'json: dict = super({c.name}, self).to_json()\n'
         for prop in c.properties:
             attr = to_snake_case(prop.name)
-            t += off + 'if self.%s is not None:\n' % attr
+            t += off + f'if self.{attr} is not None:\n'
             is_primitive = prop.field_type[0].islower() or \
                            prop.field_type == 'GeoJSON'
             is_enum = m.find_enum(prop.field_type) is not None
-            is_list = prop.field_type.startswith('List[')
+            is_list = prop.field_type.startswith('list[')
             if is_primitive:
-                t += off + "    json['%s'] = self.%s\n" % (prop.name, attr)
+                t += off + f"    json['{prop.name}'] = self.{attr}\n"
             elif is_enum:
                 t += off + \
-                     "    json['%s'] = self.%s.value\n" % (prop.name, attr)
+                     f"    json['{prop.name}'] = self.{attr}.value\n"
             elif is_list:
-                t += off + "    json['%s'] = []\n" % prop.name
-                t += off + "    for e in self.%s:\n" % attr
+                t += off + f"    json['{prop.name}'] = []\n"
+                t += off + f"    for e in self.{attr}:\n"
                 list_type = py_type(list_elem_type(prop.field_type))
                 if list_type[0].islower():
-                    t += off + off + "json['%s'].append(e)\n" % prop.name
+                    t += off + off + f"json['{prop.name}'].append(e)\n"
                 else:
                     t += off + off + \
-                         "json['%s'].append(e.to_json())\n" % prop.name
+                         f"json['{prop.name}'].append(e.to_json())\n"
             else:
                 t += off + \
-                     "    json['%s'] = self.%s.to_json()\n" % (prop.name, attr)
+                     f"    json['{prop.name}'] = self.{attr}.to_json()\n"
         t += off + 'return json\n'
     print(t)
 
 
 def print_from_json(c: model.ClassType):
-    t = '    @staticmethod\n'
-    t += '    def from_json(json: dict):\n'
-    t += '        instance = %s()\n' % c.name
-    t += '        instance.read_json(json)\n'
-    t += '        return instance\n'
+    t =   '    @staticmethod\n'
+    t +=  '    def from_json(json: dict):\n'
+    t += f'        instance = {c.name}()\n'
+    t +=  '        instance.read_json(json)\n'
+    t +=  '        return instance\n'
     print(t)
 
 
@@ -184,33 +182,33 @@ def print_read_json(c: model.ClassType, m: model.Model):
         t += off + "self.id = json.get('@id')\n"
         t += off + "self.olca_type = json.get('@type')\n"
     else:
-        t += off + 'super(%s, self).read_json(json)\n' % c.name
+        t += off + f'super({c.name}, self).read_json(json)\n'
         for prop in c.properties:
             attr = to_snake_case(prop.name)
             is_primitive = prop.field_type[0].islower() or \
                            prop.field_type == 'GeoJSON'
             is_enum = m.find_enum(prop.field_type) is not None
-            is_list = prop.field_type.startswith('List[')
-            t += off + "val = json.get('%s')\n" % prop.name
+            is_list = prop.field_type.startswith('list[')
+            t += off + f"val = json.get('{prop.name}')\n"
             t += off + "if val is not None:\n"
             if is_primitive:
-                t += off + "    self.%s = val\n" % attr
+                t += off + f"    self.{attr} = val\n"
             elif is_enum:
                 t += off + \
-                     "    self.%s = %s(val)\n" % (attr, prop.field_type)
+                     f"    self.{attr} = {prop.field_type}(val)\n"
             elif is_list:
-                t += off + "    self.%s = []\n" % attr
+                t += off + f"    self.{attr} = []\n"
                 t += off + "    for d in val:\n"
                 list_type = list_elem_type(prop.field_type)
                 if list_type[0].islower():
                     t += off + off + 'e = d\n'
                 else:
-                    t += off + off + 'e = %s()\n' % list_type
+                    t += off + off + f'e = {list_type}()\n'
                     t += off + off + 'e.read_json(d)\n'
-                t += off + off + 'self.%s.append(e)\n' % attr
+                t += off + off + f'self.{attr}.append(e)\n'
             else:
-                t += off + "    self.%s = %s()\n" % (attr, py_type(prop.field_type))
-                t += off + "    self.%s.read_json(val)\n" % attr
+                t += off + f"    self.{attr} = {py_type(prop.field_type)}()\n"
+                t += off + f"    self.{attr}.read_json(val)\n"
     print(t)
 
 
@@ -225,7 +223,7 @@ def list_elem_type(list_type: str) -> str:
 def print_enum(e: model.EnumType):
     """Prints an enumeration type."""
 
-    t = 'class %s(Enum):\n' % e.name
+    t = f'class {e.name}(Enum):\n'
 
     # documentation of the enum
     if e.doc is not None:
@@ -235,7 +233,7 @@ def print_enum(e: model.EnumType):
 
     # enum items
     for item in e.items:
-        t += "    %s = '%s'\n" % (item.name, item.name)
+        t += f"    {item.name} = '{item.name}'\n"
         if item.doc is not None:
             t += '    """\n'
             t += format_doc(item.doc, 4)
@@ -254,7 +252,7 @@ def class_attribute_docs(c: model.ClassType) -> str:
     for prop in c.properties:
         attr = to_snake_case(prop.name)
         ptype = py_type(prop.field_type)
-        s += '%s%s: %s\n' % (off, attr, ptype)
+        s += f'{off}{attr}: {ptype}\n'
         doc = format_doc(prop.doc, indent=8)
         if doc == '':
             s += '\n'
@@ -306,9 +304,11 @@ if __name__ == '__main__':
     print('# openLCA data exchange model.package schema.')
     print('# For more information see '
           'http://greendelta.github.io/olca-schema/\n')
+    print('from __future__ import annotations\n')
     print('import json as jsonlib\n')
+    print('from dataclasses import dataclass')
     print('from enum import Enum')
-    print('from typing import List, Optional\n')
+    print('from typing import Optional\n\n')
 
     m = model.Model.load_yaml(YAML_DIR)  # type: model.Model
     for enum in m.enums:
