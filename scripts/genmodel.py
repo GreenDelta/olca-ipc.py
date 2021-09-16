@@ -143,7 +143,7 @@ def print_to_json(c: model.ClassType, m: model.Model):
             is_primitive = prop.field_type[0].islower() or \
                            prop.field_type == 'GeoJSON'
             is_enum = m.find_enum(prop.field_type) is not None
-            is_list = prop.field_type.startswith('list[')
+            is_list = prop.field_type.startswith('List[')
             if is_primitive:
                 t += off + f"    json['{prop.name}'] = self.{attr}\n"
             elif is_enum:
@@ -187,7 +187,7 @@ def print_read_json(c: model.ClassType, m: model.Model):
             is_primitive = prop.field_type[0].islower() or \
                            prop.field_type == 'GeoJSON'
             is_enum = m.find_enum(prop.field_type) is not None
-            is_list = prop.field_type.startswith('list[')
+            is_list = prop.field_type.startswith('List[')
             t += off + f"val = json.get('{prop.name}')\n"
             t += off + "if val is not None:\n"
             if is_primitive:
