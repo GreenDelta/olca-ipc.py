@@ -25,8 +25,7 @@ from typing import Optional
 
 import scripts.model as model
 
-# YAML_DIR = path.abspath(path.dirname(__file__)) + '/../../olca-schema/yaml'
-YAML_DIR = '/Users/miguel/GreenDelta/devProjects/olca-schema/yaml'
+YAML_DIR = path.abspath(path.dirname(__file__)) + '/../../olca-schema/yaml'
 
 def to_snake_case(identifier: str) -> str:
     s = ''
