@@ -4,10 +4,13 @@
 # openLCA data exchange model.package schema.
 # For more information see http://greendelta.github.io/olca-schema/
 
+from __future__ import annotations
+
 import json as jsonlib
 
+from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional
+from typing import Optional
 
 
 class AllocationType(Enum):
@@ -68,6 +71,7 @@ class CalculationType(Enum):
     factors, etc. of a product system and then performs a simple calculation
     for that specific run.
     """
+
 
 
 class FlowPropertyType(Enum):
@@ -140,6 +144,7 @@ class ParameterScope(Enum):
     """
 
 
+
 class ProcessType(Enum):
     LCI_RESULT = 'LCI_RESULT'
     UNIT_PROCESS = 'UNIT_PROCESS'
@@ -176,21 +181,22 @@ class UncertaintyType(Enum):
     UNIFORM_DISTRIBUTION = 'UNIFORM_DISTRIBUTION'
 
 
+
+@dataclass
 class Entity(object):
     """
     The most generic type of the openLCA data model.
     """
 
-    def __init__(self):
-        self.id: str = ''
-        self.olca_type: str = ''
+    id: str = ''
+    olca_type: str = ''
 
     def _repr_html_(self):
         code = jsonlib.dumps(self.to_json(), indent=2, sort_keys=True)
         if len(code) > 10000:
             code = code[0:10000] + '...'
-        return '<pre><code class="language-json">%s</code></pre>' % code
-
+        return f'<pre><code class="language-json">{code}</code></pre>'
+        
     def to_json(self) -> dict:
         o_type = self.olca_type
         if o_type is None:
@@ -211,6 +217,7 @@ class Entity(object):
         return instance
 
 
+@dataclass
 class AllocationFactor(Entity):
     """
     A single allocation factor in a process.
@@ -220,7 +227,7 @@ class AllocationFactor(Entity):
     allocation_type: AllocationType
         The type of allocation.
 
-    product: FlowRef
+    product: Ref
         The output product (or waste input) to which this allocation factor is
         related. The must be an exchange with this product output (or waste
         input) in this process.
@@ -239,14 +246,12 @@ class AllocationFactor(Entity):
 
     """
 
-    def __init__(self):
-        super(AllocationFactor, self).__init__()
-        self.olca_type: str = 'AllocationFactor'
-        self.allocation_type: Optional[AllocationType] = None
-        self.product: Optional[FlowRef] = None
-        self.value: Optional[float] = None
-        self.formula: Optional[str] = None
-        self.exchange: Optional[ExchangeRef] = None
+    olca_type: str = 'AllocationFactor'
+    allocation_type: Optional[AllocationType] = None
+    product: Optional[Ref] = None
+    value: Optional[float] = None
+    formula: Optional[str] = None
+    exchange: Optional[ExchangeRef] = None
 
     def to_json(self) -> dict:
         json: dict = super(AllocationFactor, self).to_json()
@@ -269,7 +274,7 @@ class AllocationFactor(Entity):
             self.allocation_type = AllocationType(val)
         val = json.get('product')
         if val is not None:
-            self.product = FlowRef()
+            self.product = Ref()
             self.product.read_json(val)
         val = json.get('value')
         if val is not None:
@@ -289,6 +294,7 @@ class AllocationFactor(Entity):
         return instance
 
 
+@dataclass
 class CalculationSetup(Entity):
     """
     A setup for a product system calculation.
@@ -308,13 +314,20 @@ class CalculationSetup(Entity):
         Indicates whether life cycle costs should be also calculated
         (optional).
 
+    with_regionalization: bool
+        Indicates whether a regionalized result should be calculated or not. If
+        this is set to true, the intervention matrix is indexed by (elementary
+        flow, location) - pairs instead of just elementary flows. The LCI
+        result then contains results for these pairs which can be then used in
+        regionalized impact assessments.
+
     nw_set: Ref
         The normalisation and weighting set for the calculation (optional).
 
     allocation_method: AllocationType
         The calculation type to be used in the calculation (optional).
 
-    parameter_redefs: List[ParameterRedef]
+    parameter_redefs: list[ParameterRedef]
         A list of parameter redefinitions to be used in the calculation
         (optional).
 
@@ -329,19 +342,18 @@ class CalculationSetup(Entity):
 
     """
 
-    def __init__(self):
-        super(CalculationSetup, self).__init__()
-        self.olca_type: str = 'CalculationSetup'
-        self.calculation_type: Optional[CalculationType] = None
-        self.product_system: Optional[Ref] = None
-        self.impact_method: Optional[Ref] = None
-        self.with_costs: Optional[bool] = None
-        self.nw_set: Optional[Ref] = None
-        self.allocation_method: Optional[AllocationType] = None
-        self.parameter_redefs: Optional[List[ParameterRedef]] = None
-        self.amount: Optional[float] = None
-        self.unit: Optional[Ref] = None
-        self.flow_property: Optional[Ref] = None
+    olca_type: str = 'CalculationSetup'
+    calculation_type: Optional[CalculationType] = None
+    product_system: Optional[Ref] = None
+    impact_method: Optional[Ref] = None
+    with_costs: Optional[bool] = None
+    with_regionalization: Optional[bool] = None
+    nw_set: Optional[Ref] = None
+    allocation_method: Optional[AllocationType] = None
+    parameter_redefs: Optional[list[ParameterRedef]] = None
+    amount: Optional[float] = None
+    unit: Optional[Ref] = None
+    flow_property: Optional[Ref] = None
 
     def to_json(self) -> dict:
         json: dict = super(CalculationSetup, self).to_json()
@@ -353,6 +365,8 @@ class CalculationSetup(Entity):
             json['impactMethod'] = self.impact_method.to_json()
         if self.with_costs is not None:
             json['withCosts'] = self.with_costs
+        if self.with_regionalization is not None:
+            json['withRegionalization'] = self.with_regionalization
         if self.nw_set is not None:
             json['nwSet'] = self.nw_set.to_json()
         if self.allocation_method is not None:
@@ -385,6 +399,9 @@ class CalculationSetup(Entity):
         val = json.get('withCosts')
         if val is not None:
             self.with_costs = val
+        val = json.get('withRegionalization')
+        if val is not None:
+            self.with_regionalization = val
         val = json.get('nwSet')
         if val is not None:
             self.nw_set = Ref()
@@ -418,6 +435,7 @@ class CalculationSetup(Entity):
         return instance
 
 
+@dataclass
 class DQIndicator(Entity):
     """
     An indicator of a data quality system ([DQSystem]).
@@ -428,16 +446,14 @@ class DQIndicator(Entity):
 
     position: int
 
-    scores: List[DQScore]
+    scores: list[DQScore]
 
     """
 
-    def __init__(self):
-        super(DQIndicator, self).__init__()
-        self.olca_type: str = 'DQIndicator'
-        self.name: Optional[str] = None
-        self.position: Optional[int] = None
-        self.scores: Optional[List[DQScore]] = None
+    olca_type: str = 'DQIndicator'
+    name: Optional[str] = None
+    position: Optional[int] = None
+    scores: Optional[list[DQScore]] = None
 
     def to_json(self) -> dict:
         json: dict = super(DQIndicator, self).to_json()
@@ -474,6 +490,7 @@ class DQIndicator(Entity):
         return instance
 
 
+@dataclass
 class DQScore(Entity):
     """
     An score value of an indicator ([DQIndicator]) in a data quality system
@@ -491,13 +508,11 @@ class DQScore(Entity):
 
     """
 
-    def __init__(self):
-        super(DQScore, self).__init__()
-        self.olca_type: str = 'DQScore'
-        self.position: Optional[int] = None
-        self.label: Optional[str] = None
-        self.description: Optional[str] = None
-        self.uncertainty: Optional[float] = None
+    olca_type: str = 'DQScore'
+    position: Optional[int] = None
+    label: Optional[str] = None
+    description: Optional[str] = None
+    uncertainty: Optional[float] = None
 
     def to_json(self) -> dict:
         json: dict = super(DQScore, self).to_json()
@@ -533,6 +548,7 @@ class DQScore(Entity):
         return instance
 
 
+@dataclass
 class Exchange(Entity):
     """
     An Exchange is an input or output of a [Flow] in a [Process]. The amount of
@@ -561,7 +577,7 @@ class Exchange(Entity):
         in a product system where multiple exchanges with the same flow are
         allowed). The value should be >= 1.
 
-    flow: FlowRef
+    flow: Ref
         The reference to the flow of the exchange.
 
     flow_property: Ref
@@ -575,7 +591,7 @@ class Exchange(Entity):
 
     base_uncertainty: float
 
-    default_provider: ProcessRef
+    default_provider: Ref
         A default provider is a [Process] that is linked as the provider of a
         product input or the waste treatment provider of a waste output. It is
         just an optional default setting which can be also ignored when
@@ -603,26 +619,24 @@ class Exchange(Entity):
 
     """
 
-    def __init__(self):
-        super(Exchange, self).__init__()
-        self.olca_type: str = 'Exchange'
-        self.avoided_product: Optional[bool] = None
-        self.cost_formula: Optional[str] = None
-        self.cost_value: Optional[float] = None
-        self.currency: Optional[Ref] = None
-        self.internal_id: Optional[int] = None
-        self.flow: Optional[FlowRef] = None
-        self.flow_property: Optional[Ref] = None
-        self.input: Optional[bool] = None
-        self.quantitative_reference: Optional[bool] = None
-        self.base_uncertainty: Optional[float] = None
-        self.default_provider: Optional[ProcessRef] = None
-        self.amount: Optional[float] = None
-        self.amount_formula: Optional[str] = None
-        self.unit: Optional[Ref] = None
-        self.dq_entry: Optional[str] = None
-        self.uncertainty: Optional[Uncertainty] = None
-        self.description: Optional[str] = None
+    olca_type: str = 'Exchange'
+    avoided_product: Optional[bool] = None
+    cost_formula: Optional[str] = None
+    cost_value: Optional[float] = None
+    currency: Optional[Ref] = None
+    internal_id: Optional[int] = None
+    flow: Optional[Ref] = None
+    flow_property: Optional[Ref] = None
+    input: Optional[bool] = None
+    quantitative_reference: Optional[bool] = None
+    base_uncertainty: Optional[float] = None
+    default_provider: Optional[Ref] = None
+    amount: Optional[float] = None
+    amount_formula: Optional[str] = None
+    unit: Optional[Ref] = None
+    dq_entry: Optional[str] = None
+    uncertainty: Optional[Uncertainty] = None
+    description: Optional[str] = None
 
     def to_json(self) -> dict:
         json: dict = super(Exchange, self).to_json()
@@ -682,7 +696,7 @@ class Exchange(Entity):
             self.internal_id = val
         val = json.get('flow')
         if val is not None:
-            self.flow = FlowRef()
+            self.flow = Ref()
             self.flow.read_json(val)
         val = json.get('flowProperty')
         if val is not None:
@@ -699,7 +713,7 @@ class Exchange(Entity):
             self.base_uncertainty = val
         val = json.get('defaultProvider')
         if val is not None:
-            self.default_provider = ProcessRef()
+            self.default_provider = Ref()
             self.default_provider.read_json(val)
         val = json.get('amount')
         if val is not None:
@@ -729,6 +743,7 @@ class Exchange(Entity):
         return instance
 
 
+@dataclass
 class ExchangeRef(Entity):
     """
     An instance of this class describes a reference to an exchange in a
@@ -742,10 +757,8 @@ class ExchangeRef(Entity):
 
     """
 
-    def __init__(self):
-        super(ExchangeRef, self).__init__()
-        self.olca_type: str = 'ExchangeRef'
-        self.internal_id: Optional[int] = None
+    olca_type: str = 'ExchangeRef'
+    internal_id: Optional[int] = None
 
     def to_json(self) -> dict:
         json: dict = super(ExchangeRef, self).to_json()
@@ -766,17 +779,73 @@ class ExchangeRef(Entity):
         return instance
 
 
-class FlowMapRef(Entity):
+@dataclass
+class FlowMapEntry(Entity):
     """
-    Describes a the source or target flow of a flow mapping in a `FlowMap`.
-    Such a flow reference can also optionally specify the unit and flow
-    property (quantity) for which the mapping is valid. If the unit and
-    quantity are not given, the mapping is based on the reference unit of the
-    reference flow property of the respective flow.
+    A mapping from a source flow to a target flow.
 
     Attributes
     ----------
-    flow: FlowRef
+    from_: FlowMapRef
+        Describes the source flow of the mapping.
+
+    to: FlowMapRef
+        Describes the target of the mapping.
+
+    conversion_factor: float
+        The conversion factor to convert the amount of 1 unit of the source
+        flow into the corresponding quantity of the target flow.
+
+    """
+
+    olca_type: str = 'FlowMapEntry'
+    from_: Optional[FlowMapRef] = None
+    to: Optional[FlowMapRef] = None
+    conversion_factor: Optional[float] = None
+
+    def to_json(self) -> dict:
+        json: dict = super(FlowMapEntry, self).to_json()
+        if self.from_ is not None:
+            json['from'] = self.from_.to_json()
+        if self.to is not None:
+            json['to'] = self.to.to_json()
+        if self.conversion_factor is not None:
+            json['conversionFactor'] = self.conversion_factor
+        return json
+
+    def read_json(self, json: dict):
+        super(FlowMapEntry, self).read_json(json)
+        val = json.get('from')
+        if val is not None:
+            self.from_ = FlowMapRef()
+            self.from_.read_json(val)
+        val = json.get('to')
+        if val is not None:
+            self.to = FlowMapRef()
+            self.to.read_json(val)
+        val = json.get('conversionFactor')
+        if val is not None:
+            self.conversion_factor = val
+
+    @staticmethod
+    def from_json(json: dict):
+        instance = FlowMapEntry()
+        instance.read_json(json)
+        return instance
+
+
+@dataclass
+class FlowMapRef(Entity):
+    """
+    Describes a source or target flow in a `FlowMappingEntry` of a `FlowMap`.
+    Such a flow reference can also optionally specify the unit and flow
+    property (quantity) for which the mapping is valid. If the unit or quantity
+    is not given, the mapping is based on the respective reference unit and
+    reference flow property of the flow.
+
+    Attributes
+    ----------
+    flow: Ref
         The reference to the flow data set.
 
     flow_property: Ref
@@ -787,7 +856,7 @@ class FlowMapRef(Entity):
         An optional reference to a unit of the flow for which the mapping is
         valid
 
-    provider: ProcessRef
+    provider: Ref
         In case of a product or waste flow a flow mapping can contain a
         provider which is the process that produces the product or a waste
         treatment process that consumes the waste flow. This is useful when we
@@ -796,13 +865,11 @@ class FlowMapRef(Entity):
 
     """
 
-    def __init__(self):
-        super(FlowMapRef, self).__init__()
-        self.olca_type: str = 'FlowMapRef'
-        self.flow: Optional[FlowRef] = None
-        self.flow_property: Optional[Ref] = None
-        self.unit: Optional[Ref] = None
-        self.provider: Optional[ProcessRef] = None
+    olca_type: str = 'FlowMapRef'
+    flow: Optional[Ref] = None
+    flow_property: Optional[Ref] = None
+    unit: Optional[Ref] = None
+    provider: Optional[Ref] = None
 
     def to_json(self) -> dict:
         json: dict = super(FlowMapRef, self).to_json()
@@ -820,7 +887,7 @@ class FlowMapRef(Entity):
         super(FlowMapRef, self).read_json(json)
         val = json.get('flow')
         if val is not None:
-            self.flow = FlowRef()
+            self.flow = Ref()
             self.flow.read_json(val)
         val = json.get('flowProperty')
         if val is not None:
@@ -832,7 +899,7 @@ class FlowMapRef(Entity):
             self.unit.read_json(val)
         val = json.get('provider')
         if val is not None:
-            self.provider = ProcessRef()
+            self.provider = Ref()
             self.provider.read_json(val)
 
     @staticmethod
@@ -842,6 +909,7 @@ class FlowMapRef(Entity):
         return instance
 
 
+@dataclass
 class FlowPropertyFactor(Entity):
     """
     A FlowPropertyFactor is a conversion factor between <a
@@ -882,12 +950,10 @@ class FlowPropertyFactor(Entity):
 
     """
 
-    def __init__(self):
-        super(FlowPropertyFactor, self).__init__()
-        self.olca_type: str = 'FlowPropertyFactor'
-        self.flow_property: Optional[Ref] = None
-        self.conversion_factor: Optional[float] = None
-        self.reference_flow_property: Optional[bool] = None
+    olca_type: str = 'FlowPropertyFactor'
+    flow_property: Optional[Ref] = None
+    conversion_factor: Optional[float] = None
+    reference_flow_property: Optional[bool] = None
 
     def to_json(self) -> dict:
         json: dict = super(FlowPropertyFactor, self).to_json()
@@ -919,13 +985,14 @@ class FlowPropertyFactor(Entity):
         return instance
 
 
+@dataclass
 class FlowResult(Entity):
     """
     A result value for a flow; given in the reference unit of the flow.
 
     Attributes
     ----------
-    flow: FlowRef
+    flow: Ref
         The flow reference.
 
     input: bool
@@ -934,14 +1001,17 @@ class FlowResult(Entity):
     value: float
         The value of the flow amount.
 
+    location: Ref
+        The (reference to the) location of this flow result in case of a
+        regionalized result.
+
     """
 
-    def __init__(self):
-        super(FlowResult, self).__init__()
-        self.olca_type: str = 'FlowResult'
-        self.flow: Optional[FlowRef] = None
-        self.input: Optional[bool] = None
-        self.value: Optional[float] = None
+    olca_type: str = 'FlowResult'
+    flow: Optional[Ref] = None
+    input: Optional[bool] = None
+    value: Optional[float] = None
+    location: Optional[Ref] = None
 
     def to_json(self) -> dict:
         json: dict = super(FlowResult, self).to_json()
@@ -951,13 +1021,15 @@ class FlowResult(Entity):
             json['input'] = self.input
         if self.value is not None:
             json['value'] = self.value
+        if self.location is not None:
+            json['location'] = self.location.to_json()
         return json
 
     def read_json(self, json: dict):
         super(FlowResult, self).read_json(json)
         val = json.get('flow')
         if val is not None:
-            self.flow = FlowRef()
+            self.flow = Ref()
             self.flow.read_json(val)
         val = json.get('input')
         if val is not None:
@@ -965,6 +1037,10 @@ class FlowResult(Entity):
         val = json.get('value')
         if val is not None:
             self.value = val
+        val = json.get('location')
+        if val is not None:
+            self.location = Ref()
+            self.location.read_json(val)
 
     @staticmethod
     def from_json(json: dict):
@@ -973,13 +1049,14 @@ class FlowResult(Entity):
         return instance
 
 
+@dataclass
 class ImpactFactor(Entity):
     """
     A single characterisation factor of a LCIA category for a flow.
 
     Attributes
     ----------
-    flow: FlowRef
+    flow: Ref
         The [Flow] of the impact assessment factor.
 
     location: Ref
@@ -1004,16 +1081,14 @@ class ImpactFactor(Entity):
 
     """
 
-    def __init__(self):
-        super(ImpactFactor, self).__init__()
-        self.olca_type: str = 'ImpactFactor'
-        self.flow: Optional[FlowRef] = None
-        self.location: Optional[Ref] = None
-        self.flow_property: Optional[Ref] = None
-        self.unit: Optional[Ref] = None
-        self.value: Optional[float] = None
-        self.formula: Optional[str] = None
-        self.uncertainty: Optional[Uncertainty] = None
+    olca_type: str = 'ImpactFactor'
+    flow: Optional[Ref] = None
+    location: Optional[Ref] = None
+    flow_property: Optional[Ref] = None
+    unit: Optional[Ref] = None
+    value: Optional[float] = None
+    formula: Optional[str] = None
+    uncertainty: Optional[Uncertainty] = None
 
     def to_json(self) -> dict:
         json: dict = super(ImpactFactor, self).to_json()
@@ -1037,7 +1112,7 @@ class ImpactFactor(Entity):
         super(ImpactFactor, self).read_json(json)
         val = json.get('flow')
         if val is not None:
-            self.flow = FlowRef()
+            self.flow = Ref()
             self.flow.read_json(val)
         val = json.get('location')
         if val is not None:
@@ -1069,13 +1144,14 @@ class ImpactFactor(Entity):
         return instance
 
 
+@dataclass
 class ImpactResult(Entity):
     """
     A result value for an impact assessment category.
 
     Attributes
     ----------
-    impact_category: ImpactCategoryRef
+    impact_category: Ref
         The reference to the impact assessment category.
 
     value: float
@@ -1083,11 +1159,9 @@ class ImpactResult(Entity):
 
     """
 
-    def __init__(self):
-        super(ImpactResult, self).__init__()
-        self.olca_type: str = 'ImpactResult'
-        self.impact_category: Optional[ImpactCategoryRef] = None
-        self.value: Optional[float] = None
+    olca_type: str = 'ImpactResult'
+    impact_category: Optional[Ref] = None
+    value: Optional[float] = None
 
     def to_json(self) -> dict:
         json: dict = super(ImpactResult, self).to_json()
@@ -1101,7 +1175,7 @@ class ImpactResult(Entity):
         super(ImpactResult, self).read_json(json)
         val = json.get('impactCategory')
         if val is not None:
-            self.impact_category = ImpactCategoryRef()
+            self.impact_category = Ref()
             self.impact_category.read_json(val)
         val = json.get('value')
         if val is not None:
@@ -1114,6 +1188,7 @@ class ImpactResult(Entity):
         return instance
 
 
+@dataclass
 class NwFactor(Entity):
     """
     A normalization and weighting factor of a [NwSet] related to an impact
@@ -1123,7 +1198,7 @@ class NwFactor(Entity):
 
     Attributes
     ----------
-    impact_category: ImpactCategoryRef
+    impact_category: Ref
 
     normalisation_factor: float
 
@@ -1131,12 +1206,10 @@ class NwFactor(Entity):
 
     """
 
-    def __init__(self):
-        super(NwFactor, self).__init__()
-        self.olca_type: str = 'NwFactor'
-        self.impact_category: Optional[ImpactCategoryRef] = None
-        self.normalisation_factor: Optional[float] = None
-        self.weighting_factor: Optional[float] = None
+    olca_type: str = 'NwFactor'
+    impact_category: Optional[Ref] = None
+    normalisation_factor: Optional[float] = None
+    weighting_factor: Optional[float] = None
 
     def to_json(self) -> dict:
         json: dict = super(NwFactor, self).to_json()
@@ -1152,7 +1225,7 @@ class NwFactor(Entity):
         super(NwFactor, self).read_json(json)
         val = json.get('impactCategory')
         if val is not None:
-            self.impact_category = ImpactCategoryRef()
+            self.impact_category = Ref()
             self.impact_category.read_json(val)
         val = json.get('normalisationFactor')
         if val is not None:
@@ -1168,6 +1241,7 @@ class NwFactor(Entity):
         return instance
 
 
+@dataclass
 class ParameterRedef(Entity):
     """
     A redefinition of a parameter in a product system.
@@ -1196,14 +1270,12 @@ class ParameterRedef(Entity):
 
     """
 
-    def __init__(self):
-        super(ParameterRedef, self).__init__()
-        self.olca_type: str = 'ParameterRedef'
-        self.context: Optional[Ref] = None
-        self.description: Optional[str] = None
-        self.name: Optional[str] = None
-        self.uncertainty: Optional[Uncertainty] = None
-        self.value: Optional[float] = None
+    olca_type: str = 'ParameterRedef'
+    context: Optional[Ref] = None
+    description: Optional[str] = None
+    name: Optional[str] = None
+    uncertainty: Optional[Uncertainty] = None
+    value: Optional[float] = None
 
     def to_json(self) -> dict:
         json: dict = super(ParameterRedef, self).to_json()
@@ -1246,6 +1318,7 @@ class ParameterRedef(Entity):
         return instance
 
 
+@dataclass
 class ParameterRedefSet(Entity):
     """
     An instance of this class is just a set of parameter redefinitions attached
@@ -1265,18 +1338,16 @@ class ParameterRedefSet(Entity):
         Indicates if this set of parameter redefinitions is the baseline for a
         product system.
 
-    parameters: List[ParameterRedef]
+    parameters: list[ParameterRedef]
         The parameter redefinitions of this redefinition set.
 
     """
 
-    def __init__(self):
-        super(ParameterRedefSet, self).__init__()
-        self.olca_type: str = 'ParameterRedefSet'
-        self.name: Optional[str] = None
-        self.description: Optional[str] = None
-        self.is_baseline: Optional[bool] = None
-        self.parameters: Optional[List[ParameterRedef]] = None
+    olca_type: str = 'ParameterRedefSet'
+    name: Optional[str] = None
+    description: Optional[str] = None
+    is_baseline: Optional[bool] = None
+    parameters: Optional[list[ParameterRedef]] = None
 
     def to_json(self) -> dict:
         json: dict = super(ParameterRedefSet, self).to_json()
@@ -1318,6 +1389,7 @@ class ParameterRedefSet(Entity):
         return instance
 
 
+@dataclass
 class ProcessDocumentation(Entity):
     """
 
@@ -1350,7 +1422,7 @@ class ProcessDocumentation(Entity):
 
     sampling_description: str
 
-    sources: List[Ref]
+    sources: list[Ref]
 
     restrictions_description: str
 
@@ -1374,33 +1446,31 @@ class ProcessDocumentation(Entity):
 
     """
 
-    def __init__(self):
-        super(ProcessDocumentation, self).__init__()
-        self.olca_type: str = 'ProcessDocumentation'
-        self.time_description: Optional[str] = None
-        self.valid_until: Optional[str] = None
-        self.valid_from: Optional[str] = None
-        self.technology_description: Optional[str] = None
-        self.data_collection_description: Optional[str] = None
-        self.completeness_description: Optional[str] = None
-        self.data_selection_description: Optional[str] = None
-        self.review_details: Optional[str] = None
-        self.data_treatment_description: Optional[str] = None
-        self.inventory_method_description: Optional[str] = None
-        self.modeling_constants_description: Optional[str] = None
-        self.reviewer: Optional[Ref] = None
-        self.sampling_description: Optional[str] = None
-        self.sources: Optional[List[Ref]] = None
-        self.restrictions_description: Optional[str] = None
-        self.copyright: Optional[bool] = None
-        self.creation_date: Optional[str] = None
-        self.data_documentor: Optional[Ref] = None
-        self.data_generator: Optional[Ref] = None
-        self.data_set_owner: Optional[Ref] = None
-        self.intended_application: Optional[str] = None
-        self.project_description: Optional[str] = None
-        self.publication: Optional[Ref] = None
-        self.geography_description: Optional[str] = None
+    olca_type: str = 'ProcessDocumentation'
+    time_description: Optional[str] = None
+    valid_until: Optional[str] = None
+    valid_from: Optional[str] = None
+    technology_description: Optional[str] = None
+    data_collection_description: Optional[str] = None
+    completeness_description: Optional[str] = None
+    data_selection_description: Optional[str] = None
+    review_details: Optional[str] = None
+    data_treatment_description: Optional[str] = None
+    inventory_method_description: Optional[str] = None
+    modeling_constants_description: Optional[str] = None
+    reviewer: Optional[Ref] = None
+    sampling_description: Optional[str] = None
+    sources: Optional[list[Ref]] = None
+    restrictions_description: Optional[str] = None
+    copyright: Optional[bool] = None
+    creation_date: Optional[str] = None
+    data_documentor: Optional[Ref] = None
+    data_generator: Optional[Ref] = None
+    data_set_owner: Optional[Ref] = None
+    intended_application: Optional[str] = None
+    project_description: Optional[str] = None
+    publication: Optional[Ref] = None
+    geography_description: Optional[str] = None
 
     def to_json(self) -> dict:
         json: dict = super(ProcessDocumentation, self).to_json()
@@ -1547,6 +1617,7 @@ class ProcessDocumentation(Entity):
         return instance
 
 
+@dataclass
 class ProcessLink(Entity):
     """
     A process link is a connection between two processes in a product system.
@@ -1570,13 +1641,11 @@ class ProcessLink(Entity):
 
     """
 
-    def __init__(self):
-        super(ProcessLink, self).__init__()
-        self.olca_type: str = 'ProcessLink'
-        self.provider: Optional[Ref] = None
-        self.flow: Optional[Ref] = None
-        self.process: Optional[Ref] = None
-        self.exchange: Optional[ExchangeRef] = None
+    olca_type: str = 'ProcessLink'
+    provider: Optional[Ref] = None
+    flow: Optional[Ref] = None
+    process: Optional[Ref] = None
+    exchange: Optional[ExchangeRef] = None
 
     def to_json(self) -> dict:
         json: dict = super(ProcessLink, self).to_json()
@@ -1616,6 +1685,7 @@ class ProcessLink(Entity):
         return instance
 
 
+@dataclass
 class RootEntity(Entity):
     """
     A standalone item in a database like a location, unit group, flow, or
@@ -1640,12 +1710,10 @@ class RootEntity(Entity):
 
     """
 
-    def __init__(self):
-        super(RootEntity, self).__init__()
-        self.name: Optional[str] = None
-        self.description: Optional[str] = None
-        self.version: Optional[str] = None
-        self.last_change: Optional[str] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    version: Optional[str] = None
+    last_change: Optional[str] = None
 
     def to_json(self) -> dict:
         json: dict = super(RootEntity, self).to_json()
@@ -1681,23 +1749,22 @@ class RootEntity(Entity):
         return instance
 
 
+@dataclass
 class SimpleResult(Entity):
     """
 
 
     Attributes
     ----------
-    flow_results: List[FlowResult]
+    flow_results: list[FlowResult]
 
-    impact_results: List[ImpactResult]
+    impact_results: list[ImpactResult]
 
     """
 
-    def __init__(self):
-        super(SimpleResult, self).__init__()
-        self.olca_type: str = 'SimpleResult'
-        self.flow_results: Optional[List[FlowResult]] = None
-        self.impact_results: Optional[List[ImpactResult]] = None
+    olca_type: str = 'SimpleResult'
+    flow_results: Optional[list[FlowResult]] = None
+    impact_results: Optional[list[ImpactResult]] = None
 
     def to_json(self) -> dict:
         json: dict = super(SimpleResult, self).to_json()
@@ -1735,6 +1802,7 @@ class SimpleResult(Entity):
         return instance
 
 
+@dataclass
 class SocialAspect(Entity):
     """
     An instance of this class describes a social aspect related to a social
@@ -1762,16 +1830,14 @@ class SocialAspect(Entity):
 
     """
 
-    def __init__(self):
-        super(SocialAspect, self).__init__()
-        self.olca_type: str = 'SocialAspect'
-        self.activity_value: Optional[float] = None
-        self.comment: Optional[str] = None
-        self.quality: Optional[str] = None
-        self.raw_amount: Optional[str] = None
-        self.risk_level: Optional[RiskLevel] = None
-        self.social_indicator: Optional[Ref] = None
-        self.source: Optional[Ref] = None
+    olca_type: str = 'SocialAspect'
+    activity_value: Optional[float] = None
+    comment: Optional[str] = None
+    quality: Optional[str] = None
+    raw_amount: Optional[str] = None
+    risk_level: Optional[RiskLevel] = None
+    social_indicator: Optional[Ref] = None
+    source: Optional[Ref] = None
 
     def to_json(self) -> dict:
         json: dict = super(SocialAspect, self).to_json()
@@ -1824,6 +1890,7 @@ class SocialAspect(Entity):
         return instance
 
 
+@dataclass
 class Uncertainty(Entity):
     """
     Defines the parameter values of an uncertainty distribution. Depending on
@@ -1878,24 +1945,22 @@ class Uncertainty(Entity):
 
     """
 
-    def __init__(self):
-        super(Uncertainty, self).__init__()
-        self.olca_type: str = 'Uncertainty'
-        self.distribution_type: Optional[UncertaintyType] = None
-        self.mean: Optional[float] = None
-        self.mean_formula: Optional[str] = None
-        self.geom_mean: Optional[float] = None
-        self.geom_mean_formula: Optional[str] = None
-        self.minimum: Optional[float] = None
-        self.minimum_formula: Optional[str] = None
-        self.sd: Optional[float] = None
-        self.sd_formula: Optional[str] = None
-        self.geom_sd: Optional[float] = None
-        self.geom_sd_formula: Optional[str] = None
-        self.mode: Optional[float] = None
-        self.mode_formula: Optional[str] = None
-        self.maximum: Optional[float] = None
-        self.maximum_formula: Optional[str] = None
+    olca_type: str = 'Uncertainty'
+    distribution_type: Optional[UncertaintyType] = None
+    mean: Optional[float] = None
+    mean_formula: Optional[str] = None
+    geom_mean: Optional[float] = None
+    geom_mean_formula: Optional[str] = None
+    minimum: Optional[float] = None
+    minimum_formula: Optional[str] = None
+    sd: Optional[float] = None
+    sd_formula: Optional[str] = None
+    geom_sd: Optional[float] = None
+    geom_sd_formula: Optional[str] = None
+    mode: Optional[float] = None
+    mode_formula: Optional[str] = None
+    maximum: Optional[float] = None
+    maximum_formula: Optional[str] = None
 
     def to_json(self) -> dict:
         json: dict = super(Uncertainty, self).to_json()
@@ -1986,6 +2051,7 @@ class Uncertainty(Entity):
         return instance
 
 
+@dataclass
 class CategorizedEntity(RootEntity):
     """
     A root entity which can have a category.
@@ -1995,22 +2061,20 @@ class CategorizedEntity(RootEntity):
     category: Ref
         The category of the entity.
 
-    tags: List[str]
+    tags: list[str]
         A list of optional tags. A tag is just a string which should not
         contain commas (and other special characters).
 
     library: str
         If this entity is part of a library, this field contains the identifier
-        of that library. The identifier is typically just the comination of the
-        library name and version.
+        of that library. The identifier is typically just the combination of
+        the library name and version.
 
     """
 
-    def __init__(self):
-        super(CategorizedEntity, self).__init__()
-        self.category: Optional[Ref] = None
-        self.tags: Optional[List[str]] = None
-        self.library: Optional[str] = None
+    category: Optional[Ref] = None
+    tags: Optional[list[str]] = None
+    library: Optional[str] = None
 
     def to_json(self) -> dict:
         json: dict = super(CategorizedEntity, self).to_json()
@@ -2047,6 +2111,7 @@ class CategorizedEntity(RootEntity):
         return instance
 
 
+@dataclass
 class FlowMap(RootEntity):
     """
     A crosswalk of flows from a source flow list to a target flow list.
@@ -2059,18 +2124,16 @@ class FlowMap(RootEntity):
     target: Ref
         The reference (id, name, description) of the target flow list.
 
-    mappings: List[FlowMapEntry]
+    mappings: list[FlowMapEntry]
         A list of flow mappings from flows in a source flow list to flows in a
         target flow list.
 
     """
 
-    def __init__(self):
-        super(FlowMap, self).__init__()
-        self.olca_type: str = 'FlowMap'
-        self.source: Optional[Ref] = None
-        self.target: Optional[Ref] = None
-        self.mappings: Optional[List[FlowMapEntry]] = None
+    olca_type: str = 'FlowMap'
+    source: Optional[Ref] = None
+    target: Optional[Ref] = None
+    mappings: Optional[list[FlowMapEntry]] = None
 
     def to_json(self) -> dict:
         json: dict = super(FlowMap, self).to_json()
@@ -2109,61 +2172,7 @@ class FlowMap(RootEntity):
         return instance
 
 
-class FlowMapEntry(RootEntity):
-    """
-    A mapping from one flow to another.
-
-    Attributes
-    ----------
-    from_: FlowMapRef
-        The flow, flow property, and unit of the source flow.
-
-    to: FlowMapRef
-        The flow, flow property, and unit of the target flow.
-
-    conversion_factor: float
-        The factor to convert the original source flow to the target flow.
-
-    """
-
-    def __init__(self):
-        super(FlowMapEntry, self).__init__()
-        self.olca_type: str = 'FlowMapEntry'
-        self.from_: Optional[FlowMapRef] = None
-        self.to: Optional[FlowMapRef] = None
-        self.conversion_factor: Optional[float] = None
-
-    def to_json(self) -> dict:
-        json: dict = super(FlowMapEntry, self).to_json()
-        if self.from_ is not None:
-            json['from'] = self.from_.to_json()
-        if self.to is not None:
-            json['to'] = self.to.to_json()
-        if self.conversion_factor is not None:
-            json['conversionFactor'] = self.conversion_factor
-        return json
-
-    def read_json(self, json: dict):
-        super(FlowMapEntry, self).read_json(json)
-        val = json.get('from')
-        if val is not None:
-            self.from_ = FlowMapRef()
-            self.from_.read_json(val)
-        val = json.get('to')
-        if val is not None:
-            self.to = FlowMapRef()
-            self.to.read_json(val)
-        val = json.get('conversionFactor')
-        if val is not None:
-            self.conversion_factor = val
-
-    @staticmethod
-    def from_json(json: dict):
-        instance = FlowMapEntry()
-        instance.read_json(json)
-        return instance
-
-
+@dataclass
 class NwSet(RootEntity):
     """
     A normalization and weighting set.
@@ -2174,16 +2183,14 @@ class NwSet(RootEntity):
         This is the optional unit of the (normalized and) weighted score when
         this normalization and weighting set was applied on a LCIA result.
 
-    factors: List[NwFactor]
+    factors: list[NwFactor]
         The list of normalization and weighting factors of this set.
 
     """
 
-    def __init__(self):
-        super(NwSet, self).__init__()
-        self.olca_type: str = 'NwSet'
-        self.weighted_score_unit: Optional[str] = None
-        self.factors: Optional[List[NwFactor]] = None
+    olca_type: str = 'NwSet'
+    weighted_score_unit: Optional[str] = None
+    factors: Optional[list[NwFactor]] = None
 
     def to_json(self) -> dict:
         json: dict = super(NwSet, self).to_json()
@@ -2215,6 +2222,7 @@ class NwSet(RootEntity):
         return instance
 
 
+@dataclass
 class Ref(RootEntity):
     """
     A Ref is a reference to a [RootEntity]. When serializing an entity (e.g. a
@@ -2226,16 +2234,41 @@ class Ref(RootEntity):
 
     Attributes
     ----------
-    category_path: List[str]
+    category_path: list[str]
         The full path of the category of the referenced entity from top to
         bottom, e.g. `"Elementary flows", "Emissions to air", "unspecified"`.
 
+    library: str
+        If the entity that is described by this reference is part of a library,
+        this field contains the identifier of that library. The identifier is
+        typically just the combination of the library name and version.
+
+    ref_unit: str
+        This field is only valid for references of flows or impact categories
+        and contains the name (symbol) of the reference unit of that respective
+        flow or impact category.
+
+    location: str
+        This field is only valid for references of processes or flows and
+        contains the location name or code of that respective process or flow.
+
+    flow_type: FlowType
+        In case of a reference to a flow, this field can contain the type of
+        flow that is referenced.
+
+    process_type: ProcessType
+        In case of a reference to a process, this fiel can contain the type of
+        process that is referenced.
+
     """
 
-    def __init__(self):
-        super(Ref, self).__init__()
-        self.olca_type: str = 'Ref'
-        self.category_path: Optional[List[str]] = None
+    olca_type: str = 'Ref'
+    category_path: Optional[list[str]] = None
+    library: Optional[str] = None
+    ref_unit: Optional[str] = None
+    location: Optional[str] = None
+    flow_type: Optional[FlowType] = None
+    process_type: Optional[ProcessType] = None
 
     def to_json(self) -> dict:
         json: dict = super(Ref, self).to_json()
@@ -2243,6 +2276,16 @@ class Ref(RootEntity):
             json['categoryPath'] = []
             for e in self.category_path:
                 json['categoryPath'].append(e)
+        if self.library is not None:
+            json['library'] = self.library
+        if self.ref_unit is not None:
+            json['refUnit'] = self.ref_unit
+        if self.location is not None:
+            json['location'] = self.location
+        if self.flow_type is not None:
+            json['flowType'] = self.flow_type.value
+        if self.process_type is not None:
+            json['processType'] = self.process_type.value
         return json
 
     def read_json(self, json: dict):
@@ -2253,6 +2296,21 @@ class Ref(RootEntity):
             for d in val:
                 e = d
                 self.category_path.append(e)
+        val = json.get('library')
+        if val is not None:
+            self.library = val
+        val = json.get('refUnit')
+        if val is not None:
+            self.ref_unit = val
+        val = json.get('location')
+        if val is not None:
+            self.location = val
+        val = json.get('flowType')
+        if val is not None:
+            self.flow_type = FlowType(val)
+        val = json.get('processType')
+        if val is not None:
+            self.process_type = ProcessType(val)
 
     @staticmethod
     def from_json(json: dict):
@@ -2261,6 +2319,7 @@ class Ref(RootEntity):
         return instance
 
 
+@dataclass
 class Unit(RootEntity):
     """
     An unit of measure
@@ -2278,17 +2337,15 @@ class Unit(RootEntity):
         unit group. The reference unit is used to convert amounts given in one
         unit to amounts given in another unit of the respective unit group.
 
-    synonyms: List[str]
+    synonyms: list[str]
         A list of synonyms for the unit.
 
     """
 
-    def __init__(self):
-        super(Unit, self).__init__()
-        self.olca_type: str = 'Unit'
-        self.conversion_factor: Optional[float] = None
-        self.reference_unit: Optional[bool] = None
-        self.synonyms: Optional[List[str]] = None
+    olca_type: str = 'Unit'
+    conversion_factor: Optional[float] = None
+    reference_unit: Optional[bool] = None
+    synonyms: Optional[list[str]] = None
 
     def to_json(self) -> dict:
         json: dict = super(Unit, self).to_json()
@@ -2324,6 +2381,7 @@ class Unit(RootEntity):
         return instance
 
 
+@dataclass
 class Actor(CategorizedEntity):
     """
     An actor is a person or organisation.
@@ -2348,17 +2406,15 @@ class Actor(CategorizedEntity):
 
     """
 
-    def __init__(self):
-        super(Actor, self).__init__()
-        self.olca_type: str = 'Actor'
-        self.address: Optional[str] = None
-        self.city: Optional[str] = None
-        self.country: Optional[str] = None
-        self.email: Optional[str] = None
-        self.telefax: Optional[str] = None
-        self.telephone: Optional[str] = None
-        self.website: Optional[str] = None
-        self.zip_code: Optional[str] = None
+    olca_type: str = 'Actor'
+    address: Optional[str] = None
+    city: Optional[str] = None
+    country: Optional[str] = None
+    email: Optional[str] = None
+    telefax: Optional[str] = None
+    telephone: Optional[str] = None
+    website: Optional[str] = None
+    zip_code: Optional[str] = None
 
     def to_json(self) -> dict:
         json: dict = super(Actor, self).to_json()
@@ -2414,6 +2470,7 @@ class Actor(CategorizedEntity):
         return instance
 
 
+@dataclass
 class Category(CategorizedEntity):
     """
     A category is used for the categorisation of types like processes, flows,
@@ -2428,10 +2485,8 @@ class Category(CategorizedEntity):
 
     """
 
-    def __init__(self):
-        super(Category, self).__init__()
-        self.olca_type: str = 'Category'
-        self.model_type: Optional[ModelType] = None
+    olca_type: str = 'Category'
+    model_type: Optional[ModelType] = None
 
     def to_json(self) -> dict:
         json: dict = super(Category, self).to_json()
@@ -2452,6 +2507,7 @@ class Category(CategorizedEntity):
         return instance
 
 
+@dataclass
 class Currency(CategorizedEntity):
     """
 
@@ -2466,12 +2522,10 @@ class Currency(CategorizedEntity):
 
     """
 
-    def __init__(self):
-        super(Currency, self).__init__()
-        self.olca_type: str = 'Currency'
-        self.code: Optional[str] = None
-        self.conversion_factor: Optional[float] = None
-        self.reference_currency: Optional[Ref] = None
+    olca_type: str = 'Currency'
+    code: Optional[str] = None
+    conversion_factor: Optional[float] = None
+    reference_currency: Optional[Ref] = None
 
     def to_json(self) -> dict:
         json: dict = super(Currency, self).to_json()
@@ -2503,6 +2557,7 @@ class Currency(CategorizedEntity):
         return instance
 
 
+@dataclass
 class DQSystem(CategorizedEntity):
     """
     A data quality system (DQS) in openLCA describes a pedigree matrix of $m$
@@ -2535,16 +2590,14 @@ class DQSystem(CategorizedEntity):
 
     source: Ref
 
-    indicators: List[DQIndicator]
+    indicators: list[DQIndicator]
 
     """
 
-    def __init__(self):
-        super(DQSystem, self).__init__()
-        self.olca_type: str = 'DQSystem'
-        self.has_uncertainties: Optional[bool] = None
-        self.source: Optional[Ref] = None
-        self.indicators: Optional[List[DQIndicator]] = None
+    olca_type: str = 'DQSystem'
+    has_uncertainties: Optional[bool] = None
+    source: Optional[Ref] = None
+    indicators: Optional[list[DQIndicator]] = None
 
     def to_json(self) -> dict:
         json: dict = super(DQSystem, self).to_json()
@@ -2582,6 +2635,7 @@ class DQSystem(CategorizedEntity):
         return instance
 
 
+@dataclass
 class Flow(CategorizedEntity):
     """
     Everything that can be an input or output of a process (e.g. a substance, a
@@ -2599,7 +2653,7 @@ class Flow(CategorizedEntity):
     formula: str
         A chemical formula of the flow.
 
-    flow_properties: List[FlowPropertyFactor]
+    flow_properties: list[FlowPropertyFactor]
         The flow properties (quantities) in which amounts of the flow can be
         expressed together with conversion factors between these flow flow
         properties.
@@ -2622,16 +2676,14 @@ class Flow(CategorizedEntity):
 
     """
 
-    def __init__(self):
-        super(Flow, self).__init__()
-        self.olca_type: str = 'Flow'
-        self.flow_type: Optional[FlowType] = None
-        self.cas: Optional[str] = None
-        self.formula: Optional[str] = None
-        self.flow_properties: Optional[List[FlowPropertyFactor]] = None
-        self.location: Optional[Ref] = None
-        self.synonyms: Optional[str] = None
-        self.infrastructure_flow: Optional[bool] = None
+    olca_type: str = 'Flow'
+    flow_type: Optional[FlowType] = None
+    cas: Optional[str] = None
+    formula: Optional[str] = None
+    flow_properties: Optional[list[FlowPropertyFactor]] = None
+    location: Optional[Ref] = None
+    synonyms: Optional[str] = None
+    infrastructure_flow: Optional[bool] = None
 
     def to_json(self) -> dict:
         json: dict = super(Flow, self).to_json()
@@ -2689,6 +2741,7 @@ class Flow(CategorizedEntity):
         return instance
 
 
+@dataclass
 class FlowProperty(CategorizedEntity):
     """
     A flow property is a quantity that can be used to express amounts of a
@@ -2705,11 +2758,9 @@ class FlowProperty(CategorizedEntity):
 
     """
 
-    def __init__(self):
-        super(FlowProperty, self).__init__()
-        self.olca_type: str = 'FlowProperty'
-        self.flow_property_type: Optional[FlowPropertyType] = None
-        self.unit_group: Optional[Ref] = None
+    olca_type: str = 'FlowProperty'
+    flow_property_type: Optional[FlowPropertyType] = None
+    unit_group: Optional[Ref] = None
 
     def to_json(self) -> dict:
         json: dict = super(FlowProperty, self).to_json()
@@ -2736,59 +2787,7 @@ class FlowProperty(CategorizedEntity):
         return instance
 
 
-class FlowRef(Ref):
-    """
-    A reference to a [Flow] data set.
-
-    Attributes
-    ----------
-    ref_unit: str
-        The name (symbol) of the reference unit of the flow.
-
-    location: str
-        The location name or code of the flow. Typically, this is only used for
-        product flows in databases like ecoinvent.
-
-    flow_type: FlowType
-        The type of the flow.
-
-    """
-
-    def __init__(self):
-        super(FlowRef, self).__init__()
-        self.ref_unit: Optional[str] = None
-        self.location: Optional[str] = None
-        self.flow_type: Optional[FlowType] = None
-
-    def to_json(self) -> dict:
-        json: dict = super(FlowRef, self).to_json()
-        if self.ref_unit is not None:
-            json['refUnit'] = self.ref_unit
-        if self.location is not None:
-            json['location'] = self.location
-        if self.flow_type is not None:
-            json['flowType'] = self.flow_type.value
-        return json
-
-    def read_json(self, json: dict):
-        super(FlowRef, self).read_json(json)
-        val = json.get('refUnit')
-        if val is not None:
-            self.ref_unit = val
-        val = json.get('location')
-        if val is not None:
-            self.location = val
-        val = json.get('flowType')
-        if val is not None:
-            self.flow_type = FlowType(val)
-
-    @staticmethod
-    def from_json(json: dict):
-        instance = FlowRef()
-        instance.read_json(json)
-        return instance
-
-
+@dataclass
 class ImpactCategory(CategorizedEntity):
     """
 
@@ -2798,21 +2797,19 @@ class ImpactCategory(CategorizedEntity):
     reference_unit_name: str
         The name of the reference unit of the LCIA category (e.g. kg CO2-eq.).
 
-    parameters: List[Parameter]
+    parameters: list[Parameter]
         A set of parameters which can be used in formulas of the
         characterisation factors in this impact category.
 
-    impact_factors: List[ImpactFactor]
+    impact_factors: list[ImpactFactor]
         The characterisation factors of the LCIA category.
 
     """
 
-    def __init__(self):
-        super(ImpactCategory, self).__init__()
-        self.olca_type: str = 'ImpactCategory'
-        self.reference_unit_name: Optional[str] = None
-        self.parameters: Optional[List[Parameter]] = None
-        self.impact_factors: Optional[List[ImpactFactor]] = None
+    olca_type: str = 'ImpactCategory'
+    reference_unit_name: Optional[str] = None
+    parameters: Optional[list[Parameter]] = None
+    impact_factors: Optional[list[ImpactFactor]] = None
 
     def to_json(self) -> dict:
         json: dict = super(ImpactCategory, self).to_json()
@@ -2855,59 +2852,24 @@ class ImpactCategory(CategorizedEntity):
         return instance
 
 
-class ImpactCategoryRef(Ref):
-    """
-    A reference to a [ImpactCategory] data set.
-
-    Attributes
-    ----------
-    ref_unit: str
-        The name (symbol) of the reference unit of the impact category.
-
-    """
-
-    def __init__(self):
-        super(ImpactCategoryRef, self).__init__()
-        self.ref_unit: Optional[str] = None
-
-    def to_json(self) -> dict:
-        json: dict = super(ImpactCategoryRef, self).to_json()
-        if self.ref_unit is not None:
-            json['refUnit'] = self.ref_unit
-        return json
-
-    def read_json(self, json: dict):
-        super(ImpactCategoryRef, self).read_json(json)
-        val = json.get('refUnit')
-        if val is not None:
-            self.ref_unit = val
-
-    @staticmethod
-    def from_json(json: dict):
-        instance = ImpactCategoryRef()
-        instance.read_json(json)
-        return instance
-
-
+@dataclass
 class ImpactMethod(CategorizedEntity):
     """
     An impact assessment method.
 
     Attributes
     ----------
-    impact_categories: List[ImpactCategoryRef]
+    impact_categories: list[Ref]
         The impact categories of the method.
 
-    nw_sets: List[NwSet]
+    nw_sets: list[NwSet]
         The normalization and weighting sets of the method.
 
     """
 
-    def __init__(self):
-        super(ImpactMethod, self).__init__()
-        self.olca_type: str = 'ImpactMethod'
-        self.impact_categories: Optional[List[ImpactCategoryRef]] = None
-        self.nw_sets: Optional[List[NwSet]] = None
+    olca_type: str = 'ImpactMethod'
+    impact_categories: Optional[list[Ref]] = None
+    nw_sets: Optional[list[NwSet]] = None
 
     def to_json(self) -> dict:
         json: dict = super(ImpactMethod, self).to_json()
@@ -2927,7 +2889,7 @@ class ImpactMethod(CategorizedEntity):
         if val is not None:
             self.impact_categories = []
             for d in val:
-                e = ImpactCategoryRef()
+                e = Ref()
                 e.read_json(d)
                 self.impact_categories.append(e)
         val = json.get('nwSets')
@@ -2945,6 +2907,7 @@ class ImpactMethod(CategorizedEntity):
         return instance
 
 
+@dataclass
 class Location(CategorizedEntity):
     """
     A location like a country, state, city, etc.
@@ -2965,13 +2928,11 @@ class Location(CategorizedEntity):
 
     """
 
-    def __init__(self):
-        super(Location, self).__init__()
-        self.olca_type: str = 'Location'
-        self.code: Optional[str] = None
-        self.latitude: Optional[float] = None
-        self.longitude: Optional[float] = None
-        self.geometry: Optional[dict] = None
+    olca_type: str = 'Location'
+    code: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    geometry: Optional[dict] = None
 
     def to_json(self) -> dict:
         json: dict = super(Location, self).to_json()
@@ -3007,6 +2968,7 @@ class Location(CategorizedEntity):
         return instance
 
 
+@dataclass
 class Parameter(CategorizedEntity):
     """
     In openLCA, parameters can be defined in different scopes: global, process,
@@ -3040,14 +3002,12 @@ class Parameter(CategorizedEntity):
 
     """
 
-    def __init__(self):
-        super(Parameter, self).__init__()
-        self.olca_type: str = 'Parameter'
-        self.parameter_scope: Optional[ParameterScope] = None
-        self.input_parameter: Optional[bool] = None
-        self.value: Optional[float] = None
-        self.formula: Optional[str] = None
-        self.uncertainty: Optional[Uncertainty] = None
+    olca_type: str = 'Parameter'
+    parameter_scope: Optional[ParameterScope] = None
+    input_parameter: Optional[bool] = None
+    value: Optional[float] = None
+    formula: Optional[str] = None
+    uncertainty: Optional[Uncertainty] = None
 
     def to_json(self) -> dict:
         json: dict = super(Parameter, self).to_json()
@@ -3089,17 +3049,18 @@ class Parameter(CategorizedEntity):
         return instance
 
 
+@dataclass
 class Process(CategorizedEntity):
     """
 
 
     Attributes
     ----------
-    allocation_factors: List[AllocationFactor]
+    allocation_factors: list[AllocationFactor]
 
     default_allocation_method: AllocationType
 
-    exchanges: List[Exchange]
+    exchanges: list[Exchange]
         The inputs and outputs of the process.
 
     last_internal_id: int
@@ -3115,7 +3076,7 @@ class Process(CategorizedEntity):
     location: Ref
         The location of the process.
 
-    parameters: List[Parameter]
+    parameters: list[Parameter]
 
     process_documentation: ProcessDocumentation
 
@@ -3147,28 +3108,26 @@ class Process(CategorizedEntity):
         compatibility with EcoSpold 1. It does not really have a meaning in
         openLCA and should not be used anymore.
 
-    social_aspects: List[SocialAspect]
+    social_aspects: list[SocialAspect]
         A set of social aspects related to this process.
 
     """
 
-    def __init__(self):
-        super(Process, self).__init__()
-        self.olca_type: str = 'Process'
-        self.allocation_factors: Optional[List[AllocationFactor]] = None
-        self.default_allocation_method: Optional[AllocationType] = None
-        self.exchanges: Optional[List[Exchange]] = None
-        self.last_internal_id: Optional[int] = None
-        self.location: Optional[Ref] = None
-        self.parameters: Optional[List[Parameter]] = None
-        self.process_documentation: Optional[ProcessDocumentation] = None
-        self.process_type: Optional[ProcessType] = None
-        self.dq_system: Optional[Ref] = None
-        self.exchange_dq_system: Optional[Ref] = None
-        self.social_dq_system: Optional[Ref] = None
-        self.dq_entry: Optional[str] = None
-        self.infrastructure_process: Optional[bool] = None
-        self.social_aspects: Optional[List[SocialAspect]] = None
+    olca_type: str = 'Process'
+    allocation_factors: Optional[list[AllocationFactor]] = None
+    default_allocation_method: Optional[AllocationType] = None
+    exchanges: Optional[list[Exchange]] = None
+    last_internal_id: Optional[int] = None
+    location: Optional[Ref] = None
+    parameters: Optional[list[Parameter]] = None
+    process_documentation: Optional[ProcessDocumentation] = None
+    process_type: Optional[ProcessType] = None
+    dq_system: Optional[Ref] = None
+    exchange_dq_system: Optional[Ref] = None
+    social_dq_system: Optional[Ref] = None
+    dq_entry: Optional[str] = None
+    infrastructure_process: Optional[bool] = None
+    social_aspects: Optional[list[SocialAspect]] = None
 
     def to_json(self) -> dict:
         json: dict = super(Process, self).to_json()
@@ -3283,49 +3242,7 @@ class Process(CategorizedEntity):
         return instance
 
 
-class ProcessRef(Ref):
-    """
-    A reference to a [Process] data set.
-
-    Attributes
-    ----------
-    location: str
-        The location name or code of the process.
-
-    process_type: ProcessType
-        The type of the process.
-
-    """
-
-    def __init__(self):
-        super(ProcessRef, self).__init__()
-        self.location: Optional[str] = None
-        self.process_type: Optional[ProcessType] = None
-
-    def to_json(self) -> dict:
-        json: dict = super(ProcessRef, self).to_json()
-        if self.location is not None:
-            json['location'] = self.location
-        if self.process_type is not None:
-            json['processType'] = self.process_type.value
-        return json
-
-    def read_json(self, json: dict):
-        super(ProcessRef, self).read_json(json)
-        val = json.get('location')
-        if val is not None:
-            self.location = val
-        val = json.get('processType')
-        if val is not None:
-            self.process_type = ProcessType(val)
-
-    @staticmethod
-    def from_json(json: dict):
-        instance = ProcessRef()
-        instance.read_json(json)
-        return instance
-
-
+@dataclass
 class ProductSystem(CategorizedEntity):
     """
     A product system describes the supply chain of a product (the functional
@@ -3333,15 +3250,15 @@ class ProductSystem(CategorizedEntity):
 
     Attributes
     ----------
-    processes: List[ProcessRef]
-        The descriptors of all processes that are contained in the product
-        system.
+    processes: list[Ref]
+        The descriptors of all processes and sub-systems that are contained in
+        the product system.
 
-    reference_process: ProcessRef
+    reference_process: Ref
         The descriptor of the process that provides the flow of the functional
         unit of the product system.
 
-    reference_exchange: Exchange
+    reference_exchange: ExchangeRef
         The exchange of the reference processes (typically the product output)
         that provides the flow of the functional unit of the product system.
 
@@ -3355,26 +3272,24 @@ class ProductSystem(CategorizedEntity):
         The flow property in which the flow amount of the functional unit is
         given.
 
-    process_links: List[ProcessLink]
+    process_links: list[ProcessLink]
         The process links of the product system.
 
-    parameter_sets: List[ParameterRedefSet]
+    parameter_sets: list[ParameterRedefSet]
         A list of possible sets of parameter redefinitions for this product
         system.
 
     """
 
-    def __init__(self):
-        super(ProductSystem, self).__init__()
-        self.olca_type: str = 'ProductSystem'
-        self.processes: Optional[List[ProcessRef]] = None
-        self.reference_process: Optional[ProcessRef] = None
-        self.reference_exchange: Optional[Exchange] = None
-        self.target_amount: Optional[float] = None
-        self.target_unit: Optional[Ref] = None
-        self.target_flow_property: Optional[Ref] = None
-        self.process_links: Optional[List[ProcessLink]] = None
-        self.parameter_sets: Optional[List[ParameterRedefSet]] = None
+    olca_type: str = 'ProductSystem'
+    processes: Optional[list[Ref]] = None
+    reference_process: Optional[Ref] = None
+    reference_exchange: Optional[ExchangeRef] = None
+    target_amount: Optional[float] = None
+    target_unit: Optional[Ref] = None
+    target_flow_property: Optional[Ref] = None
+    process_links: Optional[list[ProcessLink]] = None
+    parameter_sets: Optional[list[ParameterRedefSet]] = None
 
     def to_json(self) -> dict:
         json: dict = super(ProductSystem, self).to_json()
@@ -3408,16 +3323,16 @@ class ProductSystem(CategorizedEntity):
         if val is not None:
             self.processes = []
             for d in val:
-                e = ProcessRef()
+                e = Ref()
                 e.read_json(d)
                 self.processes.append(e)
         val = json.get('referenceProcess')
         if val is not None:
-            self.reference_process = ProcessRef()
+            self.reference_process = Ref()
             self.reference_process.read_json(val)
         val = json.get('referenceExchange')
         if val is not None:
-            self.reference_exchange = Exchange()
+            self.reference_exchange = ExchangeRef()
             self.reference_exchange.read_json(val)
         val = json.get('targetAmount')
         if val is not None:
@@ -3452,6 +3367,7 @@ class ProductSystem(CategorizedEntity):
         return instance
 
 
+@dataclass
 class Project(CategorizedEntity):
     """
 
@@ -3464,11 +3380,9 @@ class Project(CategorizedEntity):
 
     """
 
-    def __init__(self):
-        super(Project, self).__init__()
-        self.olca_type: str = 'Project'
-        self.impact_method: Optional[Ref] = None
-        self.nw_set: Optional[NwSet] = None
+    olca_type: str = 'Project'
+    impact_method: Optional[Ref] = None
+    nw_set: Optional[NwSet] = None
 
     def to_json(self) -> dict:
         json: dict = super(Project, self).to_json()
@@ -3496,6 +3410,7 @@ class Project(CategorizedEntity):
         return instance
 
 
+@dataclass
 class SocialIndicator(CategorizedEntity):
     """
 
@@ -3519,14 +3434,12 @@ class SocialIndicator(CategorizedEntity):
 
     """
 
-    def __init__(self):
-        super(SocialIndicator, self).__init__()
-        self.olca_type: str = 'SocialIndicator'
-        self.activity_variable: Optional[str] = None
-        self.activity_quantity: Optional[Ref] = None
-        self.activity_unit: Optional[Ref] = None
-        self.unit_of_measurement: Optional[str] = None
-        self.evaluation_scheme: Optional[str] = None
+    olca_type: str = 'SocialIndicator'
+    activity_variable: Optional[str] = None
+    activity_quantity: Optional[Ref] = None
+    activity_unit: Optional[Ref] = None
+    unit_of_measurement: Optional[str] = None
+    evaluation_scheme: Optional[str] = None
 
     def to_json(self) -> dict:
         json: dict = super(SocialIndicator, self).to_json()
@@ -3569,6 +3482,7 @@ class SocialIndicator(CategorizedEntity):
         return instance
 
 
+@dataclass
 class Source(CategorizedEntity):
     """
     A source is a literature reference.
@@ -3589,13 +3503,11 @@ class Source(CategorizedEntity):
 
     """
 
-    def __init__(self):
-        super(Source, self).__init__()
-        self.olca_type: str = 'Source'
-        self.url: Optional[str] = None
-        self.text_reference: Optional[str] = None
-        self.year: Optional[int] = None
-        self.external_file: Optional[str] = None
+    olca_type: str = 'Source'
+    url: Optional[str] = None
+    text_reference: Optional[str] = None
+    year: Optional[int] = None
+    external_file: Optional[str] = None
 
     def to_json(self) -> dict:
         json: dict = super(Source, self).to_json()
@@ -3631,6 +3543,7 @@ class Source(CategorizedEntity):
         return instance
 
 
+@dataclass
 class UnitGroup(CategorizedEntity):
     """
     A group of units that can be converted into each other.
@@ -3642,16 +3555,14 @@ class UnitGroup(CategorizedEntity):
         quantities. This field provides a default link to a flow property for
         units that are contained in this group.
 
-    units: List[Unit]
+    units: list[Unit]
         The units of the unit group.
 
     """
 
-    def __init__(self):
-        super(UnitGroup, self).__init__()
-        self.olca_type: str = 'UnitGroup'
-        self.default_flow_property: Optional[Ref] = None
-        self.units: Optional[List[Unit]] = None
+    olca_type: str = 'UnitGroup'
+    default_flow_property: Optional[Ref] = None
+    units: Optional[list[Unit]] = None
 
     def to_json(self) -> dict:
         json: dict = super(UnitGroup, self).to_json()
@@ -3682,3 +3593,4 @@ class UnitGroup(CategorizedEntity):
         instance = UnitGroup()
         instance.read_json(json)
         return instance
+

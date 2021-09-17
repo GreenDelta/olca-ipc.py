@@ -5,7 +5,9 @@ import requests
 import olca.schema as schema
 import olca.upstream_tree as utree
 
-from typing import Any, Iterator, List, Optional, Tuple, Type, TypeVar, Union
+from dataclasses import dataclass
+
+from typing import Any, Iterator, Optional, Type, TypeVar, Union
 
 T = TypeVar('T')
 ModelType = Union[Type[schema.RootEntity], str]
@@ -26,6 +28,7 @@ def _model_class(param: ModelType) -> Type[schema.RootEntity]:
         return param
 
 
+@dataclass
 class ProductResult(schema.Entity):
     """
     The ProductResult type is not an olca-schema type but a return
@@ -41,12 +44,9 @@ class ProductResult(schema.Entity):
     amount: float
 
     """
-
-    def __init__(self):
-        super(ProductResult, self).__init__()
-        self.process: Optional[schema.Ref] = None
-        self.product: Optional[schema.Ref] = None
-        self.amount: Optional[float] = None
+    process: Optional[schema.Ref] = None
+    product: Optional[schema.Ref] = None
+    amount: Optional[float] = None
 
     def to_json(self) -> dict:
         json: dict = super(ProductResult, self).to_json()
@@ -77,6 +77,7 @@ class ProductResult(schema.Entity):
         return instance
 
 
+@dataclass
 class ContributionItem(schema.Entity):
     """
     The ContributionItem type is not an olca-schema type but a return
@@ -97,13 +98,11 @@ class ContributionItem(schema.Entity):
 
     """
 
-    def __init__(self):
-        super(ContributionItem, self).__init__()
-        self.item: Optional[schema.Ref] = None
-        self.amount: Optional[float] = None
-        self.share: Optional[float] = None
-        self.rest: Optional[bool] = None
-        self.unit: Optional[str] = None
+    item: Optional[schema.Ref] = None
+    amount: Optional[float] = None
+    share: Optional[float] = None
+    rest: Optional[bool] = None
+    unit: Optional[str] = None
 
     def to_json(self) -> dict:
         json: dict = super(ContributionItem, self).to_json()
@@ -177,7 +176,7 @@ class Client(object):
 
         Example
         -------
-        ```
+        ```python
         import olca
 
         flow = olca.Flow()
@@ -244,7 +243,7 @@ class Client(object):
 
         Example
         -------
-        ```
+        ```python
         client = olca.Client()
         setup = olca.CalculationSetup()
         setup.calculation_type = olca.CalculationType.UPSTREAM_ANALYSIS
@@ -363,7 +362,7 @@ class Client(object):
 
         Example:
         --------
-        ```py
+        ```python
         import olca
 
         with Client() as client:
@@ -410,7 +409,7 @@ class Client(object):
 
         Example
         -------
-        ```
+        ```python
         import olca
 
         client = olca.Client()
@@ -487,7 +486,7 @@ class Client(object):
                 return d
 
     def get_providers_of(self, flow: Union[schema.Ref, schema.Flow]) \
-            -> Iterator[schema.ProcessRef]:
+            -> Iterator[schema.Ref]:
         """
         Get the providers for the given flow.
 
@@ -504,7 +503,7 @@ class Client(object):
 
         Example
         -------
-        ```py
+        ```python
         steel = client.get('Flow', 'Steel')
         for provider in client.get_providers_of(steel):
             print(provider.name)
@@ -520,7 +519,7 @@ class Client(object):
             log.error('failed to get providers: %s', err)
             return []
         for obj in providers:
-            yield schema.ProcessRef.from_json(obj)
+            yield schema.Ref.from_json(obj)
 
     def excel_export(self, result: schema.SimpleResult, path: str):
         """Export the given result to an Excel file with the given path.
@@ -624,7 +623,7 @@ class Client(object):
         Example
         -------
 
-        ```
+        ```python
         import olca
 
         client = olca.Client(8080)
@@ -644,7 +643,7 @@ class Client(object):
             return None
         return schema.Ref.from_json(r)
 
-    def lci_inputs(self, result: schema.SimpleResult) -> List[schema.FlowResult]:
+    def lci_inputs(self, result: schema.SimpleResult) -> list[schema.FlowResult]:
         """
         Returns the inputs of the given inventory result.
 
@@ -687,7 +686,7 @@ class Client(object):
         return [schema.FlowResult.from_json(it) for it in raw]
 
     def lci_location_contributions(self, result: schema.SimpleResult,
-                                   flow: schema.Ref) -> List[ContributionItem]:
+                                   flow: schema.Ref) -> list[ContributionItem]:
         """
         Get the contributions of the result of the given flow by location.
 
@@ -702,7 +701,7 @@ class Client(object):
 
         Returns
         -------
-        List[ContributionItem]
+        list[ContributionItem]
             The contributions to the flow result by location.
 
         Example
@@ -727,7 +726,7 @@ class Client(object):
             return []
         return [ContributionItem.from_json(it) for it in raw]
 
-    def lci_total_requirements(self, result: schema.SimpleResult) -> List[ProductResult]:
+    def lci_total_requirements(self, result: schema.SimpleResult) -> list[ProductResult]:
         """
         Returns the total requirements of the given result.
 
@@ -774,7 +773,7 @@ class Client(object):
             return []
         return [ProductResult.from_json(it) for it in raw]
 
-    def lcia(self, result: schema.SimpleResult) -> List[schema.ImpactResult]:
+    def lcia(self, result: schema.SimpleResult) -> list[schema.ImpactResult]:
         """
         Returns the LCIA result of the given result.
 
@@ -803,7 +802,7 @@ class Client(object):
         return [schema.ImpactResult.from_json(it) for it in raw]
 
     def lcia_flow_contributions(self, result: schema.SimpleResult,
-                                impact: schema.Ref) -> List[ContributionItem]:
+                                impact: schema.Ref) -> list[ContributionItem]:
         """
         Get the flow contributions to the result of the given impact category.
 
@@ -840,7 +839,7 @@ class Client(object):
         return [ContributionItem.from_json(it) for it in raw]
 
     def lcia_location_contributions(self, result: schema.SimpleResult,
-                                    impact: schema.Ref) -> List[ContributionItem]:
+                                    impact: schema.Ref) -> list[ContributionItem]:
         """
         Get the contributions to the result of the given impact category by
         locations.
@@ -879,7 +878,7 @@ class Client(object):
         return [ContributionItem.from_json(it) for it in raw]
 
     def lcia_process_contributions(self, result: schema.SimpleResult,
-                                   impact: schema.Ref) -> List[ContributionItem]:
+                                   impact: schema.Ref) -> list[ContributionItem]:
         """
         Get the contributions to the result of the given impact category by
         processes.
@@ -976,7 +975,7 @@ class Client(object):
             '2a26b243-23cb-4f90-baab-239d3d7397fa')
         tree = client.upstream_tree_of(result, impact)
 
-        def traversal_handler(n: Tuple[UpstreamNode, int]):
+        def traversal_handler(n: tuple[UpstreamNode, int]):
             (node, depth) = n
             print('%s+ %s %.3f' % (
                 '  ' * depth,
@@ -1002,7 +1001,7 @@ class Client(object):
             return None
         return utree.UpstreamTree.from_json(raw)
 
-    def __post(self, method: str, params) -> Tuple[Any, Optional[str]]:
+    def __post(self, method: str, params) -> tuple[Any, Optional[str]]:
         """
         Performs a request with the given parameters.
 
