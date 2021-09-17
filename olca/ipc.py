@@ -176,7 +176,7 @@ class Client(object):
 
         Example
         -------
-        ```
+        ```python
         import olca
 
         flow = olca.Flow()
@@ -243,7 +243,7 @@ class Client(object):
 
         Example
         -------
-        ```
+        ```python
         client = olca.Client()
         setup = olca.CalculationSetup()
         setup.calculation_type = olca.CalculationType.UPSTREAM_ANALYSIS
@@ -362,7 +362,7 @@ class Client(object):
 
         Example:
         --------
-        ```py
+        ```python
         import olca
 
         with Client() as client:
@@ -409,7 +409,7 @@ class Client(object):
 
         Example
         -------
-        ```
+        ```python
         import olca
 
         client = olca.Client()
@@ -503,7 +503,7 @@ class Client(object):
 
         Example
         -------
-        ```py
+        ```python
         steel = client.get('Flow', 'Steel')
         for provider in client.get_providers_of(steel):
             print(provider.name)
@@ -623,7 +623,7 @@ class Client(object):
         Example
         -------
 
-        ```
+        ```python
         import olca
 
         client = olca.Client(8080)

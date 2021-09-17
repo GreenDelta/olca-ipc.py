@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import olca.schema as schema
-from typing import Callable, List, Tuple
+from olca import schema
+
+from typing import Callable
 
 
 class ProcessProduct:
@@ -28,7 +29,7 @@ class UpstreamNode:
     def __init__(self, product: ProcessProduct, result=0.0):
         self.product = product
         self.result = result
-        self.childs: List[UpstreamNode] = []
+        self.childs: list[UpstreamNode] = []
 
     @staticmethod
     def from_json(json: dict) -> UpstreamNode:
@@ -38,7 +39,7 @@ class UpstreamNode:
             product = ProcessProduct.from_json(product_dict)
         result = json.get('result', 0.0)
         node = UpstreamNode(product, result)
-        childs: List[dict] = json.get('childs')
+        childs: list[dict] = json.get('childs')
         if childs is not None:
             for child in childs:
                 node.childs.append(UpstreamNode.from_json(child))
@@ -63,7 +64,7 @@ class UpstreamTree:
             root = UpstreamNode.from_json(root_dict)
         return UpstreamTree(ref, root)
 
-    def traverse(self, fn: Callable[[Tuple[UpstreamNode, int]], None]):
+    def traverse(self, fn: Callable[[tuple[UpstreamNode, int]], None]):
 
         def traverse_(parent: UpstreamNode, depth: int):
             if not parent:

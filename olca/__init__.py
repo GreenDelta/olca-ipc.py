@@ -34,7 +34,7 @@ def ref(model_type: Union[T, str], uid: str, name: Optional[str] = None) -> Ref:
 
     Example
     -------
-    ```
+    ```python
     mass_ref = olca.ref(
         olca.FlowProperty,
         '93a60a56-a3c8-11da-a746-0800200b9a66',
@@ -68,7 +68,7 @@ def unit_of(name='', conversion_factor=1.0) -> Unit:
     Example
     -------
 
-    ```py
+    ```python
     kg = olca.unit_of('kg')
     ```
     """
@@ -95,7 +95,7 @@ def unit_group_of(name: str, unit: Union[str, Unit]) -> UnitGroup:
 
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of('Units of mass', 'kg')
     ```
     """
@@ -122,7 +122,7 @@ def flow_property_of(name: str,
 
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of('Units of mass', 'kg')
     fp = olca.flow_property_of('Mass', units)
     ```
@@ -156,7 +156,7 @@ def flow_of(name: str, flow_type: FlowType,
 
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of('Units of mass', 'kg')
     mass = olca.flow_property_of('Mass', units)
     steel = olca.flow_of('Steel', olca.FlowType.PRODUCT_FLOW, mass)
@@ -190,7 +190,7 @@ def product_flow_of(name: str, flow_property: Union[Ref, FlowProperty]) -> Flow:
 
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of('Units of mass', 'kg')
     mass = olca.flow_property_of('Mass', units)
     steel = olca.product_flow_of('Steel', mass)
@@ -213,7 +213,7 @@ def waste_flow_of(name: str, flow_property: Union[Ref, FlowProperty]) -> Flow:
 
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of('Units of mass', 'kg')
     mass = olca.flow_property_of('Mass', units)
     scrap = olca.waste_flow_of('Scrap', mass)
@@ -236,7 +236,7 @@ def elementary_flow_of(name: str, flow_property: Union[Ref, FlowProperty]) -> Fl
 
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of('Units of mass', 'kg')
     mass = olca.flow_property_of('Mass', units)
     co2 = olca.elementary_flow_of('CO2', mass)
@@ -256,7 +256,7 @@ def process_of(name: str) -> Process:
 
     Example
     -------
-    ```py
+    ```python
     process = olca.process_of('Steel production')
     ```
     """
@@ -296,7 +296,7 @@ def exchange_of(process: Process,
     
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of('Units of mass', 'kg')
     mass = olca.flow_property_of('Mass', units)
     steel = olca.product_flow_of('Steel', mass)
@@ -338,7 +338,7 @@ def output_of(process: Process,
 
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of('Units of mass', 'kg')
     mass = olca.flow_property_of('Mass', units)
     steel = olca.product_flow_of('Steel', mass)
@@ -364,7 +364,7 @@ def input_of(process: Process,
 
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of('Units of mass', 'kg')
     mass = olca.flow_property_of('Mass', units)
     scrap = olca.waste_flow_of('Scrap', mass)
@@ -391,7 +391,7 @@ def location_of(name: str, code: Optional[str] = None) -> Location:
 
     Example
     -------
-    ```py
+    ```python
     de = olca.location_of('Germany', 'DE')
     ```
     """
@@ -424,7 +424,7 @@ def parameter_of(name: str, value: Union[str, float],
 
     Example
     -------
-    ```py
+    ```python
     import olca
 
     # create a global input parameter

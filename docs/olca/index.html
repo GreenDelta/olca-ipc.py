@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.2" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>olca API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -63,7 +63,7 @@ def ref(model_type: Union[T, str], uid: str, name: Optional[str] = None) -&gt; R
 
     Example
     -------
-    ```
+    ```python
     mass_ref = olca.ref(
         olca.FlowProperty,
         &#39;93a60a56-a3c8-11da-a746-0800200b9a66&#39;,
@@ -97,7 +97,7 @@ def unit_of(name=&#39;&#39;, conversion_factor=1.0) -&gt; Unit:
     Example
     -------
 
-    ```py
+    ```python
     kg = olca.unit_of(&#39;kg&#39;)
     ```
     &#34;&#34;&#34;
@@ -124,7 +124,7 @@ def unit_group_of(name: str, unit: Union[str, Unit]) -&gt; UnitGroup:
 
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
     ```
     &#34;&#34;&#34;
@@ -151,7 +151,7 @@ def flow_property_of(name: str,
 
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
     fp = olca.flow_property_of(&#39;Mass&#39;, units)
     ```
@@ -185,7 +185,7 @@ def flow_of(name: str, flow_type: FlowType,
 
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
     mass = olca.flow_property_of(&#39;Mass&#39;, units)
     steel = olca.flow_of(&#39;Steel&#39;, olca.FlowType.PRODUCT_FLOW, mass)
@@ -219,7 +219,7 @@ def product_flow_of(name: str, flow_property: Union[Ref, FlowProperty]) -&gt; Fl
 
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
     mass = olca.flow_property_of(&#39;Mass&#39;, units)
     steel = olca.product_flow_of(&#39;Steel&#39;, mass)
@@ -242,7 +242,7 @@ def waste_flow_of(name: str, flow_property: Union[Ref, FlowProperty]) -&gt; Flow
 
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
     mass = olca.flow_property_of(&#39;Mass&#39;, units)
     scrap = olca.waste_flow_of(&#39;Scrap&#39;, mass)
@@ -265,7 +265,7 @@ def elementary_flow_of(name: str, flow_property: Union[Ref, FlowProperty]) -&gt;
 
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
     mass = olca.flow_property_of(&#39;Mass&#39;, units)
     co2 = olca.elementary_flow_of(&#39;CO2&#39;, mass)
@@ -285,7 +285,7 @@ def process_of(name: str) -&gt; Process:
 
     Example
     -------
-    ```py
+    ```python
     process = olca.process_of(&#39;Steel production&#39;)
     ```
     &#34;&#34;&#34;
@@ -325,7 +325,7 @@ def exchange_of(process: Process,
     
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
     mass = olca.flow_property_of(&#39;Mass&#39;, units)
     steel = olca.product_flow_of(&#39;Steel&#39;, mass)
@@ -367,7 +367,7 @@ def output_of(process: Process,
 
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
     mass = olca.flow_property_of(&#39;Mass&#39;, units)
     steel = olca.product_flow_of(&#39;Steel&#39;, mass)
@@ -393,7 +393,7 @@ def input_of(process: Process,
 
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
     mass = olca.flow_property_of(&#39;Mass&#39;, units)
     scrap = olca.waste_flow_of(&#39;Scrap&#39;, mass)
@@ -420,7 +420,7 @@ def location_of(name: str, code: Optional[str] = None) -&gt; Location:
 
     Example
     -------
-    ```py
+    ```python
     de = olca.location_of(&#39;Germany&#39;, &#39;DE&#39;)
     ```
     &#34;&#34;&#34;
@@ -453,7 +453,7 @@ def parameter_of(name: str, value: Union[str, float],
 
     Example
     -------
-    ```py
+    ```python
     import olca
 
     # create a global input parameter
@@ -621,7 +621,7 @@ def _set_base_attributes(entity: RootEntity, name: str):
 <dd>The (reference to the) flow property (quantity) of the flow.</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code class="language-py">units = olca.unit_group_of('Units of mass', 'kg')
+<pre><code class="language-python">units = olca.unit_group_of('Units of mass', 'kg')
 mass = olca.flow_property_of('Mass', units)
 co2 = olca.elementary_flow_of('CO2', mass)
 </code></pre></div>
@@ -643,7 +643,7 @@ co2 = olca.elementary_flow_of('CO2', mass)
 
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
     mass = olca.flow_property_of(&#39;Mass&#39;, units)
     co2 = olca.elementary_flow_of(&#39;CO2&#39;, mass)
@@ -653,7 +653,7 @@ co2 = olca.elementary_flow_of('CO2', mass)
 </details>
 </dd>
 <dt id="olca.exchange_of"><code class="name flex">
-<span>def <span class="ident">exchange_of</span></span>(<span>process: <a title="olca.schema.Process" href="schema.html#olca.schema.Process">Process</a>, flow: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Flow" href="schema.html#olca.schema.Flow">Flow</a>], amount: Union[str, float] = 1.0, unit: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Unit" href="schema.html#olca.schema.Unit">Unit</a>, NoneType] = None) ‑> <a title="olca.schema.Exchange" href="schema.html#olca.schema.Exchange">Exchange</a></span>
+<span>def <span class="ident">exchange_of</span></span>(<span>process: <a title="olca.schema.Process" href="schema.html#olca.schema.Process">Process</a>, flow: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Flow" href="schema.html#olca.schema.Flow">Flow</a>], amount: Union[str, float] = 1.0, unit: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Unit" href="schema.html#olca.schema.Unit">Unit</a>, ForwardRef(None)] = None) ‑> <a title="olca.schema.Exchange" href="schema.html#olca.schema.Exchange">Exchange</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Creates a new exchange.</p>
@@ -675,7 +675,7 @@ it is a valid formula.</dd>
 in the reference unit of the linked flow.</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code class="language-py">units = olca.unit_group_of('Units of mass', 'kg')
+<pre><code class="language-python">units = olca.unit_group_of('Units of mass', 'kg')
 mass = olca.flow_property_of('Mass', units)
 steel = olca.product_flow_of('Steel', mass)
 process = olca.process_of('Steel production')
@@ -716,7 +716,7 @@ output.quantitative_reference = True
     
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
     mass = olca.flow_property_of(&#39;Mass&#39;, units)
     steel = olca.product_flow_of(&#39;Steel&#39;, mass)
@@ -765,7 +765,7 @@ output.quantitative_reference = True
 <dd>The (reference to the) flow property (quantity) of the flow.</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code class="language-py">units = olca.unit_group_of('Units of mass', 'kg')
+<pre><code class="language-python">units = olca.unit_group_of('Units of mass', 'kg')
 mass = olca.flow_property_of('Mass', units)
 steel = olca.flow_of('Steel', olca.FlowType.PRODUCT_FLOW, mass)
 </code></pre></div>
@@ -796,7 +796,7 @@ steel = olca.flow_of('Steel', olca.FlowType.PRODUCT_FLOW, mass)
 
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
     mass = olca.flow_property_of(&#39;Mass&#39;, units)
     steel = olca.flow_of(&#39;Steel&#39;, olca.FlowType.PRODUCT_FLOW, mass)
@@ -829,7 +829,7 @@ steel = olca.flow_of('Steel', olca.FlowType.PRODUCT_FLOW, mass)
 <dd>The unit group or reference to the unit group if this flow property.</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code class="language-py">units = olca.unit_group_of('Units of mass', 'kg')
+<pre><code class="language-python">units = olca.unit_group_of('Units of mass', 'kg')
 fp = olca.flow_property_of('Mass', units)
 </code></pre></div>
 <details class="source">
@@ -851,7 +851,7 @@ fp = olca.flow_property_of('Mass', units)
 
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
     fp = olca.flow_property_of(&#39;Mass&#39;, units)
     ```
@@ -863,14 +863,14 @@ fp = olca.flow_property_of('Mass', units)
 </details>
 </dd>
 <dt id="olca.input_of"><code class="name flex">
-<span>def <span class="ident">input_of</span></span>(<span>process: <a title="olca.schema.Process" href="schema.html#olca.schema.Process">Process</a>, flow: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Flow" href="schema.html#olca.schema.Flow">Flow</a>], amount: Union[str, float] = 1.0, unit: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Unit" href="schema.html#olca.schema.Unit">Unit</a>, NoneType] = None) ‑> <a title="olca.schema.Exchange" href="schema.html#olca.schema.Exchange">Exchange</a></span>
+<span>def <span class="ident">input_of</span></span>(<span>process: <a title="olca.schema.Process" href="schema.html#olca.schema.Process">Process</a>, flow: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Flow" href="schema.html#olca.schema.Flow">Flow</a>], amount: Union[str, float] = 1.0, unit: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Unit" href="schema.html#olca.schema.Unit">Unit</a>, ForwardRef(None)] = None) ‑> <a title="olca.schema.Exchange" href="schema.html#olca.schema.Exchange">Exchange</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Creates a new input.</p>
 <p>This is the same as <code><a title="olca.exchange_of" href="#olca.exchange_of">exchange_of()</a></code> but it sets the the exchange as an
 input additionally.</p>
 <h2 id="example">Example</h2>
-<pre><code class="language-py">units = olca.unit_group_of('Units of mass', 'kg')
+<pre><code class="language-python">units = olca.unit_group_of('Units of mass', 'kg')
 mass = olca.flow_property_of('Mass', units)
 scrap = olca.waste_flow_of('Scrap', mass)
 process = olca.process_of('Steel production')
@@ -892,7 +892,7 @@ input = olca.input_of(process, scrap, 0.1)
 
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
     mass = olca.flow_property_of(&#39;Mass&#39;, units)
     scrap = olca.waste_flow_of(&#39;Scrap&#39;, mass)
@@ -906,7 +906,7 @@ input = olca.input_of(process, scrap, 0.1)
 </details>
 </dd>
 <dt id="olca.location_of"><code class="name flex">
-<span>def <span class="ident">location_of</span></span>(<span>name: str, code: Union[str, NoneType] = None) ‑> <a title="olca.schema.Location" href="schema.html#olca.schema.Location">Location</a></span>
+<span>def <span class="ident">location_of</span></span>(<span>name: str, code: Optional[str] = None) ‑> <a title="olca.schema.Location" href="schema.html#olca.schema.Location">Location</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Creates a new location.</p>
@@ -918,7 +918,7 @@ input = olca.input_of(process, scrap, 0.1)
 <dd>An optional location code.</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code class="language-py">de = olca.location_of('Germany', 'DE')
+<pre><code class="language-python">de = olca.location_of('Germany', 'DE')
 </code></pre></div>
 <details class="source">
 <summary>
@@ -938,7 +938,7 @@ input = olca.input_of(process, scrap, 0.1)
 
     Example
     -------
-    ```py
+    ```python
     de = olca.location_of(&#39;Germany&#39;, &#39;DE&#39;)
     ```
     &#34;&#34;&#34;
@@ -949,14 +949,14 @@ input = olca.input_of(process, scrap, 0.1)
 </details>
 </dd>
 <dt id="olca.output_of"><code class="name flex">
-<span>def <span class="ident">output_of</span></span>(<span>process: <a title="olca.schema.Process" href="schema.html#olca.schema.Process">Process</a>, flow: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Flow" href="schema.html#olca.schema.Flow">Flow</a>], amount: Union[str, float] = 1.0, unit: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Unit" href="schema.html#olca.schema.Unit">Unit</a>, NoneType] = None) ‑> <a title="olca.schema.Exchange" href="schema.html#olca.schema.Exchange">Exchange</a></span>
+<span>def <span class="ident">output_of</span></span>(<span>process: <a title="olca.schema.Process" href="schema.html#olca.schema.Process">Process</a>, flow: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Flow" href="schema.html#olca.schema.Flow">Flow</a>], amount: Union[str, float] = 1.0, unit: Union[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>, <a title="olca.schema.Unit" href="schema.html#olca.schema.Unit">Unit</a>, ForwardRef(None)] = None) ‑> <a title="olca.schema.Exchange" href="schema.html#olca.schema.Exchange">Exchange</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Creates a new output.</p>
 <p>This is the same as <code><a title="olca.exchange_of" href="#olca.exchange_of">exchange_of()</a></code> but it sets the the exchange as an
 output additionally.</p>
 <h2 id="example">Example</h2>
-<pre><code class="language-py">units = olca.unit_group_of('Units of mass', 'kg')
+<pre><code class="language-python">units = olca.unit_group_of('Units of mass', 'kg')
 mass = olca.flow_property_of('Mass', units)
 steel = olca.product_flow_of('Steel', mass)
 process = olca.process_of('Steel production')
@@ -979,7 +979,7 @@ output.quantitative_reference = True
 
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
     mass = olca.flow_property_of(&#39;Mass&#39;, units)
     steel = olca.product_flow_of(&#39;Steel&#39;, mass)
@@ -1015,7 +1015,7 @@ input parameter</dd>
 defaults to global scope.</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code class="language-py">import olca
+<pre><code class="language-python">import olca
 
 # create a global input parameter
 global_scrap_rate = olca.parameter_of('global_scrap_rate', 1.0)
@@ -1060,7 +1060,7 @@ with olca.Client() as client:
 
     Example
     -------
-    ```py
+    ```python
     import olca
 
     # create a global input parameter
@@ -1121,7 +1121,7 @@ with olca.Client() as client:
 <dd>The name of the new process.</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code class="language-py">process = olca.process_of('Steel production')
+<pre><code class="language-python">process = olca.process_of('Steel production')
 </code></pre></div>
 <details class="source">
 <summary>
@@ -1138,7 +1138,7 @@ with olca.Client() as client:
 
     Example
     -------
-    ```py
+    ```python
     process = olca.process_of(&#39;Steel production&#39;)
     ```
     &#34;&#34;&#34;
@@ -1161,7 +1161,7 @@ with olca.Client() as client:
 <dd>The (reference to the) flow property (quantity) of the flow.</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code class="language-py">units = olca.unit_group_of('Units of mass', 'kg')
+<pre><code class="language-python">units = olca.unit_group_of('Units of mass', 'kg')
 mass = olca.flow_property_of('Mass', units)
 steel = olca.product_flow_of('Steel', mass)
 </code></pre></div>
@@ -1183,7 +1183,7 @@ steel = olca.product_flow_of('Steel', mass)
 
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
     mass = olca.flow_property_of(&#39;Mass&#39;, units)
     steel = olca.product_flow_of(&#39;Steel&#39;, mass)
@@ -1193,7 +1193,7 @@ steel = olca.product_flow_of('Steel', mass)
 </details>
 </dd>
 <dt id="olca.ref"><code class="name flex">
-<span>def <span class="ident">ref</span></span>(<span>model_type: Union[~T, str], uid: str, name: Union[str, NoneType] = None) ‑> <a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a></span>
+<span>def <span class="ident">ref</span></span>(<span>model_type: Union[~T, str], uid: str, name: Optional[str] = None) ‑> <a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Creates a new reference for a data set with the given type and ID.</p>
@@ -1213,7 +1213,7 @@ inspecting a data set.</p>
 <dd>The name of the model / data set this reference points to.</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code>mass_ref = olca.ref(
+<pre><code class="language-python">mass_ref = olca.ref(
     olca.FlowProperty,
     '93a60a56-a3c8-11da-a746-0800200b9a66',
     'Mass')
@@ -1247,7 +1247,7 @@ inspecting a data set.</p>
 
     Example
     -------
-    ```
+    ```python
     mass_ref = olca.ref(
         olca.FlowProperty,
         &#39;93a60a56-a3c8-11da-a746-0800200b9a66&#39;,
@@ -1277,7 +1277,7 @@ inspecting a data set.</p>
 the new unit group.</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code class="language-py">units = olca.unit_group_of('Units of mass', 'kg')
+<pre><code class="language-python">units = olca.unit_group_of('Units of mass', 'kg')
 </code></pre></div>
 <details class="source">
 <summary>
@@ -1298,7 +1298,7 @@ the new unit group.</dd>
 
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
     ```
     &#34;&#34;&#34;
@@ -1325,7 +1325,7 @@ of the unit group where this unit lives. Defaults
 to 1.0</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code class="language-py">kg = olca.unit_of('kg')
+<pre><code class="language-python">kg = olca.unit_of('kg')
 </code></pre></div>
 <details class="source">
 <summary>
@@ -1349,7 +1349,7 @@ to 1.0</dd>
     Example
     -------
 
-    ```py
+    ```python
     kg = olca.unit_of(&#39;kg&#39;)
     ```
     &#34;&#34;&#34;
@@ -1374,7 +1374,7 @@ to 1.0</dd>
 <dd>The (reference to the) flow property (quantity) of the flow.</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code class="language-py">units = olca.unit_group_of('Units of mass', 'kg')
+<pre><code class="language-python">units = olca.unit_group_of('Units of mass', 'kg')
 mass = olca.flow_property_of('Mass', units)
 scrap = olca.waste_flow_of('Scrap', mass)
 </code></pre></div>
@@ -1396,7 +1396,7 @@ scrap = olca.waste_flow_of('Scrap', mass)
 
     Example
     -------
-    ```py
+    ```python
     units = olca.unit_group_of(&#39;Units of mass&#39;, &#39;kg&#39;)
     mass = olca.flow_property_of(&#39;Mass&#39;, units)
     scrap = olca.waste_flow_of(&#39;Scrap&#39;, mass)
@@ -1450,7 +1450,7 @@ scrap = olca.waste_flow_of('Scrap', mass)
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
 </body>
 </html>
