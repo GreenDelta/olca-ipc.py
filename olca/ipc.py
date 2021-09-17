@@ -7,7 +7,7 @@ import olca.upstream_tree as utree
 
 from dataclasses import dataclass
 
-from typing import Any, Iterator, List, Optional, Tuple, Type, TypeVar, Union
+from typing import Any, Iterator, Optional, Type, TypeVar, Union
 
 T = TypeVar('T')
 ModelType = Union[Type[schema.RootEntity], str]
@@ -643,7 +643,7 @@ class Client(object):
             return None
         return schema.Ref.from_json(r)
 
-    def lci_inputs(self, result: schema.SimpleResult) -> List[schema.FlowResult]:
+    def lci_inputs(self, result: schema.SimpleResult) -> list[schema.FlowResult]:
         """
         Returns the inputs of the given inventory result.
 
@@ -686,7 +686,7 @@ class Client(object):
         return [schema.FlowResult.from_json(it) for it in raw]
 
     def lci_location_contributions(self, result: schema.SimpleResult,
-                                   flow: schema.Ref) -> List[ContributionItem]:
+                                   flow: schema.Ref) -> list[ContributionItem]:
         """
         Get the contributions of the result of the given flow by location.
 
@@ -701,7 +701,7 @@ class Client(object):
 
         Returns
         -------
-        List[ContributionItem]
+        list[ContributionItem]
             The contributions to the flow result by location.
 
         Example
@@ -726,7 +726,7 @@ class Client(object):
             return []
         return [ContributionItem.from_json(it) for it in raw]
 
-    def lci_total_requirements(self, result: schema.SimpleResult) -> List[ProductResult]:
+    def lci_total_requirements(self, result: schema.SimpleResult) -> list[ProductResult]:
         """
         Returns the total requirements of the given result.
 
@@ -773,7 +773,7 @@ class Client(object):
             return []
         return [ProductResult.from_json(it) for it in raw]
 
-    def lcia(self, result: schema.SimpleResult) -> List[schema.ImpactResult]:
+    def lcia(self, result: schema.SimpleResult) -> list[schema.ImpactResult]:
         """
         Returns the LCIA result of the given result.
 
@@ -802,7 +802,7 @@ class Client(object):
         return [schema.ImpactResult.from_json(it) for it in raw]
 
     def lcia_flow_contributions(self, result: schema.SimpleResult,
-                                impact: schema.Ref) -> List[ContributionItem]:
+                                impact: schema.Ref) -> list[ContributionItem]:
         """
         Get the flow contributions to the result of the given impact category.
 
@@ -839,7 +839,7 @@ class Client(object):
         return [ContributionItem.from_json(it) for it in raw]
 
     def lcia_location_contributions(self, result: schema.SimpleResult,
-                                    impact: schema.Ref) -> List[ContributionItem]:
+                                    impact: schema.Ref) -> list[ContributionItem]:
         """
         Get the contributions to the result of the given impact category by
         locations.
@@ -878,7 +878,7 @@ class Client(object):
         return [ContributionItem.from_json(it) for it in raw]
 
     def lcia_process_contributions(self, result: schema.SimpleResult,
-                                   impact: schema.Ref) -> List[ContributionItem]:
+                                   impact: schema.Ref) -> list[ContributionItem]:
         """
         Get the contributions to the result of the given impact category by
         processes.
@@ -975,7 +975,7 @@ class Client(object):
             '2a26b243-23cb-4f90-baab-239d3d7397fa')
         tree = client.upstream_tree_of(result, impact)
 
-        def traversal_handler(n: Tuple[UpstreamNode, int]):
+        def traversal_handler(n: tuple[UpstreamNode, int]):
             (node, depth) = n
             print('%s+ %s %.3f' % (
                 '  ' * depth,
@@ -1001,7 +1001,7 @@ class Client(object):
             return None
         return utree.UpstreamTree.from_json(raw)
 
-    def __post(self, method: str, params) -> Tuple[Any, Optional[str]]:
+    def __post(self, method: str, params) -> tuple[Any, Optional[str]]:
         """
         Performs a request with the given parameters.
 
