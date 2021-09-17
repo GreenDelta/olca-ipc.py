@@ -13,7 +13,7 @@ of an `JSON-RPC <http://www.jsonrpc.org/specification>`_ based protocol for
 inter-process communication (IPC). With this, it is possible to call functions
 in openLCA and processing their results outside of openLCA. The ``olca-ipc``
 package provides a convenience API for using this IPC protocol from standard
-Python (Cpython v3.6+) so that it is possible to use openLCA as a data storage
+Python (Cpython v3.9+) so that it is possible to use openLCA as a data storage
 and calculation engine and combine it with the libraries from the Python
 ecosystem (numpy, pandas and friends).
 
