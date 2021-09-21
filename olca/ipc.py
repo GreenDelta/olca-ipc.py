@@ -178,10 +178,12 @@ class Client(object):
         -------
         ```python
         import olca
+        import uuid
 
         flow = olca.Flow()
         flow.name = 'CO2'
         flow.id = str(uuid.uuid4())
+        flow.flow_type = olca.FlowType.ELEMENTARY_FLOW
         prop = olca.FlowPropertyFactor()
         prop.flow_property = olca.ref(
             olca.FlowProperty,
@@ -365,7 +367,7 @@ class Client(object):
         ```python
         import olca
 
-        with Client() as client:
+        with olca.Client() as client:
             for a in client.get_descriptors('Actor'):
                 print('found Actor: %s' % a.name)
             for s in client.get_descriptors(olca.Source):
