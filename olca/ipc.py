@@ -9,8 +9,8 @@ from dataclasses import dataclass
 
 from typing import Any, Iterator, List, Optional, Type, TypeVar, Union
 
-T = TypeVar('T')
-ModelType = Union[Type[schema.RootEntity], str]
+E = TypeVar('E', bound=schema.RootEntity)
+ModelType = Union[Type[E], str]
 
 
 def _model_type(param: ModelType) -> str:
@@ -170,7 +170,7 @@ class Client(object):
     def close(self):
         return
 
-    def insert(self, model: schema.RootEntity):
+    def insert(self, model: E):
         """
         Inserts the given model into the database of the IPC server.
 
@@ -207,7 +207,7 @@ class Client(object):
             return err
         return resp
 
-    def update(self, model: schema.RootEntity):
+    def update(self, model: E):
         """
         Update the given model in the database of the IPC server.
         """
@@ -220,7 +220,7 @@ class Client(object):
             return err
         return resp
 
-    def delete(self, model: schema.RootEntity):
+    def delete(self, model: E):
         """
         Delete the given model from the database of the IPC server.
         """
@@ -433,8 +433,8 @@ class Client(object):
             return None
         return schema.Ref.from_json(result)
 
-    def get(self, model_type: ModelType,
-            uid='', name='') -> Optional[schema.RootEntity]:
+    def get(self, model_type: Type[E],
+            uid='', name='') -> Optional[E]:
         params = {'@type': _model_type(model_type)}
         if uid != '':
             params['@id'] = uid
@@ -447,7 +447,7 @@ class Client(object):
             return None
         return _model_class(model_type).from_json(result)
 
-    def get_all(self, model_type: ModelType) -> Iterator[schema.RootEntity]:
+    def get_all(self, model_type: Type[E]) -> Iterator[E]:
         """
         Returns a generator for all instances of the given type from the
         database. Note that this will first fetch the complete JSON list from
@@ -474,7 +474,7 @@ class Client(object):
         for r in result:
             yield clazz.from_json(r)
 
-    def find(self, model_type: ModelType, name: str) -> schema.Ref:
+    def find(self, model_type: ModelType, name: str) -> Optional[schema.Ref]:
         """Searches for a data set with the given type and name.
 
         :param model_type: The class of the data set, e.g. `olca.Flow`.
