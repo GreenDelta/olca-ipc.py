@@ -10,7 +10,7 @@ import json as jsonlib
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
+from typing import List, Optional
 
 
 class AllocationType(Enum):
@@ -327,7 +327,7 @@ class CalculationSetup(Entity):
     allocation_method: AllocationType
         The calculation type to be used in the calculation (optional).
 
-    parameter_redefs: list[ParameterRedef]
+    parameter_redefs: List[ParameterRedef]
         A list of parameter redefinitions to be used in the calculation
         (optional).
 
@@ -350,7 +350,7 @@ class CalculationSetup(Entity):
     with_regionalization: Optional[bool] = None
     nw_set: Optional[Ref] = None
     allocation_method: Optional[AllocationType] = None
-    parameter_redefs: Optional[list[ParameterRedef]] = None
+    parameter_redefs: Optional[List[ParameterRedef]] = None
     amount: Optional[float] = None
     unit: Optional[Ref] = None
     flow_property: Optional[Ref] = None
@@ -446,14 +446,14 @@ class DQIndicator(Entity):
 
     position: int
 
-    scores: list[DQScore]
+    scores: List[DQScore]
 
     """
 
     olca_type: str = 'DQIndicator'
     name: Optional[str] = None
     position: Optional[int] = None
-    scores: Optional[list[DQScore]] = None
+    scores: Optional[List[DQScore]] = None
 
     def to_json(self) -> dict:
         json: dict = super(DQIndicator, self).to_json()
@@ -1338,7 +1338,7 @@ class ParameterRedefSet(Entity):
         Indicates if this set of parameter redefinitions is the baseline for a
         product system.
 
-    parameters: list[ParameterRedef]
+    parameters: List[ParameterRedef]
         The parameter redefinitions of this redefinition set.
 
     """
@@ -1347,7 +1347,7 @@ class ParameterRedefSet(Entity):
     name: Optional[str] = None
     description: Optional[str] = None
     is_baseline: Optional[bool] = None
-    parameters: Optional[list[ParameterRedef]] = None
+    parameters: Optional[List[ParameterRedef]] = None
 
     def to_json(self) -> dict:
         json: dict = super(ParameterRedefSet, self).to_json()
@@ -1422,7 +1422,7 @@ class ProcessDocumentation(Entity):
 
     sampling_description: str
 
-    sources: list[Ref]
+    sources: List[Ref]
 
     restrictions_description: str
 
@@ -1460,7 +1460,7 @@ class ProcessDocumentation(Entity):
     modeling_constants_description: Optional[str] = None
     reviewer: Optional[Ref] = None
     sampling_description: Optional[str] = None
-    sources: Optional[list[Ref]] = None
+    sources: Optional[List[Ref]] = None
     restrictions_description: Optional[str] = None
     copyright: Optional[bool] = None
     creation_date: Optional[str] = None
@@ -1756,15 +1756,15 @@ class SimpleResult(Entity):
 
     Attributes
     ----------
-    flow_results: list[FlowResult]
+    flow_results: List[FlowResult]
 
-    impact_results: list[ImpactResult]
+    impact_results: List[ImpactResult]
 
     """
 
     olca_type: str = 'SimpleResult'
-    flow_results: Optional[list[FlowResult]] = None
-    impact_results: Optional[list[ImpactResult]] = None
+    flow_results: Optional[List[FlowResult]] = None
+    impact_results: Optional[List[ImpactResult]] = None
 
     def to_json(self) -> dict:
         json: dict = super(SimpleResult, self).to_json()
@@ -2061,7 +2061,7 @@ class CategorizedEntity(RootEntity):
     category: Ref
         The category of the entity.
 
-    tags: list[str]
+    tags: List[str]
         A list of optional tags. A tag is just a string which should not
         contain commas (and other special characters).
 
@@ -2073,7 +2073,7 @@ class CategorizedEntity(RootEntity):
     """
 
     category: Optional[Ref] = None
-    tags: Optional[list[str]] = None
+    tags: Optional[List[str]] = None
     library: Optional[str] = None
 
     def to_json(self) -> dict:
@@ -2124,7 +2124,7 @@ class FlowMap(RootEntity):
     target: Ref
         The reference (id, name, description) of the target flow list.
 
-    mappings: list[FlowMapEntry]
+    mappings: List[FlowMapEntry]
         A list of flow mappings from flows in a source flow list to flows in a
         target flow list.
 
@@ -2133,7 +2133,7 @@ class FlowMap(RootEntity):
     olca_type: str = 'FlowMap'
     source: Optional[Ref] = None
     target: Optional[Ref] = None
-    mappings: Optional[list[FlowMapEntry]] = None
+    mappings: Optional[List[FlowMapEntry]] = None
 
     def to_json(self) -> dict:
         json: dict = super(FlowMap, self).to_json()
@@ -2183,14 +2183,14 @@ class NwSet(RootEntity):
         This is the optional unit of the (normalized and) weighted score when
         this normalization and weighting set was applied on a LCIA result.
 
-    factors: list[NwFactor]
+    factors: List[NwFactor]
         The list of normalization and weighting factors of this set.
 
     """
 
     olca_type: str = 'NwSet'
     weighted_score_unit: Optional[str] = None
-    factors: Optional[list[NwFactor]] = None
+    factors: Optional[List[NwFactor]] = None
 
     def to_json(self) -> dict:
         json: dict = super(NwSet, self).to_json()
@@ -2234,7 +2234,7 @@ class Ref(RootEntity):
 
     Attributes
     ----------
-    category_path: list[str]
+    category_path: List[str]
         The full path of the category of the referenced entity from top to
         bottom, e.g. `"Elementary flows", "Emissions to air", "unspecified"`.
 
@@ -2263,7 +2263,7 @@ class Ref(RootEntity):
     """
 
     olca_type: str = 'Ref'
-    category_path: Optional[list[str]] = None
+    category_path: Optional[List[str]] = None
     library: Optional[str] = None
     ref_unit: Optional[str] = None
     location: Optional[str] = None
@@ -2337,7 +2337,7 @@ class Unit(RootEntity):
         unit group. The reference unit is used to convert amounts given in one
         unit to amounts given in another unit of the respective unit group.
 
-    synonyms: list[str]
+    synonyms: List[str]
         A list of synonyms for the unit.
 
     """
@@ -2345,7 +2345,7 @@ class Unit(RootEntity):
     olca_type: str = 'Unit'
     conversion_factor: Optional[float] = None
     reference_unit: Optional[bool] = None
-    synonyms: Optional[list[str]] = None
+    synonyms: Optional[List[str]] = None
 
     def to_json(self) -> dict:
         json: dict = super(Unit, self).to_json()
@@ -2590,14 +2590,14 @@ class DQSystem(CategorizedEntity):
 
     source: Ref
 
-    indicators: list[DQIndicator]
+    indicators: List[DQIndicator]
 
     """
 
     olca_type: str = 'DQSystem'
     has_uncertainties: Optional[bool] = None
     source: Optional[Ref] = None
-    indicators: Optional[list[DQIndicator]] = None
+    indicators: Optional[List[DQIndicator]] = None
 
     def to_json(self) -> dict:
         json: dict = super(DQSystem, self).to_json()
@@ -2653,7 +2653,7 @@ class Flow(CategorizedEntity):
     formula: str
         A chemical formula of the flow.
 
-    flow_properties: list[FlowPropertyFactor]
+    flow_properties: List[FlowPropertyFactor]
         The flow properties (quantities) in which amounts of the flow can be
         expressed together with conversion factors between these flow flow
         properties.
@@ -2680,7 +2680,7 @@ class Flow(CategorizedEntity):
     flow_type: Optional[FlowType] = None
     cas: Optional[str] = None
     formula: Optional[str] = None
-    flow_properties: Optional[list[FlowPropertyFactor]] = None
+    flow_properties: Optional[List[FlowPropertyFactor]] = None
     location: Optional[Ref] = None
     synonyms: Optional[str] = None
     infrastructure_flow: Optional[bool] = None
@@ -2797,19 +2797,19 @@ class ImpactCategory(CategorizedEntity):
     reference_unit_name: str
         The name of the reference unit of the LCIA category (e.g. kg CO2-eq.).
 
-    parameters: list[Parameter]
+    parameters: List[Parameter]
         A set of parameters which can be used in formulas of the
         characterisation factors in this impact category.
 
-    impact_factors: list[ImpactFactor]
+    impact_factors: List[ImpactFactor]
         The characterisation factors of the LCIA category.
 
     """
 
     olca_type: str = 'ImpactCategory'
     reference_unit_name: Optional[str] = None
-    parameters: Optional[list[Parameter]] = None
-    impact_factors: Optional[list[ImpactFactor]] = None
+    parameters: Optional[List[Parameter]] = None
+    impact_factors: Optional[List[ImpactFactor]] = None
 
     def to_json(self) -> dict:
         json: dict = super(ImpactCategory, self).to_json()
@@ -2859,17 +2859,17 @@ class ImpactMethod(CategorizedEntity):
 
     Attributes
     ----------
-    impact_categories: list[Ref]
+    impact_categories: List[Ref]
         The impact categories of the method.
 
-    nw_sets: list[NwSet]
+    nw_sets: List[NwSet]
         The normalization and weighting sets of the method.
 
     """
 
     olca_type: str = 'ImpactMethod'
-    impact_categories: Optional[list[Ref]] = None
-    nw_sets: Optional[list[NwSet]] = None
+    impact_categories: Optional[List[Ref]] = None
+    nw_sets: Optional[List[NwSet]] = None
 
     def to_json(self) -> dict:
         json: dict = super(ImpactMethod, self).to_json()
@@ -3056,11 +3056,11 @@ class Process(CategorizedEntity):
 
     Attributes
     ----------
-    allocation_factors: list[AllocationFactor]
+    allocation_factors: List[AllocationFactor]
 
     default_allocation_method: AllocationType
 
-    exchanges: list[Exchange]
+    exchanges: List[Exchange]
         The inputs and outputs of the process.
 
     last_internal_id: int
@@ -3076,7 +3076,7 @@ class Process(CategorizedEntity):
     location: Ref
         The location of the process.
 
-    parameters: list[Parameter]
+    parameters: List[Parameter]
 
     process_documentation: ProcessDocumentation
 
@@ -3108,18 +3108,18 @@ class Process(CategorizedEntity):
         compatibility with EcoSpold 1. It does not really have a meaning in
         openLCA and should not be used anymore.
 
-    social_aspects: list[SocialAspect]
+    social_aspects: List[SocialAspect]
         A set of social aspects related to this process.
 
     """
 
     olca_type: str = 'Process'
-    allocation_factors: Optional[list[AllocationFactor]] = None
+    allocation_factors: Optional[List[AllocationFactor]] = None
     default_allocation_method: Optional[AllocationType] = None
-    exchanges: Optional[list[Exchange]] = None
+    exchanges: Optional[List[Exchange]] = None
     last_internal_id: Optional[int] = None
     location: Optional[Ref] = None
-    parameters: Optional[list[Parameter]] = None
+    parameters: Optional[List[Parameter]] = None
     process_documentation: Optional[ProcessDocumentation] = None
     process_type: Optional[ProcessType] = None
     dq_system: Optional[Ref] = None
@@ -3127,7 +3127,7 @@ class Process(CategorizedEntity):
     social_dq_system: Optional[Ref] = None
     dq_entry: Optional[str] = None
     infrastructure_process: Optional[bool] = None
-    social_aspects: Optional[list[SocialAspect]] = None
+    social_aspects: Optional[List[SocialAspect]] = None
 
     def to_json(self) -> dict:
         json: dict = super(Process, self).to_json()
@@ -3250,7 +3250,7 @@ class ProductSystem(CategorizedEntity):
 
     Attributes
     ----------
-    processes: list[Ref]
+    processes: List[Ref]
         The descriptors of all processes and sub-systems that are contained in
         the product system.
 
@@ -3272,24 +3272,24 @@ class ProductSystem(CategorizedEntity):
         The flow property in which the flow amount of the functional unit is
         given.
 
-    process_links: list[ProcessLink]
+    process_links: List[ProcessLink]
         The process links of the product system.
 
-    parameter_sets: list[ParameterRedefSet]
+    parameter_sets: List[ParameterRedefSet]
         A list of possible sets of parameter redefinitions for this product
         system.
 
     """
 
     olca_type: str = 'ProductSystem'
-    processes: Optional[list[Ref]] = None
+    processes: Optional[List[Ref]] = None
     reference_process: Optional[Ref] = None
     reference_exchange: Optional[ExchangeRef] = None
     target_amount: Optional[float] = None
     target_unit: Optional[Ref] = None
     target_flow_property: Optional[Ref] = None
-    process_links: Optional[list[ProcessLink]] = None
-    parameter_sets: Optional[list[ParameterRedefSet]] = None
+    process_links: Optional[List[ProcessLink]] = None
+    parameter_sets: Optional[List[ParameterRedefSet]] = None
 
     def to_json(self) -> dict:
         json: dict = super(ProductSystem, self).to_json()
@@ -3555,14 +3555,14 @@ class UnitGroup(CategorizedEntity):
         quantities. This field provides a default link to a flow property for
         units that are contained in this group.
 
-    units: list[Unit]
+    units: List[Unit]
         The units of the unit group.
 
     """
 
     olca_type: str = 'UnitGroup'
     default_flow_property: Optional[Ref] = None
-    units: Optional[list[Unit]] = None
+    units: Optional[List[Unit]] = None
 
     def to_json(self) -> dict:
         json: dict = super(UnitGroup, self).to_json()

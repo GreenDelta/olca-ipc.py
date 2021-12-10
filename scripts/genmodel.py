@@ -23,7 +23,7 @@ enumerations to the console:
 from os import path
 from typing import Optional
 
-import scripts.model as model
+from scripts import model
 
 YAML_DIR = path.abspath(path.dirname(__file__)) + '/../../olca-schema/yaml'
 
