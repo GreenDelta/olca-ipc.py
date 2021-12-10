@@ -26,7 +26,7 @@ class Model:
         files = glob.glob(d + "*.yaml")
         for file_path in files:
             with open(file_path, 'r') as f:
-                yaml_model = yaml.load(f)
+                yaml_model = yaml.full_load(f)
                 if 'class' in yaml_model:
                     m.classes.append(ClassType.load_yaml(yaml_model['class']))
                 if 'enum' in yaml_model:

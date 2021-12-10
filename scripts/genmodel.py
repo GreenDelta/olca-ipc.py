@@ -23,7 +23,7 @@ enumerations to the console:
 from os import path
 from typing import Optional
 
-import scripts.model as model
+from scripts import model
 
 YAML_DIR = path.abspath(path.dirname(__file__)) + '/../../olca-schema/yaml'
 
@@ -60,7 +60,7 @@ def py_type(model_type: str) -> str:
         return 'Ref'
     if model_type.startswith('List['):
         list_type = py_type(list_elem_type(model_type))
-        return f'list[{list_type}]'
+        return f'List[{list_type}]'
     return model_type
 
 
@@ -307,7 +307,7 @@ if __name__ == '__main__':
     print('import json as jsonlib\n')
     print('from dataclasses import dataclass')
     print('from enum import Enum')
-    print('from typing import Optional\n\n')
+    print('from typing import List, Optional\n\n')
 
     m = model.Model.load_yaml(YAML_DIR)  # type: model.Model
     for enum in m.enums:
