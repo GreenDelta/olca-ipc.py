@@ -7,7 +7,7 @@ import olca.upstream_tree as utree
 
 from dataclasses import dataclass
 
-from typing import Any, Iterator, Optional, Type, TypeVar, Union
+from typing import Any, Iterator, List, Optional, Type, TypeVar, Union
 
 T = TypeVar('T')
 ModelType = Union[Type[schema.RootEntity], str]
@@ -645,7 +645,7 @@ class Client(object):
             return None
         return schema.Ref.from_json(r)
 
-    def lci_inputs(self, result: schema.SimpleResult) -> list[schema.FlowResult]:
+    def lci_inputs(self, result: schema.SimpleResult) -> List[schema.FlowResult]:
         """
         Returns the inputs of the given inventory result.
 
@@ -666,7 +666,7 @@ class Client(object):
             return []
         return [schema.FlowResult.from_json(it) for it in raw]
 
-    def lci_outputs(self, result: schema.SimpleResult) -> list:
+    def lci_outputs(self, result: schema.SimpleResult) -> List[dict]:
         """
         Returns the outputs of the given inventory result.
 
@@ -688,7 +688,7 @@ class Client(object):
         return [schema.FlowResult.from_json(it) for it in raw]
 
     def lci_location_contributions(self, result: schema.SimpleResult,
-                                   flow: schema.Ref) -> list[ContributionItem]:
+                                   flow: schema.Ref) -> List[ContributionItem]:
         """
         Get the contributions of the result of the given flow by location.
 
@@ -728,7 +728,7 @@ class Client(object):
             return []
         return [ContributionItem.from_json(it) for it in raw]
 
-    def lci_total_requirements(self, result: schema.SimpleResult) -> list[ProductResult]:
+    def lci_total_requirements(self, result: schema.SimpleResult) -> List[ProductResult]:
         """
         Returns the total requirements of the given result.
 
@@ -775,7 +775,7 @@ class Client(object):
             return []
         return [ProductResult.from_json(it) for it in raw]
 
-    def lcia(self, result: schema.SimpleResult) -> list[schema.ImpactResult]:
+    def lcia(self, result: schema.SimpleResult) -> List[schema.ImpactResult]:
         """
         Returns the LCIA result of the given result.
 
@@ -804,7 +804,7 @@ class Client(object):
         return [schema.ImpactResult.from_json(it) for it in raw]
 
     def lcia_flow_contributions(self, result: schema.SimpleResult,
-                                impact: schema.Ref) -> list[ContributionItem]:
+                                impact: schema.Ref) -> List[ContributionItem]:
         """
         Get the flow contributions to the result of the given impact category.
 
@@ -841,7 +841,7 @@ class Client(object):
         return [ContributionItem.from_json(it) for it in raw]
 
     def lcia_location_contributions(self, result: schema.SimpleResult,
-                                    impact: schema.Ref) -> list[ContributionItem]:
+                                    impact: schema.Ref) -> List[ContributionItem]:
         """
         Get the contributions to the result of the given impact category by
         locations.
@@ -880,7 +880,7 @@ class Client(object):
         return [ContributionItem.from_json(it) for it in raw]
 
     def lcia_process_contributions(self, result: schema.SimpleResult,
-                                   impact: schema.Ref) -> list[ContributionItem]:
+                                   impact: schema.Ref) -> List[ContributionItem]:
         """
         Get the contributions to the result of the given impact category by
         processes.
