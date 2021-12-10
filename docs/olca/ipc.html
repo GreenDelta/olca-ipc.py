@@ -36,10 +36,10 @@ import olca.upstream_tree as utree
 
 from dataclasses import dataclass
 
-from typing import Any, Iterator, List, Optional, Tuple, Type, TypeVar, Union
+from typing import Any, Iterator, List, Optional, Type, TypeVar, Union
 
-T = TypeVar(&#39;T&#39;)
-ModelType = Union[Type[schema.RootEntity], str]
+E = TypeVar(&#39;E&#39;, bound=schema.RootEntity)
+ModelType = Union[Type[E], str]
 
 
 def _model_type(param: ModelType) -&gt; str:
@@ -199,7 +199,7 @@ class Client(object):
     def close(self):
         return
 
-    def insert(self, model: schema.RootEntity):
+    def insert(self, model: E):
         &#34;&#34;&#34;
         Inserts the given model into the database of the IPC server.
 
@@ -207,10 +207,12 @@ class Client(object):
         -------
         ```python
         import olca
+        import uuid
 
         flow = olca.Flow()
         flow.name = &#39;CO2&#39;
         flow.id = str(uuid.uuid4())
+        flow.flow_type = olca.FlowType.ELEMENTARY_FLOW
         prop = olca.FlowPropertyFactor()
         prop.flow_property = olca.ref(
             olca.FlowProperty,
@@ -234,7 +236,7 @@ class Client(object):
             return err
         return resp
 
-    def update(self, model: schema.RootEntity):
+    def update(self, model: E):
         &#34;&#34;&#34;
         Update the given model in the database of the IPC server.
         &#34;&#34;&#34;
@@ -247,7 +249,7 @@ class Client(object):
             return err
         return resp
 
-    def delete(self, model: schema.RootEntity):
+    def delete(self, model: E):
         &#34;&#34;&#34;
         Delete the given model from the database of the IPC server.
         &#34;&#34;&#34;
@@ -394,7 +396,7 @@ class Client(object):
         ```python
         import olca
 
-        with Client() as client:
+        with olca.Client() as client:
             for a in client.get_descriptors(&#39;Actor&#39;):
                 print(&#39;found Actor: %s&#39; % a.name)
             for s in client.get_descriptors(olca.Source):
@@ -460,8 +462,8 @@ class Client(object):
             return None
         return schema.Ref.from_json(result)
 
-    def get(self, model_type: ModelType,
-            uid=&#39;&#39;, name=&#39;&#39;) -&gt; Optional[schema.RootEntity]:
+    def get(self, model_type: Type[E],
+            uid=&#39;&#39;, name=&#39;&#39;) -&gt; Optional[E]:
         params = {&#39;@type&#39;: _model_type(model_type)}
         if uid != &#39;&#39;:
             params[&#39;@id&#39;] = uid
@@ -474,7 +476,7 @@ class Client(object):
             return None
         return _model_class(model_type).from_json(result)
 
-    def get_all(self, model_type: ModelType) -&gt; Iterator[schema.RootEntity]:
+    def get_all(self, model_type: Type[E]) -&gt; Iterator[E]:
         &#34;&#34;&#34;
         Returns a generator for all instances of the given type from the
         database. Note that this will first fetch the complete JSON list from
@@ -501,7 +503,7 @@ class Client(object):
         for r in result:
             yield clazz.from_json(r)
 
-    def find(self, model_type: ModelType, name: str) -&gt; schema.Ref:
+    def find(self, model_type: ModelType, name: str) -&gt; Optional[schema.Ref]:
         &#34;&#34;&#34;Searches for a data set with the given type and name.
 
         :param model_type: The class of the data set, e.g. `olca.Flow`.
@@ -693,7 +695,7 @@ class Client(object):
             return []
         return [schema.FlowResult.from_json(it) for it in raw]
 
-    def lci_outputs(self, result: schema.SimpleResult) -&gt; list:
+    def lci_outputs(self, result: schema.SimpleResult) -&gt; List[dict]:
         &#34;&#34;&#34;
         Returns the outputs of the given inventory result.
 
@@ -730,7 +732,7 @@ class Client(object):
 
         Returns
         -------
-        List[ContributionItem]
+        list[ContributionItem]
             The contributions to the flow result by location.
 
         Example
@@ -1004,7 +1006,7 @@ class Client(object):
             &#39;2a26b243-23cb-4f90-baab-239d3d7397fa&#39;)
         tree = client.upstream_tree_of(result, impact)
 
-        def traversal_handler(n: Tuple[UpstreamNode, int]):
+        def traversal_handler(n: tuple[UpstreamNode, int]):
             (node, depth) = n
             print(&#39;%s+ %s %.3f&#39; % (
                 &#39;  &#39; * depth,
@@ -1030,7 +1032,7 @@ class Client(object):
             return None
         return utree.UpstreamTree.from_json(raw)
 
-    def __post(self, method: str, params) -&gt; Tuple[Any, Optional[str]]:
+    def __post(self, method: str, params) -&gt; tuple[Any, Optional[str]]:
         &#34;&#34;&#34;
         Performs a request with the given parameters.
 
@@ -1108,7 +1110,7 @@ that are executed via this client are thus executed on that database.</p>
     def close(self):
         return
 
-    def insert(self, model: schema.RootEntity):
+    def insert(self, model: E):
         &#34;&#34;&#34;
         Inserts the given model into the database of the IPC server.
 
@@ -1116,10 +1118,12 @@ that are executed via this client are thus executed on that database.</p>
         -------
         ```python
         import olca
+        import uuid
 
         flow = olca.Flow()
         flow.name = &#39;CO2&#39;
         flow.id = str(uuid.uuid4())
+        flow.flow_type = olca.FlowType.ELEMENTARY_FLOW
         prop = olca.FlowPropertyFactor()
         prop.flow_property = olca.ref(
             olca.FlowProperty,
@@ -1143,7 +1147,7 @@ that are executed via this client are thus executed on that database.</p>
             return err
         return resp
 
-    def update(self, model: schema.RootEntity):
+    def update(self, model: E):
         &#34;&#34;&#34;
         Update the given model in the database of the IPC server.
         &#34;&#34;&#34;
@@ -1156,7 +1160,7 @@ that are executed via this client are thus executed on that database.</p>
             return err
         return resp
 
-    def delete(self, model: schema.RootEntity):
+    def delete(self, model: E):
         &#34;&#34;&#34;
         Delete the given model from the database of the IPC server.
         &#34;&#34;&#34;
@@ -1303,7 +1307,7 @@ that are executed via this client are thus executed on that database.</p>
         ```python
         import olca
 
-        with Client() as client:
+        with olca.Client() as client:
             for a in client.get_descriptors(&#39;Actor&#39;):
                 print(&#39;found Actor: %s&#39; % a.name)
             for s in client.get_descriptors(olca.Source):
@@ -1369,8 +1373,8 @@ that are executed via this client are thus executed on that database.</p>
             return None
         return schema.Ref.from_json(result)
 
-    def get(self, model_type: ModelType,
-            uid=&#39;&#39;, name=&#39;&#39;) -&gt; Optional[schema.RootEntity]:
+    def get(self, model_type: Type[E],
+            uid=&#39;&#39;, name=&#39;&#39;) -&gt; Optional[E]:
         params = {&#39;@type&#39;: _model_type(model_type)}
         if uid != &#39;&#39;:
             params[&#39;@id&#39;] = uid
@@ -1383,7 +1387,7 @@ that are executed via this client are thus executed on that database.</p>
             return None
         return _model_class(model_type).from_json(result)
 
-    def get_all(self, model_type: ModelType) -&gt; Iterator[schema.RootEntity]:
+    def get_all(self, model_type: Type[E]) -&gt; Iterator[E]:
         &#34;&#34;&#34;
         Returns a generator for all instances of the given type from the
         database. Note that this will first fetch the complete JSON list from
@@ -1410,7 +1414,7 @@ that are executed via this client are thus executed on that database.</p>
         for r in result:
             yield clazz.from_json(r)
 
-    def find(self, model_type: ModelType, name: str) -&gt; schema.Ref:
+    def find(self, model_type: ModelType, name: str) -&gt; Optional[schema.Ref]:
         &#34;&#34;&#34;Searches for a data set with the given type and name.
 
         :param model_type: The class of the data set, e.g. `olca.Flow`.
@@ -1602,7 +1606,7 @@ that are executed via this client are thus executed on that database.</p>
             return []
         return [schema.FlowResult.from_json(it) for it in raw]
 
-    def lci_outputs(self, result: schema.SimpleResult) -&gt; list:
+    def lci_outputs(self, result: schema.SimpleResult) -&gt; List[dict]:
         &#34;&#34;&#34;
         Returns the outputs of the given inventory result.
 
@@ -1639,7 +1643,7 @@ that are executed via this client are thus executed on that database.</p>
 
         Returns
         -------
-        List[ContributionItem]
+        list[ContributionItem]
             The contributions to the flow result by location.
 
         Example
@@ -1913,7 +1917,7 @@ that are executed via this client are thus executed on that database.</p>
             &#39;2a26b243-23cb-4f90-baab-239d3d7397fa&#39;)
         tree = client.upstream_tree_of(result, impact)
 
-        def traversal_handler(n: Tuple[UpstreamNode, int]):
+        def traversal_handler(n: tuple[UpstreamNode, int]):
             (node, depth) = n
             print(&#39;%s+ %s %.3f&#39; % (
                 &#39;  &#39; * depth,
@@ -1939,7 +1943,7 @@ that are executed via this client are thus executed on that database.</p>
             return None
         return utree.UpstreamTree.from_json(raw)
 
-    def __post(self, method: str, params) -&gt; Tuple[Any, Optional[str]]:
+    def __post(self, method: str, params) -&gt; tuple[Any, Optional[str]]:
         &#34;&#34;&#34;
         Performs a request with the given parameters.
 
@@ -2151,7 +2155,7 @@ print('Created product system %s' % ref.id)
 </details>
 </dd>
 <dt id="olca.ipc.Client.delete"><code class="name flex">
-<span>def <span class="ident">delete</span></span>(<span>self, model: <a title="olca.schema.RootEntity" href="schema.html#olca.schema.RootEntity">RootEntity</a>)</span>
+<span>def <span class="ident">delete</span></span>(<span>self, model: ~E)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Delete the given model from the database of the IPC server.</p></div>
@@ -2159,7 +2163,7 @@ print('Created product system %s' % ref.id)
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def delete(self, model: schema.RootEntity):
+<pre><code class="python">def delete(self, model: E):
     &#34;&#34;&#34;
     Delete the given model from the database of the IPC server.
     &#34;&#34;&#34;
@@ -2273,7 +2277,7 @@ written.</p></div>
 </details>
 </dd>
 <dt id="olca.ipc.Client.find"><code class="name flex">
-<span>def <span class="ident">find</span></span>(<span>self, model_type: Union[Type[<a title="olca.schema.RootEntity" href="schema.html#olca.schema.RootEntity">RootEntity</a>], str], name: str) ‑> <a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a></span>
+<span>def <span class="ident">find</span></span>(<span>self, model_type: Union[Type[~E], str], name: str) ‑> Optional[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Searches for a data set with the given type and name.</p>
@@ -2286,7 +2290,7 @@ set in the database.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def find(self, model_type: ModelType, name: str) -&gt; schema.Ref:
+<pre><code class="python">def find(self, model_type: ModelType, name: str) -&gt; Optional[schema.Ref]:
     &#34;&#34;&#34;Searches for a data set with the given type and name.
 
     :param model_type: The class of the data set, e.g. `olca.Flow`.
@@ -2301,7 +2305,7 @@ set in the database.</p></div>
 </details>
 </dd>
 <dt id="olca.ipc.Client.get"><code class="name flex">
-<span>def <span class="ident">get</span></span>(<span>self, model_type: Union[Type[<a title="olca.schema.RootEntity" href="schema.html#olca.schema.RootEntity">RootEntity</a>], str], uid='', name='') ‑> Optional[<a title="olca.schema.RootEntity" href="schema.html#olca.schema.RootEntity">RootEntity</a>]</span>
+<span>def <span class="ident">get</span></span>(<span>self, model_type: Type[~E], uid='', name='') ‑> Optional[~E]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2309,8 +2313,8 @@ set in the database.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get(self, model_type: ModelType,
-        uid=&#39;&#39;, name=&#39;&#39;) -&gt; Optional[schema.RootEntity]:
+<pre><code class="python">def get(self, model_type: Type[E],
+        uid=&#39;&#39;, name=&#39;&#39;) -&gt; Optional[E]:
     params = {&#39;@type&#39;: _model_type(model_type)}
     if uid != &#39;&#39;:
         params[&#39;@id&#39;] = uid
@@ -2325,7 +2329,7 @@ set in the database.</p></div>
 </details>
 </dd>
 <dt id="olca.ipc.Client.get_all"><code class="name flex">
-<span>def <span class="ident">get_all</span></span>(<span>self, model_type: Union[Type[<a title="olca.schema.RootEntity" href="schema.html#olca.schema.RootEntity">RootEntity</a>], str]) ‑> Iterator[<a title="olca.schema.RootEntity" href="schema.html#olca.schema.RootEntity">RootEntity</a>]</span>
+<span>def <span class="ident">get_all</span></span>(<span>self, model_type: Type[~E]) ‑> Iterator[~E]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns a generator for all instances of the given type from the
@@ -2344,7 +2348,7 @@ for c in currencies:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_all(self, model_type: ModelType) -&gt; Iterator[schema.RootEntity]:
+<pre><code class="python">def get_all(self, model_type: Type[E]) -&gt; Iterator[E]:
     &#34;&#34;&#34;
     Returns a generator for all instances of the given type from the
     database. Note that this will first fetch the complete JSON list from
@@ -2373,7 +2377,7 @@ for c in currencies:
 </details>
 </dd>
 <dt id="olca.ipc.Client.get_descriptor"><code class="name flex">
-<span>def <span class="ident">get_descriptor</span></span>(<span>self, model_type: Union[Type[<a title="olca.schema.RootEntity" href="schema.html#olca.schema.RootEntity">RootEntity</a>], str], uid='', name='') ‑> Optional[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>]</span>
+<span>def <span class="ident">get_descriptor</span></span>(<span>self, model_type: Union[Type[~E], str], uid='', name='') ‑> Optional[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get a descriptor of the model with the given ID or name from the database.</p>
@@ -2459,7 +2463,7 @@ print(system_ref.to_json())
 </details>
 </dd>
 <dt id="olca.ipc.Client.get_descriptors"><code class="name flex">
-<span>def <span class="ident">get_descriptors</span></span>(<span>self, model_type: Union[Type[<a title="olca.schema.RootEntity" href="schema.html#olca.schema.RootEntity">RootEntity</a>], str]) ‑> Iterator[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>]</span>
+<span>def <span class="ident">get_descriptors</span></span>(<span>self, model_type: Union[Type[~E], str]) ‑> Iterator[<a title="olca.schema.Ref" href="schema.html#olca.schema.Ref">Ref</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get the descriptors of the entities with the type from the database.</p>
@@ -2476,7 +2480,7 @@ print(system_ref.to_json())
 <h2 id="example">Example:</h2>
 <pre><code class="language-python">import olca
 
-with Client() as client:
+with olca.Client() as client:
     for a in client.get_descriptors('Actor'):
         print('found Actor: %s' % a.name)
     for s in client.get_descriptors(olca.Source):
@@ -2505,7 +2509,7 @@ with Client() as client:
     ```python
     import olca
 
-    with Client() as client:
+    with olca.Client() as client:
         for a in client.get_descriptors(&#39;Actor&#39;):
             print(&#39;found Actor: %s&#39; % a.name)
         for s in client.get_descriptors(olca.Source):
@@ -2585,16 +2589,18 @@ for provider in client.get_providers_of(steel):
 </details>
 </dd>
 <dt id="olca.ipc.Client.insert"><code class="name flex">
-<span>def <span class="ident">insert</span></span>(<span>self, model: <a title="olca.schema.RootEntity" href="schema.html#olca.schema.RootEntity">RootEntity</a>)</span>
+<span>def <span class="ident">insert</span></span>(<span>self, model: ~E)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Inserts the given model into the database of the IPC server.</p>
 <h2 id="example">Example</h2>
 <pre><code class="language-python">import olca
+import uuid
 
 flow = olca.Flow()
 flow.name = 'CO2'
 flow.id = str(uuid.uuid4())
+flow.flow_type = olca.FlowType.ELEMENTARY_FLOW
 prop = olca.FlowPropertyFactor()
 prop.flow_property = olca.ref(
     olca.FlowProperty,
@@ -2611,7 +2617,7 @@ print(response)
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def insert(self, model: schema.RootEntity):
+<pre><code class="python">def insert(self, model: E):
     &#34;&#34;&#34;
     Inserts the given model into the database of the IPC server.
 
@@ -2619,10 +2625,12 @@ print(response)
     -------
     ```python
     import olca
+    import uuid
 
     flow = olca.Flow()
     flow.name = &#39;CO2&#39;
     flow.id = str(uuid.uuid4())
+    flow.flow_type = olca.FlowType.ELEMENTARY_FLOW
     prop = olca.FlowPropertyFactor()
     prop.flow_property = olca.ref(
         olca.FlowProperty,
@@ -2699,7 +2707,7 @@ calculated.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>List[<a title="olca.ipc.ContributionItem" href="#olca.ipc.ContributionItem">ContributionItem</a>]</code></dt>
+<dt><code>list[<a title="olca.ipc.ContributionItem" href="#olca.ipc.ContributionItem">ContributionItem</a>]</code></dt>
 <dd>The contributions to the flow result by location.</dd>
 </dl>
 <h2 id="example">Example</h2>
@@ -2732,7 +2740,7 @@ client.dispose(result)
 
     Returns
     -------
-    List[ContributionItem]
+    list[ContributionItem]
         The contributions to the flow result by location.
 
     Example
@@ -2759,7 +2767,7 @@ client.dispose(result)
 </details>
 </dd>
 <dt id="olca.ipc.Client.lci_outputs"><code class="name flex">
-<span>def <span class="ident">lci_outputs</span></span>(<span>self, result: <a title="olca.schema.SimpleResult" href="schema.html#olca.schema.SimpleResult">SimpleResult</a>) ‑> list</span>
+<span>def <span class="ident">lci_outputs</span></span>(<span>self, result: <a title="olca.schema.SimpleResult" href="schema.html#olca.schema.SimpleResult">SimpleResult</a>) ‑> List[dict]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the outputs of the given inventory result.</p>
@@ -2773,7 +2781,7 @@ client.dispose(result)
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def lci_outputs(self, result: schema.SimpleResult) -&gt; list:
+<pre><code class="python">def lci_outputs(self, result: schema.SimpleResult) -&gt; List[dict]:
     &#34;&#34;&#34;
     Returns the outputs of the given inventory result.
 
@@ -3302,7 +3310,7 @@ client.dispose(simulator)
 </details>
 </dd>
 <dt id="olca.ipc.Client.update"><code class="name flex">
-<span>def <span class="ident">update</span></span>(<span>self, model: <a title="olca.schema.RootEntity" href="schema.html#olca.schema.RootEntity">RootEntity</a>)</span>
+<span>def <span class="ident">update</span></span>(<span>self, model: ~E)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Update the given model in the database of the IPC server.</p></div>
@@ -3310,7 +3318,7 @@ client.dispose(simulator)
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def update(self, model: schema.RootEntity):
+<pre><code class="python">def update(self, model: E):
     &#34;&#34;&#34;
     Update the given model in the database of the IPC server.
     &#34;&#34;&#34;
@@ -3375,7 +3383,7 @@ impact = olca.ref(
     '2a26b243-23cb-4f90-baab-239d3d7397fa')
 tree = client.upstream_tree_of(result, impact)
 
-def traversal_handler(n: Tuple[UpstreamNode, int]):
+def traversal_handler(n: tuple[UpstreamNode, int]):
     (node, depth) = n
     print('%s+ %s %.3f' % (
         '  ' * depth,
@@ -3451,7 +3459,7 @@ client.dispose(result)
         &#39;2a26b243-23cb-4f90-baab-239d3d7397fa&#39;)
     tree = client.upstream_tree_of(result, impact)
 
-    def traversal_handler(n: Tuple[UpstreamNode, int]):
+    def traversal_handler(n: tuple[UpstreamNode, int]):
         (node, depth) = n
         print(&#39;%s+ %s %.3f&#39; % (
             &#39;  &#39; * depth,

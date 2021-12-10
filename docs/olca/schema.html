@@ -39,7 +39,7 @@ import json as jsonlib
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
+from typing import List, Optional
 
 
 class AllocationType(Enum):
@@ -356,7 +356,7 @@ class CalculationSetup(Entity):
     allocation_method: AllocationType
         The calculation type to be used in the calculation (optional).
 
-    parameter_redefs: list[ParameterRedef]
+    parameter_redefs: List[ParameterRedef]
         A list of parameter redefinitions to be used in the calculation
         (optional).
 
@@ -379,7 +379,7 @@ class CalculationSetup(Entity):
     with_regionalization: Optional[bool] = None
     nw_set: Optional[Ref] = None
     allocation_method: Optional[AllocationType] = None
-    parameter_redefs: Optional[list[ParameterRedef]] = None
+    parameter_redefs: Optional[List[ParameterRedef]] = None
     amount: Optional[float] = None
     unit: Optional[Ref] = None
     flow_property: Optional[Ref] = None
@@ -475,14 +475,14 @@ class DQIndicator(Entity):
 
     position: int
 
-    scores: list[DQScore]
+    scores: List[DQScore]
 
     &#34;&#34;&#34;
 
     olca_type: str = &#39;DQIndicator&#39;
     name: Optional[str] = None
     position: Optional[int] = None
-    scores: Optional[list[DQScore]] = None
+    scores: Optional[List[DQScore]] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(DQIndicator, self).to_json()
@@ -1367,7 +1367,7 @@ class ParameterRedefSet(Entity):
         Indicates if this set of parameter redefinitions is the baseline for a
         product system.
 
-    parameters: list[ParameterRedef]
+    parameters: List[ParameterRedef]
         The parameter redefinitions of this redefinition set.
 
     &#34;&#34;&#34;
@@ -1376,7 +1376,7 @@ class ParameterRedefSet(Entity):
     name: Optional[str] = None
     description: Optional[str] = None
     is_baseline: Optional[bool] = None
-    parameters: Optional[list[ParameterRedef]] = None
+    parameters: Optional[List[ParameterRedef]] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(ParameterRedefSet, self).to_json()
@@ -1451,7 +1451,7 @@ class ProcessDocumentation(Entity):
 
     sampling_description: str
 
-    sources: list[Ref]
+    sources: List[Ref]
 
     restrictions_description: str
 
@@ -1489,7 +1489,7 @@ class ProcessDocumentation(Entity):
     modeling_constants_description: Optional[str] = None
     reviewer: Optional[Ref] = None
     sampling_description: Optional[str] = None
-    sources: Optional[list[Ref]] = None
+    sources: Optional[List[Ref]] = None
     restrictions_description: Optional[str] = None
     copyright: Optional[bool] = None
     creation_date: Optional[str] = None
@@ -1785,15 +1785,15 @@ class SimpleResult(Entity):
 
     Attributes
     ----------
-    flow_results: list[FlowResult]
+    flow_results: List[FlowResult]
 
-    impact_results: list[ImpactResult]
+    impact_results: List[ImpactResult]
 
     &#34;&#34;&#34;
 
     olca_type: str = &#39;SimpleResult&#39;
-    flow_results: Optional[list[FlowResult]] = None
-    impact_results: Optional[list[ImpactResult]] = None
+    flow_results: Optional[List[FlowResult]] = None
+    impact_results: Optional[List[ImpactResult]] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(SimpleResult, self).to_json()
@@ -2090,7 +2090,7 @@ class CategorizedEntity(RootEntity):
     category: Ref
         The category of the entity.
 
-    tags: list[str]
+    tags: List[str]
         A list of optional tags. A tag is just a string which should not
         contain commas (and other special characters).
 
@@ -2102,7 +2102,7 @@ class CategorizedEntity(RootEntity):
     &#34;&#34;&#34;
 
     category: Optional[Ref] = None
-    tags: Optional[list[str]] = None
+    tags: Optional[List[str]] = None
     library: Optional[str] = None
 
     def to_json(self) -&gt; dict:
@@ -2153,7 +2153,7 @@ class FlowMap(RootEntity):
     target: Ref
         The reference (id, name, description) of the target flow list.
 
-    mappings: list[FlowMapEntry]
+    mappings: List[FlowMapEntry]
         A list of flow mappings from flows in a source flow list to flows in a
         target flow list.
 
@@ -2162,7 +2162,7 @@ class FlowMap(RootEntity):
     olca_type: str = &#39;FlowMap&#39;
     source: Optional[Ref] = None
     target: Optional[Ref] = None
-    mappings: Optional[list[FlowMapEntry]] = None
+    mappings: Optional[List[FlowMapEntry]] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(FlowMap, self).to_json()
@@ -2212,14 +2212,14 @@ class NwSet(RootEntity):
         This is the optional unit of the (normalized and) weighted score when
         this normalization and weighting set was applied on a LCIA result.
 
-    factors: list[NwFactor]
+    factors: List[NwFactor]
         The list of normalization and weighting factors of this set.
 
     &#34;&#34;&#34;
 
     olca_type: str = &#39;NwSet&#39;
     weighted_score_unit: Optional[str] = None
-    factors: Optional[list[NwFactor]] = None
+    factors: Optional[List[NwFactor]] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(NwSet, self).to_json()
@@ -2263,7 +2263,7 @@ class Ref(RootEntity):
 
     Attributes
     ----------
-    category_path: list[str]
+    category_path: List[str]
         The full path of the category of the referenced entity from top to
         bottom, e.g. `&#34;Elementary flows&#34;, &#34;Emissions to air&#34;, &#34;unspecified&#34;`.
 
@@ -2292,7 +2292,7 @@ class Ref(RootEntity):
     &#34;&#34;&#34;
 
     olca_type: str = &#39;Ref&#39;
-    category_path: Optional[list[str]] = None
+    category_path: Optional[List[str]] = None
     library: Optional[str] = None
     ref_unit: Optional[str] = None
     location: Optional[str] = None
@@ -2366,7 +2366,7 @@ class Unit(RootEntity):
         unit group. The reference unit is used to convert amounts given in one
         unit to amounts given in another unit of the respective unit group.
 
-    synonyms: list[str]
+    synonyms: List[str]
         A list of synonyms for the unit.
 
     &#34;&#34;&#34;
@@ -2374,7 +2374,7 @@ class Unit(RootEntity):
     olca_type: str = &#39;Unit&#39;
     conversion_factor: Optional[float] = None
     reference_unit: Optional[bool] = None
-    synonyms: Optional[list[str]] = None
+    synonyms: Optional[List[str]] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(Unit, self).to_json()
@@ -2619,14 +2619,14 @@ class DQSystem(CategorizedEntity):
 
     source: Ref
 
-    indicators: list[DQIndicator]
+    indicators: List[DQIndicator]
 
     &#34;&#34;&#34;
 
     olca_type: str = &#39;DQSystem&#39;
     has_uncertainties: Optional[bool] = None
     source: Optional[Ref] = None
-    indicators: Optional[list[DQIndicator]] = None
+    indicators: Optional[List[DQIndicator]] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(DQSystem, self).to_json()
@@ -2682,7 +2682,7 @@ class Flow(CategorizedEntity):
     formula: str
         A chemical formula of the flow.
 
-    flow_properties: list[FlowPropertyFactor]
+    flow_properties: List[FlowPropertyFactor]
         The flow properties (quantities) in which amounts of the flow can be
         expressed together with conversion factors between these flow flow
         properties.
@@ -2709,7 +2709,7 @@ class Flow(CategorizedEntity):
     flow_type: Optional[FlowType] = None
     cas: Optional[str] = None
     formula: Optional[str] = None
-    flow_properties: Optional[list[FlowPropertyFactor]] = None
+    flow_properties: Optional[List[FlowPropertyFactor]] = None
     location: Optional[Ref] = None
     synonyms: Optional[str] = None
     infrastructure_flow: Optional[bool] = None
@@ -2826,19 +2826,19 @@ class ImpactCategory(CategorizedEntity):
     reference_unit_name: str
         The name of the reference unit of the LCIA category (e.g. kg CO2-eq.).
 
-    parameters: list[Parameter]
+    parameters: List[Parameter]
         A set of parameters which can be used in formulas of the
         characterisation factors in this impact category.
 
-    impact_factors: list[ImpactFactor]
+    impact_factors: List[ImpactFactor]
         The characterisation factors of the LCIA category.
 
     &#34;&#34;&#34;
 
     olca_type: str = &#39;ImpactCategory&#39;
     reference_unit_name: Optional[str] = None
-    parameters: Optional[list[Parameter]] = None
-    impact_factors: Optional[list[ImpactFactor]] = None
+    parameters: Optional[List[Parameter]] = None
+    impact_factors: Optional[List[ImpactFactor]] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(ImpactCategory, self).to_json()
@@ -2888,17 +2888,17 @@ class ImpactMethod(CategorizedEntity):
 
     Attributes
     ----------
-    impact_categories: list[Ref]
+    impact_categories: List[Ref]
         The impact categories of the method.
 
-    nw_sets: list[NwSet]
+    nw_sets: List[NwSet]
         The normalization and weighting sets of the method.
 
     &#34;&#34;&#34;
 
     olca_type: str = &#39;ImpactMethod&#39;
-    impact_categories: Optional[list[Ref]] = None
-    nw_sets: Optional[list[NwSet]] = None
+    impact_categories: Optional[List[Ref]] = None
+    nw_sets: Optional[List[NwSet]] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(ImpactMethod, self).to_json()
@@ -3085,11 +3085,11 @@ class Process(CategorizedEntity):
 
     Attributes
     ----------
-    allocation_factors: list[AllocationFactor]
+    allocation_factors: List[AllocationFactor]
 
     default_allocation_method: AllocationType
 
-    exchanges: list[Exchange]
+    exchanges: List[Exchange]
         The inputs and outputs of the process.
 
     last_internal_id: int
@@ -3105,7 +3105,7 @@ class Process(CategorizedEntity):
     location: Ref
         The location of the process.
 
-    parameters: list[Parameter]
+    parameters: List[Parameter]
 
     process_documentation: ProcessDocumentation
 
@@ -3137,18 +3137,18 @@ class Process(CategorizedEntity):
         compatibility with EcoSpold 1. It does not really have a meaning in
         openLCA and should not be used anymore.
 
-    social_aspects: list[SocialAspect]
+    social_aspects: List[SocialAspect]
         A set of social aspects related to this process.
 
     &#34;&#34;&#34;
 
     olca_type: str = &#39;Process&#39;
-    allocation_factors: Optional[list[AllocationFactor]] = None
+    allocation_factors: Optional[List[AllocationFactor]] = None
     default_allocation_method: Optional[AllocationType] = None
-    exchanges: Optional[list[Exchange]] = None
+    exchanges: Optional[List[Exchange]] = None
     last_internal_id: Optional[int] = None
     location: Optional[Ref] = None
-    parameters: Optional[list[Parameter]] = None
+    parameters: Optional[List[Parameter]] = None
     process_documentation: Optional[ProcessDocumentation] = None
     process_type: Optional[ProcessType] = None
     dq_system: Optional[Ref] = None
@@ -3156,7 +3156,7 @@ class Process(CategorizedEntity):
     social_dq_system: Optional[Ref] = None
     dq_entry: Optional[str] = None
     infrastructure_process: Optional[bool] = None
-    social_aspects: Optional[list[SocialAspect]] = None
+    social_aspects: Optional[List[SocialAspect]] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(Process, self).to_json()
@@ -3279,7 +3279,7 @@ class ProductSystem(CategorizedEntity):
 
     Attributes
     ----------
-    processes: list[Ref]
+    processes: List[Ref]
         The descriptors of all processes and sub-systems that are contained in
         the product system.
 
@@ -3301,24 +3301,24 @@ class ProductSystem(CategorizedEntity):
         The flow property in which the flow amount of the functional unit is
         given.
 
-    process_links: list[ProcessLink]
+    process_links: List[ProcessLink]
         The process links of the product system.
 
-    parameter_sets: list[ParameterRedefSet]
+    parameter_sets: List[ParameterRedefSet]
         A list of possible sets of parameter redefinitions for this product
         system.
 
     &#34;&#34;&#34;
 
     olca_type: str = &#39;ProductSystem&#39;
-    processes: Optional[list[Ref]] = None
+    processes: Optional[List[Ref]] = None
     reference_process: Optional[Ref] = None
     reference_exchange: Optional[ExchangeRef] = None
     target_amount: Optional[float] = None
     target_unit: Optional[Ref] = None
     target_flow_property: Optional[Ref] = None
-    process_links: Optional[list[ProcessLink]] = None
-    parameter_sets: Optional[list[ParameterRedefSet]] = None
+    process_links: Optional[List[ProcessLink]] = None
+    parameter_sets: Optional[List[ParameterRedefSet]] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(ProductSystem, self).to_json()
@@ -3584,14 +3584,14 @@ class UnitGroup(CategorizedEntity):
         quantities. This field provides a default link to a flow property for
         units that are contained in this group.
 
-    units: list[Unit]
+    units: List[Unit]
         The units of the unit group.
 
     &#34;&#34;&#34;
 
     olca_type: str = &#39;UnitGroup&#39;
     default_flow_property: Optional[Ref] = None
-    units: Optional[list[Unit]] = None
+    units: Optional[List[Unit]] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(UnitGroup, self).to_json()
@@ -3635,7 +3635,7 @@ class UnitGroup(CategorizedEntity):
 <dl>
 <dt id="olca.schema.Actor"><code class="flex name class">
 <span>class <span class="ident">Actor</span></span>
-<span>(</span><span>id: str = '', olca_type: str = 'Actor', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[list[str]] = None, library: Optional[str] = None, address: Optional[str] = None, city: Optional[str] = None, country: Optional[str] = None, email: Optional[str] = None, telefax: Optional[str] = None, telephone: Optional[str] = None, website: Optional[str] = None, zip_code: Optional[str] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = 'Actor', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[List[str]] = None, library: Optional[str] = None, address: Optional[str] = None, city: Optional[str] = None, country: Optional[str] = None, email: Optional[str] = None, telefax: Optional[str] = None, telephone: Optional[str] = None, website: Optional[str] = None, zip_code: Optional[str] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>An actor is a person or organisation.</p>
@@ -4154,7 +4154,7 @@ multi-functional [Process], or the allocation method in a
 </dd>
 <dt id="olca.schema.CalculationSetup"><code class="flex name class">
 <span>class <span class="ident">CalculationSetup</span></span>
-<span>(</span><span>id: str = '', olca_type: str = 'CalculationSetup', calculation_type: Optional[<a title="olca.schema.CalculationType" href="#olca.schema.CalculationType">CalculationType</a>] = None, product_system: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, impact_method: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, with_costs: Optional[bool] = None, with_regionalization: Optional[bool] = None, nw_set: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, allocation_method: Optional[<a title="olca.schema.AllocationType" href="#olca.schema.AllocationType">AllocationType</a>] = None, parameter_redefs: Optional[list[<a title="olca.schema.ParameterRedef" href="#olca.schema.ParameterRedef">ParameterRedef</a>]] = None, amount: Optional[float] = None, unit: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, flow_property: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = 'CalculationSetup', calculation_type: Optional[<a title="olca.schema.CalculationType" href="#olca.schema.CalculationType">CalculationType</a>] = None, product_system: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, impact_method: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, with_costs: Optional[bool] = None, with_regionalization: Optional[bool] = None, nw_set: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, allocation_method: Optional[<a title="olca.schema.AllocationType" href="#olca.schema.AllocationType">AllocationType</a>] = None, parameter_redefs: Optional[List[<a title="olca.schema.ParameterRedef" href="#olca.schema.ParameterRedef">ParameterRedef</a>]] = None, amount: Optional[float] = None, unit: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, flow_property: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A setup for a product system calculation.</p>
@@ -4179,7 +4179,7 @@ regionalized impact assessments.</dd>
 <dd>The normalisation and weighting set for the calculation (optional).</dd>
 <dt><strong><code>allocation_method</code></strong> :&ensp;<code><a title="olca.schema.AllocationType" href="#olca.schema.AllocationType">AllocationType</a></code></dt>
 <dd>The calculation type to be used in the calculation (optional).</dd>
-<dt><strong><code>parameter_redefs</code></strong> :&ensp;<code>list[<a title="olca.schema.ParameterRedef" href="#olca.schema.ParameterRedef">ParameterRedef</a>]</code></dt>
+<dt><strong><code>parameter_redefs</code></strong> :&ensp;<code>List[<a title="olca.schema.ParameterRedef" href="#olca.schema.ParameterRedef">ParameterRedef</a>]</code></dt>
 <dd>A list of parameter redefinitions to be used in the calculation
 (optional).</dd>
 <dt><strong><code>amount</code></strong> :&ensp;<code>float</code></dt>
@@ -4226,7 +4226,7 @@ class CalculationSetup(Entity):
     allocation_method: AllocationType
         The calculation type to be used in the calculation (optional).
 
-    parameter_redefs: list[ParameterRedef]
+    parameter_redefs: List[ParameterRedef]
         A list of parameter redefinitions to be used in the calculation
         (optional).
 
@@ -4249,7 +4249,7 @@ class CalculationSetup(Entity):
     with_regionalization: Optional[bool] = None
     nw_set: Optional[Ref] = None
     allocation_method: Optional[AllocationType] = None
-    parameter_redefs: Optional[list[ParameterRedef]] = None
+    parameter_redefs: Optional[List[ParameterRedef]] = None
     amount: Optional[float] = None
     unit: Optional[Ref] = None
     flow_property: Optional[Ref] = None
@@ -4367,7 +4367,7 @@ class CalculationSetup(Entity):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="olca.schema.CalculationSetup.parameter_redefs"><code class="name">var <span class="ident">parameter_redefs</span> : Optional[list]</code></dt>
+<dt id="olca.schema.CalculationSetup.parameter_redefs"><code class="name">var <span class="ident">parameter_redefs</span> : Optional[List[<a title="olca.schema.ParameterRedef" href="#olca.schema.ParameterRedef">ParameterRedef</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -4602,7 +4602,7 @@ process in the product system.</p></div>
 </dd>
 <dt id="olca.schema.CategorizedEntity"><code class="flex name class">
 <span>class <span class="ident">CategorizedEntity</span></span>
-<span>(</span><span>id: str = '', olca_type: str = '', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[list[str]] = None, library: Optional[str] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = '', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[List[str]] = None, library: Optional[str] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A root entity which can have a category.</p>
@@ -4610,7 +4610,7 @@ process in the product system.</p></div>
 <dl>
 <dt><strong><code>category</code></strong> :&ensp;<code><a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a></code></dt>
 <dd>The category of the entity.</dd>
-<dt><strong><code>tags</code></strong> :&ensp;<code>list[str]</code></dt>
+<dt><strong><code>tags</code></strong> :&ensp;<code>List[str]</code></dt>
 <dd>A list of optional tags. A tag is just a string which should not
 contain commas (and other special characters).</dd>
 <dt><strong><code>library</code></strong> :&ensp;<code>str</code></dt>
@@ -4632,7 +4632,7 @@ class CategorizedEntity(RootEntity):
     category: Ref
         The category of the entity.
 
-    tags: list[str]
+    tags: List[str]
         A list of optional tags. A tag is just a string which should not
         contain commas (and other special characters).
 
@@ -4644,7 +4644,7 @@ class CategorizedEntity(RootEntity):
     &#34;&#34;&#34;
 
     category: Optional[Ref] = None
-    tags: Optional[list[str]] = None
+    tags: Optional[List[str]] = None
     library: Optional[str] = None
 
     def to_json(self) -&gt; dict:
@@ -4715,7 +4715,7 @@ class CategorizedEntity(RootEntity):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="olca.schema.CategorizedEntity.tags"><code class="name">var <span class="ident">tags</span> : Optional[list]</code></dt>
+<dt id="olca.schema.CategorizedEntity.tags"><code class="name">var <span class="ident">tags</span> : Optional[List[str]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -4793,7 +4793,7 @@ def from_json(json: dict):
 </dd>
 <dt id="olca.schema.Category"><code class="flex name class">
 <span>class <span class="ident">Category</span></span>
-<span>(</span><span>id: str = '', olca_type: str = 'Category', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[list[str]] = None, library: Optional[str] = None, model_type: Optional[<a title="olca.schema.ModelType" href="#olca.schema.ModelType">ModelType</a>] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = 'Category', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[List[str]] = None, library: Optional[str] = None, model_type: Optional[<a title="olca.schema.ModelType" href="#olca.schema.ModelType">ModelType</a>] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A category is used for the categorisation of types like processes, flows,
@@ -4919,7 +4919,7 @@ def from_json(json: dict):
 </dd>
 <dt id="olca.schema.Currency"><code class="flex name class">
 <span>class <span class="ident">Currency</span></span>
-<span>(</span><span>id: str = '', olca_type: str = 'Currency', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[list[str]] = None, library: Optional[str] = None, code: Optional[str] = None, conversion_factor: Optional[float] = None, reference_currency: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = 'Currency', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[List[str]] = None, library: Optional[str] = None, code: Optional[str] = None, conversion_factor: Optional[float] = None, reference_currency: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="attributes">Attributes</h2>
@@ -5077,7 +5077,7 @@ def from_json(json: dict):
 </dd>
 <dt id="olca.schema.DQIndicator"><code class="flex name class">
 <span>class <span class="ident">DQIndicator</span></span>
-<span>(</span><span>id: str = '', olca_type: str = 'DQIndicator', name: Optional[str] = None, position: Optional[int] = None, scores: Optional[list[<a title="olca.schema.DQScore" href="#olca.schema.DQScore">DQScore</a>]] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = 'DQIndicator', name: Optional[str] = None, position: Optional[int] = None, scores: Optional[List[<a title="olca.schema.DQScore" href="#olca.schema.DQScore">DQScore</a>]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>An indicator of a data quality system ([DQSystem]).</p>
@@ -5087,7 +5087,7 @@ def from_json(json: dict):
 <dd>&nbsp;</dd>
 <dt><strong><code>position</code></strong> :&ensp;<code>int</code></dt>
 <dd>&nbsp;</dd>
-<dt><strong><code>scores</code></strong> :&ensp;<code>list[<a title="olca.schema.DQScore" href="#olca.schema.DQScore">DQScore</a>]</code></dt>
+<dt><strong><code>scores</code></strong> :&ensp;<code>List[<a title="olca.schema.DQScore" href="#olca.schema.DQScore">DQScore</a>]</code></dt>
 <dd>&nbsp;</dd>
 </dl></div>
 <details class="source">
@@ -5105,14 +5105,14 @@ class DQIndicator(Entity):
 
     position: int
 
-    scores: list[DQScore]
+    scores: List[DQScore]
 
     &#34;&#34;&#34;
 
     olca_type: str = &#39;DQIndicator&#39;
     name: Optional[str] = None
     position: Optional[int] = None
-    scores: Optional[list[DQScore]] = None
+    scores: Optional[List[DQScore]] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(DQIndicator, self).to_json()
@@ -5166,7 +5166,7 @@ class DQIndicator(Entity):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="olca.schema.DQIndicator.scores"><code class="name">var <span class="ident">scores</span> : Optional[list]</code></dt>
+<dt id="olca.schema.DQIndicator.scores"><code class="name">var <span class="ident">scores</span> : Optional[List[<a title="olca.schema.DQScore" href="#olca.schema.DQScore">DQScore</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -5420,7 +5420,7 @@ def from_json(json: dict):
 </dd>
 <dt id="olca.schema.DQSystem"><code class="flex name class">
 <span>class <span class="ident">DQSystem</span></span>
-<span>(</span><span>id: str = '', olca_type: str = 'DQSystem', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[list[str]] = None, library: Optional[str] = None, has_uncertainties: Optional[bool] = None, source: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, indicators: Optional[list[<a title="olca.schema.DQIndicator" href="#olca.schema.DQIndicator">DQIndicator</a>]] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = 'DQSystem', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[List[str]] = None, library: Optional[str] = None, has_uncertainties: Optional[bool] = None, source: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, indicators: Optional[List[<a title="olca.schema.DQIndicator" href="#olca.schema.DQIndicator">DQIndicator</a>]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A data quality system (DQS) in openLCA describes a pedigree matrix of $m$
@@ -5452,7 +5452,7 @@ and calculations.</p>
 <dd>&nbsp;</dd>
 <dt><strong><code>source</code></strong> :&ensp;<code><a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a></code></dt>
 <dd>&nbsp;</dd>
-<dt><strong><code>indicators</code></strong> :&ensp;<code>list[<a title="olca.schema.DQIndicator" href="#olca.schema.DQIndicator">DQIndicator</a>]</code></dt>
+<dt><strong><code>indicators</code></strong> :&ensp;<code>List[<a title="olca.schema.DQIndicator" href="#olca.schema.DQIndicator">DQIndicator</a>]</code></dt>
 <dd>&nbsp;</dd>
 </dl></div>
 <details class="source">
@@ -5492,14 +5492,14 @@ class DQSystem(CategorizedEntity):
 
     source: Ref
 
-    indicators: list[DQIndicator]
+    indicators: List[DQIndicator]
 
     &#34;&#34;&#34;
 
     olca_type: str = &#39;DQSystem&#39;
     has_uncertainties: Optional[bool] = None
     source: Optional[Ref] = None
-    indicators: Optional[list[DQIndicator]] = None
+    indicators: Optional[List[DQIndicator]] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(DQSystem, self).to_json()
@@ -5548,7 +5548,7 @@ class DQSystem(CategorizedEntity):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="olca.schema.DQSystem.indicators"><code class="name">var <span class="ident">indicators</span> : Optional[list]</code></dt>
+<dt id="olca.schema.DQSystem.indicators"><code class="name">var <span class="ident">indicators</span> : Optional[List[<a title="olca.schema.DQIndicator" href="#olca.schema.DQIndicator">DQIndicator</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -6372,7 +6372,7 @@ def from_json(json: dict):
 </dd>
 <dt id="olca.schema.Flow"><code class="flex name class">
 <span>class <span class="ident">Flow</span></span>
-<span>(</span><span>id: str = '', olca_type: str = 'Flow', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[list[str]] = None, library: Optional[str] = None, flow_type: Optional[<a title="olca.schema.FlowType" href="#olca.schema.FlowType">FlowType</a>] = None, cas: Optional[str] = None, formula: Optional[str] = None, flow_properties: Optional[list[<a title="olca.schema.FlowPropertyFactor" href="#olca.schema.FlowPropertyFactor">FlowPropertyFactor</a>]] = None, location: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, synonyms: Optional[str] = None, infrastructure_flow: Optional[bool] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = 'Flow', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[List[str]] = None, library: Optional[str] = None, flow_type: Optional[<a title="olca.schema.FlowType" href="#olca.schema.FlowType">FlowType</a>] = None, cas: Optional[str] = None, formula: Optional[str] = None, flow_properties: Optional[List[<a title="olca.schema.FlowPropertyFactor" href="#olca.schema.FlowPropertyFactor">FlowPropertyFactor</a>]] = None, location: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, synonyms: Optional[str] = None, infrastructure_flow: Optional[bool] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Everything that can be an input or output of a process (e.g. a substance, a
@@ -6386,7 +6386,7 @@ the flow is handled in calculations.</dd>
 <dd>A CAS number of the flow.</dd>
 <dt><strong><code>formula</code></strong> :&ensp;<code>str</code></dt>
 <dd>A chemical formula of the flow.</dd>
-<dt><strong><code>flow_properties</code></strong> :&ensp;<code>list[<a title="olca.schema.FlowPropertyFactor" href="#olca.schema.FlowPropertyFactor">FlowPropertyFactor</a>]</code></dt>
+<dt><strong><code>flow_properties</code></strong> :&ensp;<code>List[<a title="olca.schema.FlowPropertyFactor" href="#olca.schema.FlowPropertyFactor">FlowPropertyFactor</a>]</code></dt>
 <dd>The flow properties (quantities) in which amounts of the flow can be
 expressed together with conversion factors between these flow flow
 properties.</dd>
@@ -6426,7 +6426,7 @@ class Flow(CategorizedEntity):
     formula: str
         A chemical formula of the flow.
 
-    flow_properties: list[FlowPropertyFactor]
+    flow_properties: List[FlowPropertyFactor]
         The flow properties (quantities) in which amounts of the flow can be
         expressed together with conversion factors between these flow flow
         properties.
@@ -6453,7 +6453,7 @@ class Flow(CategorizedEntity):
     flow_type: Optional[FlowType] = None
     cas: Optional[str] = None
     formula: Optional[str] = None
-    flow_properties: Optional[list[FlowPropertyFactor]] = None
+    flow_properties: Optional[List[FlowPropertyFactor]] = None
     location: Optional[Ref] = None
     synonyms: Optional[str] = None
     infrastructure_flow: Optional[bool] = None
@@ -6525,7 +6525,7 @@ class Flow(CategorizedEntity):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="olca.schema.Flow.flow_properties"><code class="name">var <span class="ident">flow_properties</span> : Optional[list]</code></dt>
+<dt id="olca.schema.Flow.flow_properties"><code class="name">var <span class="ident">flow_properties</span> : Optional[List[<a title="olca.schema.FlowPropertyFactor" href="#olca.schema.FlowPropertyFactor">FlowPropertyFactor</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -6648,7 +6648,7 @@ def from_json(json: dict):
 </dd>
 <dt id="olca.schema.FlowMap"><code class="flex name class">
 <span>class <span class="ident">FlowMap</span></span>
-<span>(</span><span>id: str = '', olca_type: str = 'FlowMap', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, source: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, target: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, mappings: Optional[list[<a title="olca.schema.FlowMapEntry" href="#olca.schema.FlowMapEntry">FlowMapEntry</a>]] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = 'FlowMap', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, source: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, target: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, mappings: Optional[List[<a title="olca.schema.FlowMapEntry" href="#olca.schema.FlowMapEntry">FlowMapEntry</a>]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A crosswalk of flows from a source flow list to a target flow list.</p>
@@ -6658,7 +6658,7 @@ def from_json(json: dict):
 <dd>The reference (id, name, description) of the source flow list.</dd>
 <dt><strong><code>target</code></strong> :&ensp;<code><a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a></code></dt>
 <dd>The reference (id, name, description) of the target flow list.</dd>
-<dt><strong><code>mappings</code></strong> :&ensp;<code>list[<a title="olca.schema.FlowMapEntry" href="#olca.schema.FlowMapEntry">FlowMapEntry</a>]</code></dt>
+<dt><strong><code>mappings</code></strong> :&ensp;<code>List[<a title="olca.schema.FlowMapEntry" href="#olca.schema.FlowMapEntry">FlowMapEntry</a>]</code></dt>
 <dd>A list of flow mappings from flows in a source flow list to flows in a
 target flow list.</dd>
 </dl></div>
@@ -6679,7 +6679,7 @@ class FlowMap(RootEntity):
     target: Ref
         The reference (id, name, description) of the target flow list.
 
-    mappings: list[FlowMapEntry]
+    mappings: List[FlowMapEntry]
         A list of flow mappings from flows in a source flow list to flows in a
         target flow list.
 
@@ -6688,7 +6688,7 @@ class FlowMap(RootEntity):
     olca_type: str = &#39;FlowMap&#39;
     source: Optional[Ref] = None
     target: Optional[Ref] = None
-    mappings: Optional[list[FlowMapEntry]] = None
+    mappings: Optional[List[FlowMapEntry]] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(FlowMap, self).to_json()
@@ -6733,7 +6733,7 @@ class FlowMap(RootEntity):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="olca.schema.FlowMap.mappings"><code class="name">var <span class="ident">mappings</span> : Optional[list]</code></dt>
+<dt id="olca.schema.FlowMap.mappings"><code class="name">var <span class="ident">mappings</span> : Optional[List[<a title="olca.schema.FlowMapEntry" href="#olca.schema.FlowMapEntry">FlowMapEntry</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -7195,7 +7195,7 @@ def from_json(json: dict):
 </dd>
 <dt id="olca.schema.FlowProperty"><code class="flex name class">
 <span>class <span class="ident">FlowProperty</span></span>
-<span>(</span><span>id: str = '', olca_type: str = 'FlowProperty', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[list[str]] = None, library: Optional[str] = None, flow_property_type: Optional[<a title="olca.schema.FlowPropertyType" href="#olca.schema.FlowPropertyType">FlowPropertyType</a>] = None, unit_group: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = 'FlowProperty', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[List[str]] = None, library: Optional[str] = None, flow_property_type: Optional[<a title="olca.schema.FlowPropertyType" href="#olca.schema.FlowPropertyType">FlowPropertyType</a>] = None, unit_group: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A flow property is a quantity that can be used to express amounts of a
@@ -7804,17 +7804,17 @@ def from_json(json: dict):
 </dd>
 <dt id="olca.schema.ImpactCategory"><code class="flex name class">
 <span>class <span class="ident">ImpactCategory</span></span>
-<span>(</span><span>id: str = '', olca_type: str = 'ImpactCategory', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[list[str]] = None, library: Optional[str] = None, reference_unit_name: Optional[str] = None, parameters: Optional[list[<a title="olca.schema.Parameter" href="#olca.schema.Parameter">Parameter</a>]] = None, impact_factors: Optional[list[<a title="olca.schema.ImpactFactor" href="#olca.schema.ImpactFactor">ImpactFactor</a>]] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = 'ImpactCategory', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[List[str]] = None, library: Optional[str] = None, reference_unit_name: Optional[str] = None, parameters: Optional[List[<a title="olca.schema.Parameter" href="#olca.schema.Parameter">Parameter</a>]] = None, impact_factors: Optional[List[<a title="olca.schema.ImpactFactor" href="#olca.schema.ImpactFactor">ImpactFactor</a>]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="attributes">Attributes</h2>
 <dl>
 <dt><strong><code>reference_unit_name</code></strong> :&ensp;<code>str</code></dt>
 <dd>The name of the reference unit of the LCIA category (e.g. kg CO2-eq.).</dd>
-<dt><strong><code>parameters</code></strong> :&ensp;<code>list[<a title="olca.schema.Parameter" href="#olca.schema.Parameter">Parameter</a>]</code></dt>
+<dt><strong><code>parameters</code></strong> :&ensp;<code>List[<a title="olca.schema.Parameter" href="#olca.schema.Parameter">Parameter</a>]</code></dt>
 <dd>A set of parameters which can be used in formulas of the
 characterisation factors in this impact category.</dd>
-<dt><strong><code>impact_factors</code></strong> :&ensp;<code>list[<a title="olca.schema.ImpactFactor" href="#olca.schema.ImpactFactor">ImpactFactor</a>]</code></dt>
+<dt><strong><code>impact_factors</code></strong> :&ensp;<code>List[<a title="olca.schema.ImpactFactor" href="#olca.schema.ImpactFactor">ImpactFactor</a>]</code></dt>
 <dd>The characterisation factors of the LCIA category.</dd>
 </dl></div>
 <details class="source">
@@ -7831,19 +7831,19 @@ class ImpactCategory(CategorizedEntity):
     reference_unit_name: str
         The name of the reference unit of the LCIA category (e.g. kg CO2-eq.).
 
-    parameters: list[Parameter]
+    parameters: List[Parameter]
         A set of parameters which can be used in formulas of the
         characterisation factors in this impact category.
 
-    impact_factors: list[ImpactFactor]
+    impact_factors: List[ImpactFactor]
         The characterisation factors of the LCIA category.
 
     &#34;&#34;&#34;
 
     olca_type: str = &#39;ImpactCategory&#39;
     reference_unit_name: Optional[str] = None
-    parameters: Optional[list[Parameter]] = None
-    impact_factors: Optional[list[ImpactFactor]] = None
+    parameters: Optional[List[Parameter]] = None
+    impact_factors: Optional[List[ImpactFactor]] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(ImpactCategory, self).to_json()
@@ -7893,7 +7893,7 @@ class ImpactCategory(CategorizedEntity):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="olca.schema.ImpactCategory.impact_factors"><code class="name">var <span class="ident">impact_factors</span> : Optional[list]</code></dt>
+<dt id="olca.schema.ImpactCategory.impact_factors"><code class="name">var <span class="ident">impact_factors</span> : Optional[List[<a title="olca.schema.ImpactFactor" href="#olca.schema.ImpactFactor">ImpactFactor</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -7901,7 +7901,7 @@ class ImpactCategory(CategorizedEntity):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="olca.schema.ImpactCategory.parameters"><code class="name">var <span class="ident">parameters</span> : Optional[list]</code></dt>
+<dt id="olca.schema.ImpactCategory.parameters"><code class="name">var <span class="ident">parameters</span> : Optional[List[<a title="olca.schema.Parameter" href="#olca.schema.Parameter">Parameter</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -8241,15 +8241,15 @@ def from_json(json: dict):
 </dd>
 <dt id="olca.schema.ImpactMethod"><code class="flex name class">
 <span>class <span class="ident">ImpactMethod</span></span>
-<span>(</span><span>id: str = '', olca_type: str = 'ImpactMethod', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[list[str]] = None, library: Optional[str] = None, impact_categories: Optional[list[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>]] = None, nw_sets: Optional[list[<a title="olca.schema.NwSet" href="#olca.schema.NwSet">NwSet</a>]] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = 'ImpactMethod', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[List[str]] = None, library: Optional[str] = None, impact_categories: Optional[List[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>]] = None, nw_sets: Optional[List[<a title="olca.schema.NwSet" href="#olca.schema.NwSet">NwSet</a>]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>An impact assessment method.</p>
 <h2 id="attributes">Attributes</h2>
 <dl>
-<dt><strong><code>impact_categories</code></strong> :&ensp;<code>list[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>]</code></dt>
+<dt><strong><code>impact_categories</code></strong> :&ensp;<code>List[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>]</code></dt>
 <dd>The impact categories of the method.</dd>
-<dt><strong><code>nw_sets</code></strong> :&ensp;<code>list[<a title="olca.schema.NwSet" href="#olca.schema.NwSet">NwSet</a>]</code></dt>
+<dt><strong><code>nw_sets</code></strong> :&ensp;<code>List[<a title="olca.schema.NwSet" href="#olca.schema.NwSet">NwSet</a>]</code></dt>
 <dd>The normalization and weighting sets of the method.</dd>
 </dl></div>
 <details class="source">
@@ -8263,17 +8263,17 @@ class ImpactMethod(CategorizedEntity):
 
     Attributes
     ----------
-    impact_categories: list[Ref]
+    impact_categories: List[Ref]
         The impact categories of the method.
 
-    nw_sets: list[NwSet]
+    nw_sets: List[NwSet]
         The normalization and weighting sets of the method.
 
     &#34;&#34;&#34;
 
     olca_type: str = &#39;ImpactMethod&#39;
-    impact_categories: Optional[list[Ref]] = None
-    nw_sets: Optional[list[NwSet]] = None
+    impact_categories: Optional[List[Ref]] = None
+    nw_sets: Optional[List[NwSet]] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(ImpactMethod, self).to_json()
@@ -8318,11 +8318,11 @@ class ImpactMethod(CategorizedEntity):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="olca.schema.ImpactMethod.impact_categories"><code class="name">var <span class="ident">impact_categories</span> : Optional[list]</code></dt>
+<dt id="olca.schema.ImpactMethod.impact_categories"><code class="name">var <span class="ident">impact_categories</span> : Optional[List[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="olca.schema.ImpactMethod.nw_sets"><code class="name">var <span class="ident">nw_sets</span> : Optional[list]</code></dt>
+<dt id="olca.schema.ImpactMethod.nw_sets"><code class="name">var <span class="ident">nw_sets</span> : Optional[List[<a title="olca.schema.NwSet" href="#olca.schema.NwSet">NwSet</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -8545,7 +8545,7 @@ def from_json(json: dict):
 </dd>
 <dt id="olca.schema.Location"><code class="flex name class">
 <span>class <span class="ident">Location</span></span>
-<span>(</span><span>id: str = '', olca_type: str = 'Location', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[list[str]] = None, library: Optional[str] = None, code: Optional[str] = None, latitude: Optional[float] = None, longitude: Optional[float] = None, geometry: Optional[dict] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = 'Location', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[List[str]] = None, library: Optional[str] = None, code: Optional[str] = None, latitude: Optional[float] = None, longitude: Optional[float] = None, geometry: Optional[dict] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A location like a country, state, city, etc.</p>
@@ -9002,7 +9002,7 @@ def from_json(json: dict):
 </dd>
 <dt id="olca.schema.NwSet"><code class="flex name class">
 <span>class <span class="ident">NwSet</span></span>
-<span>(</span><span>id: str = '', olca_type: str = 'NwSet', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, weighted_score_unit: Optional[str] = None, factors: Optional[list[<a title="olca.schema.NwFactor" href="#olca.schema.NwFactor">NwFactor</a>]] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = 'NwSet', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, weighted_score_unit: Optional[str] = None, factors: Optional[List[<a title="olca.schema.NwFactor" href="#olca.schema.NwFactor">NwFactor</a>]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A normalization and weighting set.</p>
@@ -9011,7 +9011,7 @@ def from_json(json: dict):
 <dt><strong><code>weighted_score_unit</code></strong> :&ensp;<code>str</code></dt>
 <dd>This is the optional unit of the (normalized and) weighted score when
 this normalization and weighting set was applied on a LCIA result.</dd>
-<dt><strong><code>factors</code></strong> :&ensp;<code>list[<a title="olca.schema.NwFactor" href="#olca.schema.NwFactor">NwFactor</a>]</code></dt>
+<dt><strong><code>factors</code></strong> :&ensp;<code>List[<a title="olca.schema.NwFactor" href="#olca.schema.NwFactor">NwFactor</a>]</code></dt>
 <dd>The list of normalization and weighting factors of this set.</dd>
 </dl></div>
 <details class="source">
@@ -9029,14 +9029,14 @@ class NwSet(RootEntity):
         This is the optional unit of the (normalized and) weighted score when
         this normalization and weighting set was applied on a LCIA result.
 
-    factors: list[NwFactor]
+    factors: List[NwFactor]
         The list of normalization and weighting factors of this set.
 
     &#34;&#34;&#34;
 
     olca_type: str = &#39;NwSet&#39;
     weighted_score_unit: Optional[str] = None
-    factors: Optional[list[NwFactor]] = None
+    factors: Optional[List[NwFactor]] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(NwSet, self).to_json()
@@ -9074,7 +9074,7 @@ class NwSet(RootEntity):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="olca.schema.NwSet.factors"><code class="name">var <span class="ident">factors</span> : Optional[list]</code></dt>
+<dt id="olca.schema.NwSet.factors"><code class="name">var <span class="ident">factors</span> : Optional[List[<a title="olca.schema.NwFactor" href="#olca.schema.NwFactor">NwFactor</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -9155,7 +9155,7 @@ def from_json(json: dict):
 </dd>
 <dt id="olca.schema.Parameter"><code class="flex name class">
 <span>class <span class="ident">Parameter</span></span>
-<span>(</span><span>id: str = '', olca_type: str = 'Parameter', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[list[str]] = None, library: Optional[str] = None, parameter_scope: Optional[<a title="olca.schema.ParameterScope" href="#olca.schema.ParameterScope">ParameterScope</a>] = None, input_parameter: Optional[bool] = None, value: Optional[float] = None, formula: Optional[str] = None, uncertainty: Optional[<a title="olca.schema.Uncertainty" href="#olca.schema.Uncertainty">Uncertainty</a>] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = 'Parameter', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[List[str]] = None, library: Optional[str] = None, parameter_scope: Optional[<a title="olca.schema.ParameterScope" href="#olca.schema.ParameterScope">ParameterScope</a>] = None, input_parameter: Optional[bool] = None, value: Optional[float] = None, formula: Optional[str] = None, uncertainty: Optional[<a title="olca.schema.Uncertainty" href="#olca.schema.Uncertainty">Uncertainty</a>] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>In openLCA, parameters can be defined in different scopes: global, process,
@@ -9589,7 +9589,7 @@ def from_json(json: dict):
 </dd>
 <dt id="olca.schema.ParameterRedefSet"><code class="flex name class">
 <span>class <span class="ident">ParameterRedefSet</span></span>
-<span>(</span><span>id: str = '', olca_type: str = 'ParameterRedefSet', name: Optional[str] = None, description: Optional[str] = None, is_baseline: Optional[bool] = None, parameters: Optional[list[<a title="olca.schema.ParameterRedef" href="#olca.schema.ParameterRedef">ParameterRedef</a>]] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = 'ParameterRedefSet', name: Optional[str] = None, description: Optional[str] = None, is_baseline: Optional[bool] = None, parameters: Optional[List[<a title="olca.schema.ParameterRedef" href="#olca.schema.ParameterRedef">ParameterRedef</a>]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>An instance of this class is just a set of parameter redefinitions attached
@@ -9605,7 +9605,7 @@ calculation the baseline set is then taken by default.</p>
 <dt><strong><code>is_baseline</code></strong> :&ensp;<code>bool</code></dt>
 <dd>Indicates if this set of parameter redefinitions is the baseline for a
 product system.</dd>
-<dt><strong><code>parameters</code></strong> :&ensp;<code>list[<a title="olca.schema.ParameterRedef" href="#olca.schema.ParameterRedef">ParameterRedef</a>]</code></dt>
+<dt><strong><code>parameters</code></strong> :&ensp;<code>List[<a title="olca.schema.ParameterRedef" href="#olca.schema.ParameterRedef">ParameterRedef</a>]</code></dt>
 <dd>The parameter redefinitions of this redefinition set.</dd>
 </dl></div>
 <details class="source">
@@ -9632,7 +9632,7 @@ class ParameterRedefSet(Entity):
         Indicates if this set of parameter redefinitions is the baseline for a
         product system.
 
-    parameters: list[ParameterRedef]
+    parameters: List[ParameterRedef]
         The parameter redefinitions of this redefinition set.
 
     &#34;&#34;&#34;
@@ -9641,7 +9641,7 @@ class ParameterRedefSet(Entity):
     name: Optional[str] = None
     description: Optional[str] = None
     is_baseline: Optional[bool] = None
-    parameters: Optional[list[ParameterRedef]] = None
+    parameters: Optional[List[ParameterRedef]] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(ParameterRedefSet, self).to_json()
@@ -9704,7 +9704,7 @@ class ParameterRedefSet(Entity):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="olca.schema.ParameterRedefSet.parameters"><code class="name">var <span class="ident">parameters</span> : Optional[list]</code></dt>
+<dt id="olca.schema.ParameterRedefSet.parameters"><code class="name">var <span class="ident">parameters</span> : Optional[List[<a title="olca.schema.ParameterRedef" href="#olca.schema.ParameterRedef">ParameterRedef</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -9847,16 +9847,16 @@ is defined.</p></div>
 </dd>
 <dt id="olca.schema.Process"><code class="flex name class">
 <span>class <span class="ident">Process</span></span>
-<span>(</span><span>id: str = '', olca_type: str = 'Process', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[list[str]] = None, library: Optional[str] = None, allocation_factors: Optional[list[<a title="olca.schema.AllocationFactor" href="#olca.schema.AllocationFactor">AllocationFactor</a>]] = None, default_allocation_method: Optional[<a title="olca.schema.AllocationType" href="#olca.schema.AllocationType">AllocationType</a>] = None, exchanges: Optional[list[<a title="olca.schema.Exchange" href="#olca.schema.Exchange">Exchange</a>]] = None, last_internal_id: Optional[int] = None, location: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, parameters: Optional[list[<a title="olca.schema.Parameter" href="#olca.schema.Parameter">Parameter</a>]] = None, process_documentation: Optional[<a title="olca.schema.ProcessDocumentation" href="#olca.schema.ProcessDocumentation">ProcessDocumentation</a>] = None, process_type: Optional[<a title="olca.schema.ProcessType" href="#olca.schema.ProcessType">ProcessType</a>] = None, dq_system: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, exchange_dq_system: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, social_dq_system: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, dq_entry: Optional[str] = None, infrastructure_process: Optional[bool] = None, social_aspects: Optional[list[<a title="olca.schema.SocialAspect" href="#olca.schema.SocialAspect">SocialAspect</a>]] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = 'Process', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[List[str]] = None, library: Optional[str] = None, allocation_factors: Optional[List[<a title="olca.schema.AllocationFactor" href="#olca.schema.AllocationFactor">AllocationFactor</a>]] = None, default_allocation_method: Optional[<a title="olca.schema.AllocationType" href="#olca.schema.AllocationType">AllocationType</a>] = None, exchanges: Optional[List[<a title="olca.schema.Exchange" href="#olca.schema.Exchange">Exchange</a>]] = None, last_internal_id: Optional[int] = None, location: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, parameters: Optional[List[<a title="olca.schema.Parameter" href="#olca.schema.Parameter">Parameter</a>]] = None, process_documentation: Optional[<a title="olca.schema.ProcessDocumentation" href="#olca.schema.ProcessDocumentation">ProcessDocumentation</a>] = None, process_type: Optional[<a title="olca.schema.ProcessType" href="#olca.schema.ProcessType">ProcessType</a>] = None, dq_system: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, exchange_dq_system: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, social_dq_system: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, dq_entry: Optional[str] = None, infrastructure_process: Optional[bool] = None, social_aspects: Optional[List[<a title="olca.schema.SocialAspect" href="#olca.schema.SocialAspect">SocialAspect</a>]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="attributes">Attributes</h2>
 <dl>
-<dt><strong><code>allocation_factors</code></strong> :&ensp;<code>list[<a title="olca.schema.AllocationFactor" href="#olca.schema.AllocationFactor">AllocationFactor</a>]</code></dt>
+<dt><strong><code>allocation_factors</code></strong> :&ensp;<code>List[<a title="olca.schema.AllocationFactor" href="#olca.schema.AllocationFactor">AllocationFactor</a>]</code></dt>
 <dd>&nbsp;</dd>
 <dt><strong><code>default_allocation_method</code></strong> :&ensp;<code><a title="olca.schema.AllocationType" href="#olca.schema.AllocationType">AllocationType</a></code></dt>
 <dd>&nbsp;</dd>
-<dt><strong><code>exchanges</code></strong> :&ensp;<code>list[<a title="olca.schema.Exchange" href="#olca.schema.Exchange">Exchange</a>]</code></dt>
+<dt><strong><code>exchanges</code></strong> :&ensp;<code>List[<a title="olca.schema.Exchange" href="#olca.schema.Exchange">Exchange</a>]</code></dt>
 <dd>The inputs and outputs of the process.</dd>
 <dt><strong><code>last_internal_id</code></strong> :&ensp;<code>int</code></dt>
 <dd>This field holds the last internal ID that was used in an exchange
@@ -9869,7 +9869,7 @@ resulting value as the internal ID of that exchange. The sequence of
 internal IDs should start with <code>1</code>.</dd>
 <dt><strong><code>location</code></strong> :&ensp;<code><a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a></code></dt>
 <dd>The location of the process.</dd>
-<dt><strong><code>parameters</code></strong> :&ensp;<code>list[<a title="olca.schema.Parameter" href="#olca.schema.Parameter">Parameter</a>]</code></dt>
+<dt><strong><code>parameters</code></strong> :&ensp;<code>List[<a title="olca.schema.Parameter" href="#olca.schema.Parameter">Parameter</a>]</code></dt>
 <dd>&nbsp;</dd>
 <dt><strong><code>process_documentation</code></strong> :&ensp;<code><a title="olca.schema.ProcessDocumentation" href="#olca.schema.ProcessDocumentation">ProcessDocumentation</a></code></dt>
 <dd>&nbsp;</dd>
@@ -9896,7 +9896,7 @@ respective values in the <code>dqEntry</code> vector map to these positions.</dd
 This field is part of the openLCA schema because of backward
 compatibility with EcoSpold 1. It does not really have a meaning in
 openLCA and should not be used anymore.</dd>
-<dt><strong><code>social_aspects</code></strong> :&ensp;<code>list[<a title="olca.schema.SocialAspect" href="#olca.schema.SocialAspect">SocialAspect</a>]</code></dt>
+<dt><strong><code>social_aspects</code></strong> :&ensp;<code>List[<a title="olca.schema.SocialAspect" href="#olca.schema.SocialAspect">SocialAspect</a>]</code></dt>
 <dd>A set of social aspects related to this process.</dd>
 </dl></div>
 <details class="source">
@@ -9910,11 +9910,11 @@ class Process(CategorizedEntity):
 
     Attributes
     ----------
-    allocation_factors: list[AllocationFactor]
+    allocation_factors: List[AllocationFactor]
 
     default_allocation_method: AllocationType
 
-    exchanges: list[Exchange]
+    exchanges: List[Exchange]
         The inputs and outputs of the process.
 
     last_internal_id: int
@@ -9930,7 +9930,7 @@ class Process(CategorizedEntity):
     location: Ref
         The location of the process.
 
-    parameters: list[Parameter]
+    parameters: List[Parameter]
 
     process_documentation: ProcessDocumentation
 
@@ -9962,18 +9962,18 @@ class Process(CategorizedEntity):
         compatibility with EcoSpold 1. It does not really have a meaning in
         openLCA and should not be used anymore.
 
-    social_aspects: list[SocialAspect]
+    social_aspects: List[SocialAspect]
         A set of social aspects related to this process.
 
     &#34;&#34;&#34;
 
     olca_type: str = &#39;Process&#39;
-    allocation_factors: Optional[list[AllocationFactor]] = None
+    allocation_factors: Optional[List[AllocationFactor]] = None
     default_allocation_method: Optional[AllocationType] = None
-    exchanges: Optional[list[Exchange]] = None
+    exchanges: Optional[List[Exchange]] = None
     last_internal_id: Optional[int] = None
     location: Optional[Ref] = None
-    parameters: Optional[list[Parameter]] = None
+    parameters: Optional[List[Parameter]] = None
     process_documentation: Optional[ProcessDocumentation] = None
     process_type: Optional[ProcessType] = None
     dq_system: Optional[Ref] = None
@@ -9981,7 +9981,7 @@ class Process(CategorizedEntity):
     social_dq_system: Optional[Ref] = None
     dq_entry: Optional[str] = None
     infrastructure_process: Optional[bool] = None
-    social_aspects: Optional[list[SocialAspect]] = None
+    social_aspects: Optional[List[SocialAspect]] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(Process, self).to_json()
@@ -10103,7 +10103,7 @@ class Process(CategorizedEntity):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="olca.schema.Process.allocation_factors"><code class="name">var <span class="ident">allocation_factors</span> : Optional[list]</code></dt>
+<dt id="olca.schema.Process.allocation_factors"><code class="name">var <span class="ident">allocation_factors</span> : Optional[List[<a title="olca.schema.AllocationFactor" href="#olca.schema.AllocationFactor">AllocationFactor</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -10123,7 +10123,7 @@ class Process(CategorizedEntity):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="olca.schema.Process.exchanges"><code class="name">var <span class="ident">exchanges</span> : Optional[list]</code></dt>
+<dt id="olca.schema.Process.exchanges"><code class="name">var <span class="ident">exchanges</span> : Optional[List[<a title="olca.schema.Exchange" href="#olca.schema.Exchange">Exchange</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -10143,7 +10143,7 @@ class Process(CategorizedEntity):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="olca.schema.Process.parameters"><code class="name">var <span class="ident">parameters</span> : Optional[list]</code></dt>
+<dt id="olca.schema.Process.parameters"><code class="name">var <span class="ident">parameters</span> : Optional[List[<a title="olca.schema.Parameter" href="#olca.schema.Parameter">Parameter</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -10155,7 +10155,7 @@ class Process(CategorizedEntity):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="olca.schema.Process.social_aspects"><code class="name">var <span class="ident">social_aspects</span> : Optional[list]</code></dt>
+<dt id="olca.schema.Process.social_aspects"><code class="name">var <span class="ident">social_aspects</span> : Optional[List[<a title="olca.schema.SocialAspect" href="#olca.schema.SocialAspect">SocialAspect</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -10315,7 +10315,7 @@ def from_json(json: dict):
 </dd>
 <dt id="olca.schema.ProcessDocumentation"><code class="flex name class">
 <span>class <span class="ident">ProcessDocumentation</span></span>
-<span>(</span><span>id: str = '', olca_type: str = 'ProcessDocumentation', time_description: Optional[str] = None, valid_until: Optional[str] = None, valid_from: Optional[str] = None, technology_description: Optional[str] = None, data_collection_description: Optional[str] = None, completeness_description: Optional[str] = None, data_selection_description: Optional[str] = None, review_details: Optional[str] = None, data_treatment_description: Optional[str] = None, inventory_method_description: Optional[str] = None, modeling_constants_description: Optional[str] = None, reviewer: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, sampling_description: Optional[str] = None, sources: Optional[list[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>]] = None, restrictions_description: Optional[str] = None, copyright: Optional[bool] = None, creation_date: Optional[str] = None, data_documentor: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, data_generator: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, data_set_owner: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, intended_application: Optional[str] = None, project_description: Optional[str] = None, publication: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, geography_description: Optional[str] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = 'ProcessDocumentation', time_description: Optional[str] = None, valid_until: Optional[str] = None, valid_from: Optional[str] = None, technology_description: Optional[str] = None, data_collection_description: Optional[str] = None, completeness_description: Optional[str] = None, data_selection_description: Optional[str] = None, review_details: Optional[str] = None, data_treatment_description: Optional[str] = None, inventory_method_description: Optional[str] = None, modeling_constants_description: Optional[str] = None, reviewer: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, sampling_description: Optional[str] = None, sources: Optional[List[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>]] = None, restrictions_description: Optional[str] = None, copyright: Optional[bool] = None, creation_date: Optional[str] = None, data_documentor: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, data_generator: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, data_set_owner: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, intended_application: Optional[str] = None, project_description: Optional[str] = None, publication: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, geography_description: Optional[str] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="attributes">Attributes</h2>
@@ -10346,7 +10346,7 @@ def from_json(json: dict):
 <dd>&nbsp;</dd>
 <dt><strong><code>sampling_description</code></strong> :&ensp;<code>str</code></dt>
 <dd>&nbsp;</dd>
-<dt><strong><code>sources</code></strong> :&ensp;<code>list[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>]</code></dt>
+<dt><strong><code>sources</code></strong> :&ensp;<code>List[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>]</code></dt>
 <dd>&nbsp;</dd>
 <dt><strong><code>restrictions_description</code></strong> :&ensp;<code>str</code></dt>
 <dd>&nbsp;</dd>
@@ -10406,7 +10406,7 @@ class ProcessDocumentation(Entity):
 
     sampling_description: str
 
-    sources: list[Ref]
+    sources: List[Ref]
 
     restrictions_description: str
 
@@ -10444,7 +10444,7 @@ class ProcessDocumentation(Entity):
     modeling_constants_description: Optional[str] = None
     reviewer: Optional[Ref] = None
     sampling_description: Optional[str] = None
-    sources: Optional[list[Ref]] = None
+    sources: Optional[List[Ref]] = None
     restrictions_description: Optional[str] = None
     copyright: Optional[bool] = None
     creation_date: Optional[str] = None
@@ -10686,7 +10686,7 @@ class ProcessDocumentation(Entity):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="olca.schema.ProcessDocumentation.sources"><code class="name">var <span class="ident">sources</span> : Optional[list]</code></dt>
+<dt id="olca.schema.ProcessDocumentation.sources"><code class="name">var <span class="ident">sources</span> : Optional[List[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -11112,14 +11112,14 @@ def from_json(json: dict):
 </dd>
 <dt id="olca.schema.ProductSystem"><code class="flex name class">
 <span>class <span class="ident">ProductSystem</span></span>
-<span>(</span><span>id: str = '', olca_type: str = 'ProductSystem', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[list[str]] = None, library: Optional[str] = None, processes: Optional[list[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>]] = None, reference_process: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, reference_exchange: Optional[<a title="olca.schema.ExchangeRef" href="#olca.schema.ExchangeRef">ExchangeRef</a>] = None, target_amount: Optional[float] = None, target_unit: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, target_flow_property: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, process_links: Optional[list[<a title="olca.schema.ProcessLink" href="#olca.schema.ProcessLink">ProcessLink</a>]] = None, parameter_sets: Optional[list[<a title="olca.schema.ParameterRedefSet" href="#olca.schema.ParameterRedefSet">ParameterRedefSet</a>]] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = 'ProductSystem', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[List[str]] = None, library: Optional[str] = None, processes: Optional[List[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>]] = None, reference_process: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, reference_exchange: Optional[<a title="olca.schema.ExchangeRef" href="#olca.schema.ExchangeRef">ExchangeRef</a>] = None, target_amount: Optional[float] = None, target_unit: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, target_flow_property: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, process_links: Optional[List[<a title="olca.schema.ProcessLink" href="#olca.schema.ProcessLink">ProcessLink</a>]] = None, parameter_sets: Optional[List[<a title="olca.schema.ParameterRedefSet" href="#olca.schema.ParameterRedefSet">ParameterRedefSet</a>]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A product system describes the supply chain of a product (the functional
 unit) &hellip;</p>
 <h2 id="attributes">Attributes</h2>
 <dl>
-<dt><strong><code>processes</code></strong> :&ensp;<code>list[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>]</code></dt>
+<dt><strong><code>processes</code></strong> :&ensp;<code>List[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>]</code></dt>
 <dd>The descriptors of all processes and sub-systems that are contained in
 the product system.</dd>
 <dt><strong><code>reference_process</code></strong> :&ensp;<code><a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a></code></dt>
@@ -11135,9 +11135,9 @@ that provides the flow of the functional unit of the product system.</dd>
 <dt><strong><code>target_flow_property</code></strong> :&ensp;<code><a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a></code></dt>
 <dd>The flow property in which the flow amount of the functional unit is
 given.</dd>
-<dt><strong><code>process_links</code></strong> :&ensp;<code>list[<a title="olca.schema.ProcessLink" href="#olca.schema.ProcessLink">ProcessLink</a>]</code></dt>
+<dt><strong><code>process_links</code></strong> :&ensp;<code>List[<a title="olca.schema.ProcessLink" href="#olca.schema.ProcessLink">ProcessLink</a>]</code></dt>
 <dd>The process links of the product system.</dd>
-<dt><strong><code>parameter_sets</code></strong> :&ensp;<code>list[<a title="olca.schema.ParameterRedefSet" href="#olca.schema.ParameterRedefSet">ParameterRedefSet</a>]</code></dt>
+<dt><strong><code>parameter_sets</code></strong> :&ensp;<code>List[<a title="olca.schema.ParameterRedefSet" href="#olca.schema.ParameterRedefSet">ParameterRedefSet</a>]</code></dt>
 <dd>A list of possible sets of parameter redefinitions for this product
 system.</dd>
 </dl></div>
@@ -11153,7 +11153,7 @@ class ProductSystem(CategorizedEntity):
 
     Attributes
     ----------
-    processes: list[Ref]
+    processes: List[Ref]
         The descriptors of all processes and sub-systems that are contained in
         the product system.
 
@@ -11175,24 +11175,24 @@ class ProductSystem(CategorizedEntity):
         The flow property in which the flow amount of the functional unit is
         given.
 
-    process_links: list[ProcessLink]
+    process_links: List[ProcessLink]
         The process links of the product system.
 
-    parameter_sets: list[ParameterRedefSet]
+    parameter_sets: List[ParameterRedefSet]
         A list of possible sets of parameter redefinitions for this product
         system.
 
     &#34;&#34;&#34;
 
     olca_type: str = &#39;ProductSystem&#39;
-    processes: Optional[list[Ref]] = None
+    processes: Optional[List[Ref]] = None
     reference_process: Optional[Ref] = None
     reference_exchange: Optional[ExchangeRef] = None
     target_amount: Optional[float] = None
     target_unit: Optional[Ref] = None
     target_flow_property: Optional[Ref] = None
-    process_links: Optional[list[ProcessLink]] = None
-    parameter_sets: Optional[list[ParameterRedefSet]] = None
+    process_links: Optional[List[ProcessLink]] = None
+    parameter_sets: Optional[List[ParameterRedefSet]] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(ProductSystem, self).to_json()
@@ -11281,15 +11281,15 @@ class ProductSystem(CategorizedEntity):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="olca.schema.ProductSystem.parameter_sets"><code class="name">var <span class="ident">parameter_sets</span> : Optional[list]</code></dt>
+<dt id="olca.schema.ProductSystem.parameter_sets"><code class="name">var <span class="ident">parameter_sets</span> : Optional[List[<a title="olca.schema.ParameterRedefSet" href="#olca.schema.ParameterRedefSet">ParameterRedefSet</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="olca.schema.ProductSystem.process_links"><code class="name">var <span class="ident">process_links</span> : Optional[list]</code></dt>
+<dt id="olca.schema.ProductSystem.process_links"><code class="name">var <span class="ident">process_links</span> : Optional[List[<a title="olca.schema.ProcessLink" href="#olca.schema.ProcessLink">ProcessLink</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="olca.schema.ProductSystem.processes"><code class="name">var <span class="ident">processes</span> : Optional[list]</code></dt>
+<dt id="olca.schema.ProductSystem.processes"><code class="name">var <span class="ident">processes</span> : Optional[List[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -11428,7 +11428,7 @@ def from_json(json: dict):
 </dd>
 <dt id="olca.schema.Project"><code class="flex name class">
 <span>class <span class="ident">Project</span></span>
-<span>(</span><span>id: str = '', olca_type: str = 'Project', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[list[str]] = None, library: Optional[str] = None, impact_method: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, nw_set: Optional[<a title="olca.schema.NwSet" href="#olca.schema.NwSet">NwSet</a>] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = 'Project', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[List[str]] = None, library: Optional[str] = None, impact_method: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, nw_set: Optional[<a title="olca.schema.NwSet" href="#olca.schema.NwSet">NwSet</a>] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="attributes">Attributes</h2>
@@ -11569,7 +11569,7 @@ def from_json(json: dict):
 </dd>
 <dt id="olca.schema.Ref"><code class="flex name class">
 <span>class <span class="ident">Ref</span></span>
-<span>(</span><span>id: str = '', olca_type: str = 'Ref', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category_path: Optional[list[str]] = None, library: Optional[str] = None, ref_unit: Optional[str] = None, location: Optional[str] = None, flow_type: Optional[<a title="olca.schema.FlowType" href="#olca.schema.FlowType">FlowType</a>] = None, process_type: Optional[<a title="olca.schema.ProcessType" href="#olca.schema.ProcessType">ProcessType</a>] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = 'Ref', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category_path: Optional[List[str]] = None, library: Optional[str] = None, ref_unit: Optional[str] = None, location: Optional[str] = None, flow_type: Optional[<a title="olca.schema.FlowType" href="#olca.schema.FlowType">FlowType</a>] = None, process_type: Optional[<a title="olca.schema.ProcessType" href="#olca.schema.ProcessType">ProcessType</a>] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A Ref is a reference to a [RootEntity]. When serializing an entity (e.g. a
@@ -11580,7 +11580,7 @@ contains some meta-data like name, category path etc. that are useful to
 display.</p>
 <h2 id="attributes">Attributes</h2>
 <dl>
-<dt><strong><code>category_path</code></strong> :&ensp;<code>list[str]</code></dt>
+<dt><strong><code>category_path</code></strong> :&ensp;<code>List[str]</code></dt>
 <dd>The full path of the category of the referenced entity from top to
 bottom, e.g. <code>"Elementary flows", "Emissions to air", "unspecified"</code>.</dd>
 <dt><strong><code>library</code></strong> :&ensp;<code>str</code></dt>
@@ -11617,7 +11617,7 @@ class Ref(RootEntity):
 
     Attributes
     ----------
-    category_path: list[str]
+    category_path: List[str]
         The full path of the category of the referenced entity from top to
         bottom, e.g. `&#34;Elementary flows&#34;, &#34;Emissions to air&#34;, &#34;unspecified&#34;`.
 
@@ -11646,7 +11646,7 @@ class Ref(RootEntity):
     &#34;&#34;&#34;
 
     olca_type: str = &#39;Ref&#39;
-    category_path: Optional[list[str]] = None
+    category_path: Optional[List[str]] = None
     library: Optional[str] = None
     ref_unit: Optional[str] = None
     location: Optional[str] = None
@@ -11708,7 +11708,7 @@ class Ref(RootEntity):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="olca.schema.Ref.category_path"><code class="name">var <span class="ident">category_path</span> : Optional[list]</code></dt>
+<dt id="olca.schema.Ref.category_path"><code class="name">var <span class="ident">category_path</span> : Optional[List[str]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -12097,14 +12097,14 @@ def from_json(json: dict):
 </dd>
 <dt id="olca.schema.SimpleResult"><code class="flex name class">
 <span>class <span class="ident">SimpleResult</span></span>
-<span>(</span><span>id: str = '', olca_type: str = 'SimpleResult', flow_results: Optional[list[<a title="olca.schema.FlowResult" href="#olca.schema.FlowResult">FlowResult</a>]] = None, impact_results: Optional[list[<a title="olca.schema.ImpactResult" href="#olca.schema.ImpactResult">ImpactResult</a>]] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = 'SimpleResult', flow_results: Optional[List[<a title="olca.schema.FlowResult" href="#olca.schema.FlowResult">FlowResult</a>]] = None, impact_results: Optional[List[<a title="olca.schema.ImpactResult" href="#olca.schema.ImpactResult">ImpactResult</a>]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="attributes">Attributes</h2>
 <dl>
-<dt><strong><code>flow_results</code></strong> :&ensp;<code>list[<a title="olca.schema.FlowResult" href="#olca.schema.FlowResult">FlowResult</a>]</code></dt>
+<dt><strong><code>flow_results</code></strong> :&ensp;<code>List[<a title="olca.schema.FlowResult" href="#olca.schema.FlowResult">FlowResult</a>]</code></dt>
 <dd>&nbsp;</dd>
-<dt><strong><code>impact_results</code></strong> :&ensp;<code>list[<a title="olca.schema.ImpactResult" href="#olca.schema.ImpactResult">ImpactResult</a>]</code></dt>
+<dt><strong><code>impact_results</code></strong> :&ensp;<code>List[<a title="olca.schema.ImpactResult" href="#olca.schema.ImpactResult">ImpactResult</a>]</code></dt>
 <dd>&nbsp;</dd>
 </dl></div>
 <details class="source">
@@ -12118,15 +12118,15 @@ class SimpleResult(Entity):
 
     Attributes
     ----------
-    flow_results: list[FlowResult]
+    flow_results: List[FlowResult]
 
-    impact_results: list[ImpactResult]
+    impact_results: List[ImpactResult]
 
     &#34;&#34;&#34;
 
     olca_type: str = &#39;SimpleResult&#39;
-    flow_results: Optional[list[FlowResult]] = None
-    impact_results: Optional[list[ImpactResult]] = None
+    flow_results: Optional[List[FlowResult]] = None
+    impact_results: Optional[List[ImpactResult]] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(SimpleResult, self).to_json()
@@ -12169,11 +12169,11 @@ class SimpleResult(Entity):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="olca.schema.SimpleResult.flow_results"><code class="name">var <span class="ident">flow_results</span> : Optional[list]</code></dt>
+<dt id="olca.schema.SimpleResult.flow_results"><code class="name">var <span class="ident">flow_results</span> : Optional[List[<a title="olca.schema.FlowResult" href="#olca.schema.FlowResult">FlowResult</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="olca.schema.SimpleResult.impact_results"><code class="name">var <span class="ident">impact_results</span> : Optional[list]</code></dt>
+<dt id="olca.schema.SimpleResult.impact_results"><code class="name">var <span class="ident">impact_results</span> : Optional[List[<a title="olca.schema.ImpactResult" href="#olca.schema.ImpactResult">ImpactResult</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -12498,7 +12498,7 @@ def from_json(json: dict):
 </dd>
 <dt id="olca.schema.SocialIndicator"><code class="flex name class">
 <span>class <span class="ident">SocialIndicator</span></span>
-<span>(</span><span>id: str = '', olca_type: str = 'SocialIndicator', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[list[str]] = None, library: Optional[str] = None, activity_variable: Optional[str] = None, activity_quantity: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, activity_unit: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, unit_of_measurement: Optional[str] = None, evaluation_scheme: Optional[str] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = 'SocialIndicator', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[List[str]] = None, library: Optional[str] = None, activity_variable: Optional[str] = None, activity_quantity: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, activity_unit: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, unit_of_measurement: Optional[str] = None, evaluation_scheme: Optional[str] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="attributes">Attributes</h2>
@@ -12701,7 +12701,7 @@ def from_json(json: dict):
 </dd>
 <dt id="olca.schema.Source"><code class="flex name class">
 <span>class <span class="ident">Source</span></span>
-<span>(</span><span>id: str = '', olca_type: str = 'Source', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[list[str]] = None, library: Optional[str] = None, url: Optional[str] = None, text_reference: Optional[str] = None, year: Optional[int] = None, external_file: Optional[str] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = 'Source', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[List[str]] = None, library: Optional[str] = None, url: Optional[str] = None, text_reference: Optional[str] = None, year: Optional[int] = None, external_file: Optional[str] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A source is a literature reference.</p>
@@ -13327,7 +13327,7 @@ exchanges, parameters, LCIA factors, etc.</p></div>
 </dd>
 <dt id="olca.schema.Unit"><code class="flex name class">
 <span>class <span class="ident">Unit</span></span>
-<span>(</span><span>id: str = '', olca_type: str = 'Unit', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, conversion_factor: Optional[float] = None, reference_unit: Optional[bool] = None, synonyms: Optional[list[str]] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = 'Unit', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, conversion_factor: Optional[float] = None, reference_unit: Optional[bool] = None, synonyms: Optional[List[str]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>An unit of measure</p>
@@ -13342,7 +13342,7 @@ which this unit belongs. If it is the reference unit the conversion
 factor must be 1.0. There should be always only one reference unit in a
 unit group. The reference unit is used to convert amounts given in one
 unit to amounts given in another unit of the respective unit group.</dd>
-<dt><strong><code>synonyms</code></strong> :&ensp;<code>list[str]</code></dt>
+<dt><strong><code>synonyms</code></strong> :&ensp;<code>List[str]</code></dt>
 <dd>A list of synonyms for the unit.</dd>
 </dl></div>
 <details class="source">
@@ -13367,7 +13367,7 @@ class Unit(RootEntity):
         unit group. The reference unit is used to convert amounts given in one
         unit to amounts given in another unit of the respective unit group.
 
-    synonyms: list[str]
+    synonyms: List[str]
         A list of synonyms for the unit.
 
     &#34;&#34;&#34;
@@ -13375,7 +13375,7 @@ class Unit(RootEntity):
     olca_type: str = &#39;Unit&#39;
     conversion_factor: Optional[float] = None
     reference_unit: Optional[bool] = None
-    synonyms: Optional[list[str]] = None
+    synonyms: Optional[List[str]] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(Unit, self).to_json()
@@ -13429,7 +13429,7 @@ class Unit(RootEntity):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="olca.schema.Unit.synonyms"><code class="name">var <span class="ident">synonyms</span> : Optional[list]</code></dt>
+<dt id="olca.schema.Unit.synonyms"><code class="name">var <span class="ident">synonyms</span> : Optional[List[str]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -13506,7 +13506,7 @@ def from_json(json: dict):
 </dd>
 <dt id="olca.schema.UnitGroup"><code class="flex name class">
 <span>class <span class="ident">UnitGroup</span></span>
-<span>(</span><span>id: str = '', olca_type: str = 'UnitGroup', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[list[str]] = None, library: Optional[str] = None, default_flow_property: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, units: Optional[list[<a title="olca.schema.Unit" href="#olca.schema.Unit">Unit</a>]] = None)</span>
+<span>(</span><span>id: str = '', olca_type: str = 'UnitGroup', name: Optional[str] = None, description: Optional[str] = None, version: Optional[str] = None, last_change: Optional[str] = None, category: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, tags: Optional[List[str]] = None, library: Optional[str] = None, default_flow_property: Optional[<a title="olca.schema.Ref" href="#olca.schema.Ref">Ref</a>] = None, units: Optional[List[<a title="olca.schema.Unit" href="#olca.schema.Unit">Unit</a>]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A group of units that can be converted into each other.</p>
@@ -13516,7 +13516,7 @@ def from_json(json: dict):
 <dd>Some LCA data formats do not have the concept of flow properties or
 quantities. This field provides a default link to a flow property for
 units that are contained in this group.</dd>
-<dt><strong><code>units</code></strong> :&ensp;<code>list[<a title="olca.schema.Unit" href="#olca.schema.Unit">Unit</a>]</code></dt>
+<dt><strong><code>units</code></strong> :&ensp;<code>List[<a title="olca.schema.Unit" href="#olca.schema.Unit">Unit</a>]</code></dt>
 <dd>The units of the unit group.</dd>
 </dl></div>
 <details class="source">
@@ -13535,14 +13535,14 @@ class UnitGroup(CategorizedEntity):
         quantities. This field provides a default link to a flow property for
         units that are contained in this group.
 
-    units: list[Unit]
+    units: List[Unit]
         The units of the unit group.
 
     &#34;&#34;&#34;
 
     olca_type: str = &#39;UnitGroup&#39;
     default_flow_property: Optional[Ref] = None
-    units: Optional[list[Unit]] = None
+    units: Optional[List[Unit]] = None
 
     def to_json(self) -&gt; dict:
         json: dict = super(UnitGroup, self).to_json()
@@ -13590,7 +13590,7 @@ class UnitGroup(CategorizedEntity):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="olca.schema.UnitGroup.units"><code class="name">var <span class="ident">units</span> : Optional[list]</code></dt>
+<dt id="olca.schema.UnitGroup.units"><code class="name">var <span class="ident">units</span> : Optional[List[<a title="olca.schema.Unit" href="#olca.schema.Unit">Unit</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
