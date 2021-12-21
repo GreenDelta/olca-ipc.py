@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from olca import schema
 
-from typing import Callable, List
+from typing import Callable, List, Tuple
 
 
 class ProcessProduct:
@@ -64,7 +64,7 @@ class UpstreamTree:
             root = UpstreamNode.from_json(root_dict)
         return UpstreamTree(ref, root)
 
-    def traverse(self, fn: Callable[[tuple[UpstreamNode, int]], None]):
+    def traverse(self, fn: Callable[[Tuple[UpstreamNode, int]], None]):
 
         def traverse_(parent: UpstreamNode, depth: int):
             if not parent:
