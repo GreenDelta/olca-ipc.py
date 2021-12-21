@@ -7,7 +7,7 @@ import olca.upstream_tree as utree
 
 from dataclasses import dataclass
 
-from typing import Any, Iterator, List, Optional, Type, TypeVar, Union
+from typing import Any, Iterator, List, Optional, Tuple, Type, TypeVar, Union
 
 E = TypeVar('E', bound=schema.RootEntity)
 ModelType = Union[Type[E], str]
@@ -977,7 +977,7 @@ class Client(object):
             '2a26b243-23cb-4f90-baab-239d3d7397fa')
         tree = client.upstream_tree_of(result, impact)
 
-        def traversal_handler(n: tuple[UpstreamNode, int]):
+        def traversal_handler(n: Tuple[UpstreamNode, int]):
             (node, depth) = n
             print('%s+ %s %.3f' % (
                 '  ' * depth,
@@ -1003,7 +1003,7 @@ class Client(object):
             return None
         return utree.UpstreamTree.from_json(raw)
 
-    def __post(self, method: str, params) -> tuple[Any, Optional[str]]:
+    def __post(self, method: str, params) -> Tuple[Any, Optional[str]]:
         """
         Performs a request with the given parameters.
 
