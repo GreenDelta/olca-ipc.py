@@ -3,10 +3,8 @@ import os
 
 import requests
 import olca_schema as schema
-import olca.upstream_tree as utree
 
-from dataclasses import dataclass
-
+from ipc_types import *
 from typing import Any, Iterator, List, Optional, Tuple, Type, TypeVar, Union
 
 E = TypeVar('E', bound=schema.RootEntity)
@@ -26,121 +24,6 @@ def _model_class(param: ModelType) -> Type[schema.RootEntity]:
         return schema.__dict__[param]
     else:
         return param
-
-
-@dataclass
-class ProductResult(schema.):
-    """
-    The ProductResult type is not an olca-schema type but a return
-    type of the IPC protocol. However, it implements the same interface
-    as the olca.schema.Entity type.
-
-    Attributes:
-    -----------
-    process: olca.schema.Ref
-
-    product: olca.schema.Ref
-
-    amount: float
-
-    """
-    process: Optional[schema.Ref] = None
-    product: Optional[schema.Ref] = None
-    amount: Optional[float] = None
-
-    def to_dict(self) -> dict:
-        json: dict = super(ProductResult, self).to_json()
-        if self.process is not None:
-            json['process'] = self.process.to_dict()
-        if self.product is not None:
-            json['product'] = self.product.to_dict()
-        if self.amount is not None:
-            json['amount'] = self.amount
-        return json
-
-    def read_json(self, json: dict):
-        super(ProductResult, self).read_json(json)
-        val = json.get('process')
-        if val is not None:
-            self.process = schema.Ref.from_dict(val)
-        val = json.get('product')
-        if val is not None:
-            self.product = schema.Ref.from_dict(val)
-        val = json.get('amount')
-        if val is not None:
-            self.amount = val
-
-    @staticmethod
-    def from_dict(json: dict):
-        instance = ProductResult()
-        instance.read_json(json)
-        return instance
-
-
-@dataclass
-class ContributionItem(schema.Entity):
-    """
-    The ContributionItem type is not an olca-schema type but a return
-    type of the IPC protocol. However, it implements the same interface
-    as the olca.schema.Entity type.
-
-    Attributes:
-    -----------
-    item: olca.schema.Ref
-
-    amount: float
-
-    share: float
-
-    rest: bool
-
-    unit: str
-
-    """
-
-    item: Optional[schema.Ref] = None
-    amount: Optional[float] = None
-    share: Optional[float] = None
-    rest: Optional[bool] = None
-    unit: Optional[str] = None
-
-    def to_json(self) -> dict:
-        json: dict = super(ContributionItem, self).to_json()
-        if self.item is not None:
-            json['item'] = self.item.to_json()
-        if self.amount is not None:
-            json['amount'] = self.amount
-        if self.share is not None:
-            json['share'] = self.share
-        if self.rest is not None:
-            json['rest'] = self.rest
-        if self.unit is not None:
-            json['unit'] = self.unit
-        return json
-
-    def read_json(self, json: dict):
-        super(ContributionItem, self).read_json(json)
-        val = json.get('item')
-        if val is not None:
-            self.item = schema.Ref.from_json(val)
-        val = json.get('amount')
-        if val is not None:
-            self.amount = val
-        val = json.get('share')
-        if val is not None:
-            self.share = val
-        val = json.get('rest')
-        if val is not None:
-            self.rest = val
-        val = json.get('unit')
-        if val is not None:
-            self.unit = val
-
-    @staticmethod
-    def from_json(json: dict):
-        instance = ContributionItem()
-        instance.read_json(json)
-        return instance
 
 
 class Client(object):
@@ -233,7 +116,7 @@ class Client(object):
             return err
         return resp
 
-    def calculate(self, setup: schema.CalculationSetup) -> schema.SimpleResult:
+    def calculate(self, setup: CalculationSetup) -> schema.Result:
         """
         Calculates a result for the given calculation setup.
 
@@ -265,13 +148,13 @@ class Client(object):
         client.dispose(result)
         ```
         """
-        resp, err = self.__post('calculate', setup.to_json())
+        resp, err = self.__post('calculate', setup.to_dict())
         if err:
             log.error('calculation failed: %s', err)
-            return schema.SimpleResult()
-        return schema.SimpleResult.from_json(resp)
+            return schema.Result()
+        return schema.Result.from_dict(resp)
 
-    def simulator(self, setup: schema.CalculationSetup) -> schema.Ref:
+    def simulator(self, setup: CalculationSetup) -> schema.Ref:
         """
         Create a simulator to run Monte-Carlo simulations for the given setup.
 
@@ -295,7 +178,6 @@ class Client(object):
         client = olca.Client()
         # creating the calculation setup
         setup = olca.CalculationSetup()
-        setup.calculation_type = olca.CalculationType.MONTE_CARLO_SIMULATION
         setup.impact_method = client.find(olca.ImpactMethod, 'TRACI [v2.1, February 2014]')
         setup.product_system = client.find(olca.ProductSystem, 'compost plant, open')
         setup.amount = 1.0
@@ -320,13 +202,13 @@ class Client(object):
         client.dispose(simulator)
         ```
         """
-        resp, err = self.__post('simulator', setup.to_json())
+        resp, err = self.__post('simulator', setup.to_dict())
         if err:
             log.error('failed to create simulator: %s', err)
             return schema.Ref()
-        return schema.Ref.from_json(resp)
+        return schema.Ref.from_dict(resp)
 
-    def next_simulation(self, simulator: schema.Ref) -> schema.SimpleResult:
+    def next_simulation(self, simulator: schema.Ref) -> schema.Result:
         """
         Runs the next Monte-Carlo simulation with the given simulator reference.
         It returns the result of the simulation. Note that this result is not
@@ -342,11 +224,11 @@ class Client(object):
         """
         if simulator is None:
             raise ValueError('No simulator given')
-        resp, err = self.__post('next/simulation', simulator.to_json())
+        resp, err = self.__post('next/simulation', simulator.to_dict())
         if err:
             log.error('failed to get simulation result: %s', err)
-            return schema.SimpleResult()
-        return schema.SimpleResult.from_json(resp)
+            return schema.Result()
+        return schema.Result.from_dict(resp)
 
     def get_descriptors(self, model_type: ModelType) -> Iterator[schema.Ref]:
         """
@@ -382,7 +264,7 @@ class Client(object):
                       model_type, err)
             return []
         for r in result:
-            yield schema.Ref.from_json(r)
+            yield schema.Ref.from_dict(r)
 
     def get_descriptor(self, model_type: ModelType,
                        uid='', name='') -> Optional[schema.Ref]:
@@ -431,7 +313,7 @@ class Client(object):
         if err:
             log.error('failed to get descriptor: %s', err)
             return None
-        return schema.Ref.from_json(result)
+        return schema.Ref.from_dict(result)
 
     def get(self, model_type: Type[E],
             uid='', name='') -> Optional[E]:
@@ -445,7 +327,7 @@ class Client(object):
             log.error('failed to get entity of type %s: %s',
                       model_type, err)
             return None
-        return _model_class(model_type).from_json(result)
+        return _model_class(model_type).from_dict(result)
 
     def get_all(self, model_type: Type[E]) -> Iterator[E]:
         """
@@ -472,7 +354,7 @@ class Client(object):
                       model_type, err)
         clazz = _model_class(model_type)
         for r in result:
-            yield clazz.from_json(r)
+            yield clazz.from_dict(r)
 
     def find(self, model_type: ModelType, name: str) -> Optional[schema.Ref]:
         """Searches for a data set with the given type and name.
@@ -521,9 +403,9 @@ class Client(object):
             log.error('failed to get providers: %s', err)
             return []
         for obj in providers:
-            yield schema.Ref.from_json(obj)
+            yield schema.Ref.from_dict(obj)
 
-    def excel_export(self, result: schema.SimpleResult, path: str):
+    def excel_export(self, result: schema.Result, path: str):
         """Export the given result to an Excel file with the given path.
 
         :param result: The result that should be exported.
@@ -539,7 +421,7 @@ class Client(object):
         if err:
             log.error('Excel export to %s failed: %s', path, err)
 
-    def dispose(self, entity: schema.Entity):
+    def dispose(self, entity: schema.Result):
         """
         Removes the given entity from the memory of the IPC server.
 
@@ -643,9 +525,9 @@ class Client(object):
         if err:
             log.error('failed to create product system: %s', err)
             return None
-        return schema.Ref.from_json(r)
+        return schema.Ref.from_dict(r)
 
-    def lci_inputs(self, result: schema.SimpleResult) -> List[schema.FlowResult]:
+    def lci_inputs(self, result: schema.Result) -> List[schema.FlowResult]:
         """
         Returns the inputs of the given inventory result.
 
@@ -664,9 +546,9 @@ class Client(object):
         if err:
             log.error('failed to get LCI inputs')
             return []
-        return [schema.FlowResult.from_json(it) for it in raw]
+        return [schema.FlowResult.from_dict(it) for it in raw]
 
-    def lci_outputs(self, result: schema.SimpleResult) -> List[dict]:
+    def lci_outputs(self, result: schema.Result) -> List[schema.FlowResult]:
         """
         Returns the outputs of the given inventory result.
 
@@ -685,9 +567,9 @@ class Client(object):
         if err:
             log.error('failed to get LCI outputs: %s', err)
             return []
-        return [schema.FlowResult.from_json(it) for it in raw]
+        return [schema.FlowResult.from_dict(it) for it in raw]
 
-    def lci_location_contributions(self, result: schema.SimpleResult,
+    def lci_location_contributions(self, result: schema.Result,
                                    flow: schema.Ref) -> List[ContributionItem]:
         """
         Get the contributions of the result of the given flow by location.
@@ -721,14 +603,14 @@ class Client(object):
         """
         raw, err = self.__post('get/inventory/contributions/locations', {
             'resultId': result.id,
-            'flow': flow.to_json(),
+            'flow': flow.to_dict(),
         })
         if err:
             log.error('failed to ger contributions by location')
             return []
-        return [ContributionItem.from_json(it) for it in raw]
+        return [ContributionItem.from_dict(it) for it in raw]
 
-    def lci_total_requirements(self, result: schema.SimpleResult) -> List[ProductResult]:
+    def lci_total_requirements(self, result: schema.Result) -> List[ProductResult]:
         """
         Returns the total requirements of the given result.
 
@@ -773,9 +655,9 @@ class Client(object):
         if err:
             log.error('failed to get total requirements %s', err)
             return []
-        return [ProductResult.from_json(it) for it in raw]
+        return [ProductResult.from_dict(it) for it in raw]
 
-    def lcia(self, result: schema.SimpleResult) -> List[schema.ImpactResult]:
+    def lcia(self, result: schema.Result) -> List[schema.ImpactResult]:
         """
         Returns the LCIA result of the given result.
 
@@ -801,9 +683,9 @@ class Client(object):
         if err:
             log.error('failed to get impact results: %s', err)
             return []
-        return [schema.ImpactResult.from_json(it) for it in raw]
+        return [schema.ImpactResult.from_dict(it) for it in raw]
 
-    def lcia_flow_contributions(self, result: schema.SimpleResult,
+    def lcia_flow_contributions(self, result: schema.Result,
                                 impact: schema.Ref) -> List[ContributionItem]:
         """
         Get the flow contributions to the result of the given impact category.
@@ -833,14 +715,14 @@ class Client(object):
 
         raw, err = self.__post('get/impacts/contributions/flows', {
             'resultId': result.id,
-            'impactCategory': impact.to_json(),
+            'impactCategory': impact.to_dict(),
         })
         if err:
             log.error('failed to get contribution items: %s', err)
             return []
-        return [ContributionItem.from_json(it) for it in raw]
+        return [ContributionItem.from_dict(it) for it in raw]
 
-    def lcia_location_contributions(self, result: schema.SimpleResult,
+    def lcia_location_contributions(self, result: schema.Result,
                                     impact: schema.Ref) -> List[ContributionItem]:
         """
         Get the contributions to the result of the given impact category by
@@ -872,14 +754,14 @@ class Client(object):
 
         raw, err = self.__post('get/impacts/contributions/locations', {
             'resultId': result.id,
-            'impactCategory': impact.to_json(),
+            'impactCategory': impact.to_dict(),
         })
         if err:
             log.error('Failed to get contribution items: %s', err)
             return []
-        return [ContributionItem.from_json(it) for it in raw]
+        return [ContributionItem.from_dict(it) for it in raw]
 
-    def lcia_process_contributions(self, result: schema.SimpleResult,
+    def lcia_process_contributions(self, result: schema.Result,
                                    impact: schema.Ref) -> List[ContributionItem]:
         """
         Get the contributions to the result of the given impact category by
@@ -911,16 +793,16 @@ class Client(object):
 
         raw, err = self.__post('get/impacts/contributions/processes', {
             'resultId': result.id,
-            'impactCategory': impact.to_json(),
+            'impactCategory': impact.to_dict(),
         })
         if err:
             log.error('Failed to get contribution items: %s', err)
             return []
-        return [ContributionItem.from_json(it) for it in raw]
+        return [ContributionItem.from_dict(it) for it in raw]
 
-    def upstream_tree_of(self, result: schema.SimpleResult, ref: schema.Ref,
+    def upstream_tree_of(self, result: schema.Result, ref: schema.Ref,
                          max_depth=5, min_contribution=0.1,
-                         max_recursion_depth=3) -> Optional[utree.UpstreamTree]:
+                         max_recursion_depth=3) -> Optional[UpstreamTree]:
         """
         Get an upstream tree for an impact category or flow.
 
@@ -1001,7 +883,7 @@ class Client(object):
         if err:
             log.error('Failed to get upstream tree: %s', err)
             return None
-        return utree.UpstreamTree.from_json(raw)
+        return UpstreamTree.from_dict(raw)
 
     def __post(self, method: str, params) -> Tuple[Any, Optional[str]]:
         """
