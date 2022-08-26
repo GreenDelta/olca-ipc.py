@@ -2,7 +2,7 @@ import logging as log
 import os
 
 import requests
-import olca.schema as schema
+import olca_schema as schema
 import olca.upstream_tree as utree
 
 from dataclasses import dataclass
@@ -29,7 +29,7 @@ def _model_class(param: ModelType) -> Type[schema.RootEntity]:
 
 
 @dataclass
-class ProductResult(schema.Entity):
+class ProductResult(schema.):
     """
     The ProductResult type is not an olca-schema type but a return
     type of the IPC protocol. However, it implements the same interface
@@ -48,12 +48,12 @@ class ProductResult(schema.Entity):
     product: Optional[schema.Ref] = None
     amount: Optional[float] = None
 
-    def to_json(self) -> dict:
+    def to_dict(self) -> dict:
         json: dict = super(ProductResult, self).to_json()
         if self.process is not None:
-            json['process'] = self.process.to_json()
+            json['process'] = self.process.to_dict()
         if self.product is not None:
-            json['product'] = self.product.to_json()
+            json['product'] = self.product.to_dict()
         if self.amount is not None:
             json['amount'] = self.amount
         return json
@@ -62,16 +62,16 @@ class ProductResult(schema.Entity):
         super(ProductResult, self).read_json(json)
         val = json.get('process')
         if val is not None:
-            self.process = schema.Ref.from_json(val)
+            self.process = schema.Ref.from_dict(val)
         val = json.get('product')
         if val is not None:
-            self.product = schema.Ref.from_json(val)
+            self.product = schema.Ref.from_dict(val)
         val = json.get('amount')
         if val is not None:
             self.amount = val
 
     @staticmethod
-    def from_json(json: dict):
+    def from_dict(json: dict):
         instance = ProductResult()
         instance.read_json(json)
         return instance
@@ -993,7 +993,7 @@ class Client(object):
         """
         raw, err = self.__post('get/upstream/tree', {
             'resultId': result.id,
-            'ref': ref.to_json(),
+            'ref': ref.to_dict(),
             'maxDepth': max_depth,
             'minContribution': min_contribution,
             'maxRecursionDepth': max_recursion_depth
@@ -1016,8 +1016,8 @@ class Client(object):
             'params': params
         }
         self.next_id += 1
-        resp = requests.post(self.url, json=req).json()  # type: dict
-        err = resp.get('error')  # type: dict
+        resp: dict = requests.post(self.url, json=req).json()
+        err: dict = resp.get('error')
         if err is not None:
             err_msg = '%i: %s' % (err.get('code'), err.get('message'))
             return None, err_msg

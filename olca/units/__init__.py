@@ -1,9 +1,9 @@
 import csv
 import os.path as path
-
 from typing import Optional
 
 import olca
+import olca_schema as schema
 
 _unit_refs = None
 _group_refs = None
@@ -22,12 +22,12 @@ def _init():
         next(r)
         for row in r:
             unit = row[0]
-            _unit_refs[unit] = olca.ref(olca.Unit, row[1], unit)
-            _group_refs[unit] = olca.ref(olca.UnitGroup, row[3], row[2])
-            _prop_refs[unit] = olca.ref(olca.FlowProperty, row[5], row[4])
+            _unit_refs[unit] = olca.ref(schema.Unit, row[1], unit)
+            _group_refs[unit] = olca.ref(schema.UnitGroup, row[3], row[2])
+            _prop_refs[unit] = olca.ref(schema.FlowProperty, row[5], row[4])
 
 
-def unit_ref(symbol: str) -> Optional[olca.Ref]:
+def unit_ref(symbol: str) -> Optional[schema.Ref]:
     """Get the unit reference (an instance of olca.Ref) for the given unit
        symbol (a string like 'kg'). Returns `None` if the given unit is
        unknown."""
@@ -36,7 +36,7 @@ def unit_ref(symbol: str) -> Optional[olca.Ref]:
     return _unit_refs.get(symbol)
 
 
-def group_ref(symbol: str) -> Optional[olca.Ref]:
+def group_ref(symbol: str) -> Optional[schema.Ref]:
     """Get the unit group reference (an instance of olca.Ref) for the given
        unit symbol (a string like 'kg'). Returns `None` if the given unit is
        unknown."""
@@ -45,7 +45,7 @@ def group_ref(symbol: str) -> Optional[olca.Ref]:
     return _group_refs.get(symbol)
 
 
-def property_ref(symbol: str) -> Optional[olca.Ref]:
+def property_ref(symbol: str) -> Optional[schema.Ref]:
     """Get the reference (an instance of olca.Ref) to the default flow property
        (quantity) for the given unit symbol (a string like 'kg'). Returns
        `None` if the given unit is unknown."""
