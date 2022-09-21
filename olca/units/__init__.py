@@ -1,13 +1,12 @@
 import csv
 import os.path as path
-from typing import Optional
+from typing import Dict, Optional
 
-import olca
 import olca_schema as schema
 
-_unit_refs = None
-_group_refs = None
-_prop_refs = None
+_unit_refs: Optional[Dict[str, schema.Ref]] = None
+_group_refs: Optional[Dict[str, schema.Ref]] = None
+_prop_refs: Optional[Dict[str, schema.Ref]] = None
 
 
 def _init():
@@ -22,9 +21,12 @@ def _init():
         next(r)
         for row in r:
             unit = row[0]
-            _unit_refs[unit] = olca.ref(schema.Unit, row[1], unit)
-            _group_refs[unit] = olca.ref(schema.UnitGroup, row[3], row[2])
-            _prop_refs[unit] = olca.ref(schema.FlowProperty, row[5], row[4])
+            _unit_refs[unit] = schema.Ref(
+                model_type='Unit', id=row[1], name=unit)
+            _group_refs[unit] = schema.Ref(
+                model_type='UnitGroup', id=row[3], name=row[2])
+            _prop_refs[unit] = schema.Ref(
+                model_type='FlowProperty', id=row[5], name=row[4])
 
 
 def unit_ref(symbol: str) -> Optional[schema.Ref]:

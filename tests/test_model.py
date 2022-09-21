@@ -1,30 +1,29 @@
 import unittest
 
-import olca
+import olca_schema as schema
 
 
 class TestModel(unittest.TestCase):
 
     def test_enums(self):
-        self.assertEqual(olca.FlowType.ELEMENTARY_FLOW.value,
-                         'ELEMENTARY_FLOW')
-        self.assertEqual(olca.FlowType.ELEMENTARY_FLOW,
-                         olca.FlowType('ELEMENTARY_FLOW'))
+        self.assertEqual(
+            schema.FlowType.ELEMENTARY_FLOW.value, 'ELEMENTARY_FLOW')
+        self.assertEqual(
+            schema.FlowType.ELEMENTARY_FLOW, schema.FlowType('ELEMENTARY_FLOW'))
 
     def test_json_conversion(self):
-        p1 = olca.Process()
-        p1.name = 'a process'
-        p1.process_type = olca.ProcessType.UNIT_PROCESS
-        json_dict = p1.to_json()
-        p2 = olca.Process.from_json(json_dict)
+        p1 = schema.Process(
+            name='a process',
+            process_type=schema.ProcessType.UNIT_PROCESS)
+        p2 = schema.Process.from_json(p1.to_json())
         self.assertEqual('a process', p2.name)
-        self.assertEqual(olca.ProcessType.UNIT_PROCESS, p2.process_type)
+        self.assertEqual(schema.ProcessType.UNIT_PROCESS, p2.process_type)
 
     def test_type_tag(self):
-        flow = olca.Flow()
-        self.assertEqual('Flow', flow.olca_type)
-        json_dict = flow.to_json()
-        self.assertEqual('Flow', json_dict['@type'])
+        flow = schema.Flow()
+        self.assertEqual('Flow', flow.to_ref().model_type)
+        flow_dict = flow.to_dict()
+        self.assertEqual('Flow', flow_dict['@type'])
 
 
 if __name__ == '__main__':

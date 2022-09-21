@@ -4,7 +4,7 @@ import os
 import requests
 import olca_schema as schema
 
-from ipc_types import *
+from .ipc_types import *
 from typing import Any, Iterator, List, Optional, Tuple, Type, TypeVar, Union
 
 E = TypeVar('E', bound=schema.RootEntity)
