@@ -4,5 +4,6 @@
 /build/
 /dist/
 /env/
+/venv/
 /.vscode/
 *.pyc

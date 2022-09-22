@@ -1,6 +1,8 @@
 import unittest
 
-import olca
+import olca as ipc
+import olca_schema as lca
+import olca_schema.units as units
 
 
 class AllocationTest(unittest.TestCase):
@@ -12,56 +14,56 @@ class AllocationTest(unittest.TestCase):
     """
 
     def test_example(self):
-        client = olca.Client()
+        client = ipc.Client()
 
         # get our quantity and unit, assuming that we are
         # connected to an openLCA database that contains
         # these reference data and that there are not
         # multiple flow properties or units with the
         # name 'Mass' or ' kg' in this database
-        mass = client.get(olca.FlowProperty, name='Mass')
-        kg = client.get(olca.Unit, name='kg')
+        mass = client.get(lca.FlowProperty, name='Mass')
+        kg = units.unit_ref('kg')
         self.assertIsNotNone(mass)
         self.assertIsNotNone(kg)
 
         # create some flows
-        p = olca.product_flow_of('p', mass)
-        q = olca.product_flow_of('q', mass)
-        e = olca.elementary_flow_of('e', mass)
+        p = lca.new_product('p', mass)
+        q = lca.new_product('q', mass)
+        e = lca.new_elementary_flow('e', mass)
         for f in [p, q, e]:
             client.insert(f)
 
         # create a process with inputs and outputs
-        process = olca.process_of('P')
-        olca.output_of(process, p, 1.0, kg) \
+        process = lca.new_process('P')
+        lca.new_output(process, p, 1.0, kg) \
             .quantitative_reference = True
-        olca.output_of(process, q, 1.0, kg)
-        ex = olca.output_of(process, e, 1.0, kg)
+        lca.new_output(process, q, 1.0, kg)
+        ex = lca.new_output(process, e, 1.0, kg)
 
         # define some allocation factors
         process.default_allocation_method = \
-            olca.AllocationType.CAUSAL_ALLOCATION
-        olca.physical_allocation_of(process, p, 0.25)
-        olca.physical_allocation_of(process, q, 0.75)
-        olca.economic_allocation_of(process, p, 0.4)
-        olca.economic_allocation_of(process, q, 0.6)
-        olca.causal_allocation_of(process, p, 0.1, ex)
-        olca.causal_allocation_of(process, q, 0.9, ex)
+            lca.AllocationType.CAUSAL_ALLOCATION
+        lca.new_physical_allocation_factor(process, p, 0.25)
+        lca.new_physical_allocation_factor(process, q, 0.75)
+        lca.new_economic_allocation_factor(process, p, 0.4)
+        lca.new_economic_allocation_factor(process, q, 0.6)
+        lca.new_causal_allocation_factor(process, p, 0.1, ex)
+        lca.new_causal_allocation_factor(process, q, 0.9, ex)
 
         # save the process and create the product system
         client.insert(process)
         system = client.create_product_system(process.id)
-        setup = olca.CalculationSetup()
+        setup = ipc.CalculationSetup()
         setup.product_system = system
         setup.amount = 500
-        setup.unit = client.get_descriptor(olca.Unit, name='g')
+        setup.unit = units.unit_ref('g')
 
         expected = [
-            (olca.AllocationType.PHYSICAL_ALLOCATION, 0.125),
-            (olca.AllocationType.ECONOMIC_ALLOCATION, 0.2),
-            (olca.AllocationType.CAUSAL_ALLOCATION, 0.05),
-            (olca.AllocationType.USE_DEFAULT_ALLOCATION, 0.05),
-            (olca.AllocationType.NO_ALLOCATION, 0.5),
+            (lca.AllocationType.PHYSICAL_ALLOCATION, 0.125),
+            (lca.AllocationType.ECONOMIC_ALLOCATION, 0.2),
+            (lca.AllocationType.CAUSAL_ALLOCATION, 0.05),
+            (lca.AllocationType.USE_DEFAULT_ALLOCATION, 0.05),
+            (lca.AllocationType.NO_ALLOCATION, 0.5),
             (None, 0.5),
         ]
         for (method, value) in expected:
@@ -77,7 +79,7 @@ class AllocationTest(unittest.TestCase):
             print(' ... success')
 
         # set drop to False if you want to inspect the process in openLCA
-        drop = True
+        drop = False
         if drop:
             for each in (system, process, p, q, e):
                 client.delete(each)

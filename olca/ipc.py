@@ -83,7 +83,7 @@ class Client(object):
         """
         if model is None:
             return
-        json = model.to_json()
+        json = model.to_dict()
         resp, err = self.__post('insert/model', json)
         if err:
             log.error('failed to insert model: %s', err)
@@ -96,7 +96,7 @@ class Client(object):
         """
         if model is None:
             return
-        json = model.to_json()
+        json = model.to_dict()
         resp, err = self.__post('update/model', json)
         if err:
             log.error('failed to update model: %s', err)
@@ -109,7 +109,7 @@ class Client(object):
         """
         if model is None:
             return
-        json = model.to_json()
+        json = model.to_dict()
         resp, err = self.__post('delete/model', json)
         if err:
             log.error('failed to delete model: %s', err)
