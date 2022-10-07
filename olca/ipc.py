@@ -315,8 +315,7 @@ class Client(object):
             return None
         return schema.Ref.from_dict(result)
 
-    def get(self, model_type: Type[E],
-            uid='', name='') -> Optional[E]:
+    def get(self, model_type: Type[E], uid='', name='') -> Optional[E]:
         params = {'@type': _model_type(model_type)}
         if uid != '':
             params['@id'] = uid
