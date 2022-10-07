@@ -36,7 +36,7 @@ class AllocationTest(unittest.TestCase):
         # create a process with inputs and outputs
         process = lca.new_process('P')
         lca.new_output(process, p, 1.0, kg) \
-            .quantitative_reference = True
+            .is_quantitative_reference = True
         lca.new_output(process, q, 1.0, kg)
         ex = lca.new_output(process, e, 1.0, kg)
 

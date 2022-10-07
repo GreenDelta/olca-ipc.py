@@ -323,8 +323,7 @@ class Client(object):
             params['name'] = name
         result, err = self.__post('get/model', params)
         if err:
-            log.error('failed to get entity of type %s: %s',
-                      model_type, err)
+            log.warning('failed to get entity of type %s: %s', model_type, err)
             return None
         return _model_class(model_type).from_dict(result)
 
