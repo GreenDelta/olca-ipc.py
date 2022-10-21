@@ -3,8 +3,11 @@ import os
 
 import requests
 import olca_schema as schema
+import olca_schema.results as results
 
 from .ipc_types import *
+from .result import Result
+
 from typing import Any, Iterator, List, Optional, Tuple, Type, TypeVar, Union
 
 E = TypeVar('E', bound=schema.RootEntity)
@@ -84,7 +87,7 @@ class Client(object):
         if model is None:
             return
         json = model.to_dict()
-        resp, err = self.__post('insert/model', json)
+        resp, err = self.rpc_call('insert/model', json)
         if err:
             log.error('failed to insert model: %s', err)
             return err
@@ -97,7 +100,7 @@ class Client(object):
         if model is None:
             return
         json = model.to_dict()
-        resp, err = self.__post('update/model', json)
+        resp, err = self.rpc_call('update/model', json)
         if err:
             log.error('failed to update model: %s', err)
             return err
@@ -110,13 +113,13 @@ class Client(object):
         if model is None:
             return
         json = model.to_dict()
-        resp, err = self.__post('delete/model', json)
+        resp, err = self.rpc_call('delete/model', json)
         if err:
             log.error('failed to delete model: %s', err)
             return err
         return resp
 
-    def calculate(self, setup: CalculationSetup) -> schema.Result:
+    def calculate(self, setup: results.CalculationSetup) -> Result:
         """
         Calculates a result for the given calculation setup.
 
@@ -148,13 +151,13 @@ class Client(object):
         client.dispose(result)
         ```
         """
-        resp, err = self.__post('calculate', setup.to_dict())
+        resp, err = self.rpc_call('calculate', setup.to_dict())
         if err:
             log.error('calculation failed: %s', err)
             return schema.Result()
         return schema.Result.from_dict(resp)
 
-    def simulator(self, setup: CalculationSetup) -> schema.Ref:
+    def simulator(self, setup: results.CalculationSetup) -> schema.Ref:
         """
         Create a simulator to run Monte-Carlo simulations for the given setup.
 
@@ -202,7 +205,7 @@ class Client(object):
         client.dispose(simulator)
         ```
         """
-        resp, err = self.__post('simulator', setup.to_dict())
+        resp, err = self.rpc_call('simulator', setup.to_dict())
         if err:
             log.error('failed to create simulator: %s', err)
             return schema.Ref()
@@ -224,7 +227,7 @@ class Client(object):
         """
         if simulator is None:
             raise ValueError('No simulator given')
-        resp, err = self.__post('next/simulation', simulator.to_dict())
+        resp, err = self.rpc_call('next/simulation', simulator.to_dict())
         if err:
             log.error('failed to get simulation result: %s', err)
             return schema.Result()
@@ -258,7 +261,7 @@ class Client(object):
 
         """
         params = {'@type': _model_type(model_type)}
-        result, err = self.__post('get/descriptors', params)
+        result, err = self.rpc_call('get/descriptors', params)
         if err:
             log.error('failed to get descriptors of type %s: %s',
                       model_type, err)
@@ -309,7 +312,7 @@ class Client(object):
             params['@id'] = uid
         if name != '':
             params['name'] = name
-        result, err = self.__post('get/descriptor', params)
+        result, err = self.rpc_call('get/descriptor', params)
         if err:
             log.error('failed to get descriptor: %s', err)
             return None
@@ -321,7 +324,7 @@ class Client(object):
             params['@id'] = uid
         if name != '':
             params['name'] = name
-        result, err = self.__post('get/model', params)
+        result, err = self.rpc_call('get/model', params)
         if err:
             log.warning('failed to get entity of type %s: %s', model_type, err)
             return None
@@ -346,7 +349,7 @@ class Client(object):
         ```
         """
         params = {'@type': model_type.__name__}
-        result, err = self.__post('get/models', params)
+        result, err = self.rpc_call('get/models', params)
         if err:
             log.error('failed to get all of type %s: %s',
                       model_type, err)
@@ -396,7 +399,7 @@ class Client(object):
             '@id': flow.id,
             'name': flow.name,
         }
-        providers, err = self.__post('get/providers', params)
+        providers, err = self.rpc_call('get/providers', params)
         if err:
             log.error('failed to get providers: %s', err)
             return []
@@ -415,7 +418,7 @@ class Client(object):
             '@id': result.id,
             'path': abs_path
         }
-        _, err = self.__post('export/excel', params)
+        _, err = self.rpc_call('export/excel', params)
         if err:
             log.error('Excel export to %s failed: %s', path, err)
 
@@ -453,7 +456,7 @@ class Client(object):
         if entity is None:
             return
         arg = {'@type': type(entity).__name__, '@id': entity.id}
-        _, err = self.__post('dispose', arg)
+        _, err = self.rpc_call('dispose', arg)
         if err:
             log.error('failed to dispose object: %s', err)
 
@@ -464,7 +467,7 @@ class Client(object):
         This method is probably most useful when running a headless server
         (a server without openLCA user interface).
         """
-        _, err = self.__post('runtime/shutdown', None)
+        _, err = self.rpc_call('runtime/shutdown', None)
         if err:
             log.error('failed to shutdown server: %s', err)
 
@@ -515,7 +518,7 @@ class Client(object):
         ```
         """
 
-        r, err = self.__post('create/product_system', {
+        r, err = self.rpc_call('create/product_system', {
             'processId': process_id,
             'preferredType': preferred_type,
             'providerLinking': default_providers,
@@ -538,7 +541,7 @@ class Client(object):
         client.dispose(result)
         ```
         """
-        raw, err = self.__post('get/inventory/inputs', {
+        raw, err = self.rpc_call('get/inventory/inputs', {
             'resultId': result.id,
         })
         if err:
@@ -559,7 +562,7 @@ class Client(object):
         client.dispose(result)
         ```
         """
-        raw, err = self.__post('get/inventory/outputs', {
+        raw, err = self.rpc_call('get/inventory/outputs', {
             'resultId': result.id,
         })
         if err:
@@ -599,7 +602,7 @@ class Client(object):
         client.dispose(result)
         ```
         """
-        raw, err = self.__post('get/inventory/contributions/locations', {
+        raw, err = self.rpc_call('get/inventory/contributions/locations', {
             'resultId': result.id,
             'flow': flow.to_dict(),
         })
@@ -647,7 +650,7 @@ class Client(object):
         ```
         """
 
-        raw, err = self.__post('get/inventory/total_requirements', {
+        raw, err = self.rpc_call('get/inventory/total_requirements', {
             'resultId': result.id
         })
         if err:
@@ -675,7 +678,7 @@ class Client(object):
         ```
         """
 
-        raw, err = self.__post('get/impacts', {
+        raw, err = self.rpc_call('get/impacts', {
             'resultId': result.id,
         })
         if err:
@@ -711,7 +714,7 @@ class Client(object):
         ```
         """
 
-        raw, err = self.__post('get/impacts/contributions/flows', {
+        raw, err = self.rpc_call('get/impacts/contributions/flows', {
             'resultId': result.id,
             'impactCategory': impact.to_dict(),
         })
@@ -750,7 +753,7 @@ class Client(object):
         ```
         """
 
-        raw, err = self.__post('get/impacts/contributions/locations', {
+        raw, err = self.rpc_call('get/impacts/contributions/locations', {
             'resultId': result.id,
             'impactCategory': impact.to_dict(),
         })
@@ -789,7 +792,7 @@ class Client(object):
         ```
         """
 
-        raw, err = self.__post('get/impacts/contributions/processes', {
+        raw, err = self.rpc_call('get/impacts/contributions/processes', {
             'resultId': result.id,
             'impactCategory': impact.to_dict(),
         })
@@ -871,7 +874,7 @@ class Client(object):
         client.dispose(result)
         ```
         """
-        raw, err = self.__post('get/upstream/tree', {
+        raw, err = self.rpc_call('get/upstream/tree', {
             'resultId': result.id,
             'ref': ref.to_dict(),
             'maxDepth': max_depth,
@@ -883,9 +886,9 @@ class Client(object):
             return None
         return UpstreamTree.from_dict(raw)
 
-    def __post(self, method: str, params) -> Tuple[Any, Optional[str]]:
+    def rpc_call(self, method: str, params) -> Tuple[Any, Optional[str]]:
         """
-        Performs a request with the given parameters.
+        Performs a JSON-RPC request with the given parameters.
 
         It returns a tuple (result, error).
         """

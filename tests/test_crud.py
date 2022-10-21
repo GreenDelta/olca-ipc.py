@@ -34,3 +34,25 @@ class CrudTest(unittest.TestCase):
         self.assertIsNone(client.get(lca.FlowProperty, mass.id))
 
         client.close()
+
+    def test_process(self):
+        units = lca.new_unit_group('Mass units', 'kg')
+        mass = lca.new_flow_property('Mass', units)
+        steel = lca.new_product('Steel', mass)
+        process = lca.new_process('Steel production')
+        lca.new_output(process, steel).is_quantitative_reference = True
+
+        with ipc.Client() as client:
+            for e in [units, mass, steel, process]:
+                client.insert(e)
+            process = client.get(lca.Process, process.id)
+
+            output = process.exchanges[0]
+            self.assertEqual(steel.id, output.flow.id)
+            self.assertTrue(output.is_quantitative_reference)
+            self.assertFalse(output.is_input)
+            self.assertFalse(output.is_avoided_product)
+            self.assertEqual(1.0, output.amount)
+
+            for e in [process, steel, mass, units]:
+                client.delete(e)
