@@ -120,42 +120,13 @@ class Client(object):
         return resp
 
     def calculate(self, setup: results.CalculationSetup) -> Result:
-        """
-        Calculates a result for the given calculation setup.
-
-        Parameters
-        ----------
-
-        setup: olca.schema.CalculationSetup
-            The setup of the calculation.
-
-        Example
-        -------
-        ```python
-        client = olca.Client()
-        setup = olca.CalculationSetup()
-        setup.calculation_type = olca.CalculationType.UPSTREAM_ANALYSIS
-        setup.product_system = olca.ref(
-            olca.ProductSystem,
-            '91c2c4a5-2d9d-482e-8c8c-678d7e1b9f55'
-        )
-        setup.impact_method = olca.ref(
-            olca.ImpactMethod,
-            'd2c781ce-21b4-3218-8fca-78133f2c8d4d'
-        )
-        setup.amount = 1.0
-        result = client.calculate(setup)
-        # do something with the result
-        # you should always dispose the result when you
-        # do not need it anymore to avoid memory leaks.
-        client.dispose(result)
-        ```
-        """
-        resp, err = self.rpc_call('calculate', setup.to_dict())
+        """Calculates a result for the given calculation setup."""
+        resp, err = self.rpc_call('result/calculate', setup.to_dict())
         if err:
-            log.error('calculation failed: %s', err)
-            return schema.Result()
-        return schema.Result.from_dict(resp)
+            return Result(uid='', client=self,
+                          error=results.ResultState(id='', error=err))
+        state = results.ResultState.from_dict(resp)
+        return Result(uid=state.id, client=self, error=None)
 
     def simulator(self, setup: results.CalculationSetup) -> schema.Ref:
         """
@@ -472,7 +443,8 @@ class Client(object):
             log.error('failed to shutdown server: %s', err)
 
     def create_product_system(self, process_id: str, default_providers='prefer',
-                              preferred_type='LCI_RESULT') -> Optional[schema.Ref]:
+                              preferred_type='LCI_RESULT') -> Optional[
+        schema.Ref]:
         """
         Creates a product system from the process with the given ID.
 
@@ -611,7 +583,8 @@ class Client(object):
             return []
         return [ContributionItem.from_dict(it) for it in raw]
 
-    def lci_total_requirements(self, result: schema.Result) -> List[ProductResult]:
+    def lci_total_requirements(self, result: schema.Result) -> List[
+        ProductResult]:
         """
         Returns the total requirements of the given result.
 
@@ -724,7 +697,8 @@ class Client(object):
         return [ContributionItem.from_dict(it) for it in raw]
 
     def lcia_location_contributions(self, result: schema.Result,
-                                    impact: schema.Ref) -> List[ContributionItem]:
+                                    impact: schema.Ref) -> List[
+        ContributionItem]:
         """
         Get the contributions to the result of the given impact category by
         locations.
@@ -763,7 +737,8 @@ class Client(object):
         return [ContributionItem.from_dict(it) for it in raw]
 
     def lcia_process_contributions(self, result: schema.Result,
-                                   impact: schema.Ref) -> List[ContributionItem]:
+                                   impact: schema.Ref) -> List[
+        ContributionItem]:
         """
         Get the contributions to the result of the given impact category by
         processes.
