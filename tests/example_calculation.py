@@ -16,8 +16,13 @@ def main():
         print(f'calculation failed: {state.error}')
         return
 
+    envi_val = result.get_total_flows()[0]
+    print(envi_val)
+    print(result.get_total_flow_value_of(envi_val.envi_flow))
+
+    # do not forget to dispose a result
+    # when you do not need it anymore
     result.dispose()
-    print(result.get_state())
 
 
 if __name__ == '__main__':
