@@ -27,7 +27,7 @@ class Result:
 
     def wait_until_ready(self) -> res.ResultState:
         state = self.get_state()
-        if state.error:
+        if not state.is_scheduled:
             return state
         while state.is_scheduled:
             time.sleep(0.5)
