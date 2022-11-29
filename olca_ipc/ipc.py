@@ -56,7 +56,7 @@ class Client(object):
     def close(self):
         return
 
-    def insert(self, model: E):
+    def insert(self, model: schema.RootEntity):
         """
         Inserts the given model into the database of the IPC server.
 
@@ -93,7 +93,7 @@ class Client(object):
             return err
         return resp
 
-    def update(self, model: E):
+    def update(self, model: schema.RootEntity):
         """
         Update the given model in the database of the IPC server.
         """
@@ -106,7 +106,7 @@ class Client(object):
             return err
         return resp
 
-    def delete(self, model: E):
+    def delete(self, model: schema.RootEntity):
         """
         Delete the given model from the database of the IPC server.
         """
