@@ -1,9 +1,10 @@
 import logging as log
-from typing import cast, Type, TypeVar
+import time
+from typing import cast, Any, Type, TypeVar
 
 import olca_schema as lca
 import requests
-from olca_schema import results
+from olca_schema import results as res
 
 E = TypeVar("E", bound=lca.RootEntity)
 OK = 200
@@ -94,9 +95,7 @@ class RestClient:
         else:
             return [lca.Parameter.from_dict(d) for d in r.json()]
 
-    def get_providers(
-        self, flow_id: str | None = None
-    ) -> list[results.TechFlow]:
+    def get_providers(self, flow_id: str | None = None) -> list[res.TechFlow]:
         url: str
         if flow_id:
             url = f"{self.endpoint}data/providers/{flow_id}"
@@ -106,7 +105,70 @@ class RestClient:
         if _not_ok(r):
             log.error("failed to get providers: %s", url)
             return []
-        return [results.TechFlow.from_dict(d) for d in r.json()]
+        return [res.TechFlow.from_dict(d) for d in r.json()]
+
+
+class Result:
+    def __init__(self, client: RestClient, state: res.ResultState):
+        self.client = client
+        self.uid = state.id
+        self.error: res.ResultState | None = None
+        if state.error:
+            self.error = state
+
+    def get_state(self) -> res.ResultState:
+        if self.error is not None:
+            return self.error
+        r = self._get("state")
+        if not r:
+            self.error = res.ResultState(
+                id=self.uid,
+                error="no result state could be retreived from server",
+            )
+            return self.error
+        state = res.ResultState.from_dict(r)
+        if state.error:
+            self.error = state
+        return state
+
+    def wait_until_ready(self) -> res.ResultState:
+        state = self.get_state()
+        if not state.is_scheduled:
+            return state
+        while state.is_scheduled:
+            time.sleep(0.5)
+            state = self.get_state()
+            if not state.is_scheduled:
+                return state
+        self.error = res.ResultState(self.uid, error="did not finished")
+        return self.error
+
+    def dispose(self) -> res.ResultState:
+        if self.error:
+            return self.error
+        url = f"{self.client.endpoint}results/{self.uid}/dispose"
+        r = requests.post(url)
+        if _not_ok(r):
+            self.error = res.ResultState(
+                id=self.uid, error="dispose did not return state"
+            )
+            return self.error
+        return res.ResultState.from_dict(r.json())
+
+    def get_tech_flows(self) -> list[res.TechFlow]:
+        r = self._get("tech-flows")
+        if not r:
+            return []
+        else:
+            return [res.TechFlow.from_dict(d) for d in r]
+
+    def _get(self, path: str) -> Any:
+        url = f"{self.client.endpoint}results/{self.uid}/{path}"
+        r = requests.get(url)
+        if _not_ok(r):
+            log.error("GET: %s; failed for result=%s", path, self.uid)
+            return None
+        return r.json()
 
 
 def _not_ok(resp: requests.Response) -> bool:
