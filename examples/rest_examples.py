@@ -20,3 +20,15 @@ for p in parameters:
     print(f"{p.name} \t| {p.value}")
 
 # %%
+# get all providers from the database
+providers = client.get_providers()
+print(f"there are {len(providers)} tech. flow providers in the database")
+
+# %%
+# get providers of a single flow
+flow = providers[42].flow
+assert flow and flow.id
+flow_providers = client.get_providers(flow_id=flow.id)
+print(f"there are {len(flow_providers)} providers for flow: {flow.name}")
+
+# %%

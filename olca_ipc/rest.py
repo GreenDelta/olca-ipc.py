@@ -1,9 +1,9 @@
 import logging as log
+from typing import cast, Type, TypeVar
 
 import olca_schema as lca
 import requests
-
-from typing import cast, Type, TypeVar
+from olca_schema import results
 
 E = TypeVar("E", bound=lca.RootEntity)
 OK = 200
@@ -71,7 +71,7 @@ class RestClient:
         path = _path_of(model_type)
         if path is None:
             return None
-        r = requests.get(f"{self.endpoint}/data/{path}/{uid}/info")
+        r = requests.get(f"{self.endpoint}data/{path}/{uid}/info")
         if _not_ok(r):
             log.error("failed to get descriptor type=%s id=%s", model_type, uid)
             return None
@@ -83,7 +83,7 @@ class RestClient:
         path = _path_of(model_type)
         if path is None:
             return []
-        r = requests.get(f"{self.endpoint}/data/{path}/{uid}/parameters")
+        r = requests.get(f"{self.endpoint}data/{path}/{uid}/parameters")
         if _not_ok(r):
             log.error(
                 "failed to get parameters of type=%s id=%s", model_type, uid
@@ -93,6 +93,20 @@ class RestClient:
             return [lca.ParameterRedef.from_dict(d) for d in r.json()]
         else:
             return [lca.Parameter.from_dict(d) for d in r.json()]
+
+    def get_providers(
+        self, flow_id: str | None = None
+    ) -> list[results.TechFlow]:
+        url: str
+        if flow_id:
+            url = f"{self.endpoint}data/providers/{flow_id}"
+        else:
+            url = f"{self.endpoint}data/providers"
+        r = requests.get(url)
+        if _not_ok(r):
+            log.error("failed to get providers: %s", url)
+            return []
+        return [results.TechFlow.from_dict(d) for d in r.json()]
 
 
 def _not_ok(resp: requests.Response) -> bool:
