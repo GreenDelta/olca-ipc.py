@@ -162,6 +162,48 @@ class Result:
         else:
             return [res.TechFlow.from_dict(d) for d in r]
 
+    def get_envi_flows(self) -> list[res.EnviFlow]:
+        r = self._get("envi-flows")
+        if not r:
+            return []
+        else:
+            return [res.EnviFlow.from_dict(d) for d in r]
+
+    def get_impact_categories(self) -> list[lca.Ref]:
+        r = self._get("impact-categories")
+        if not r:
+            return []
+        else:
+            return [lca.Ref.from_dict(d) for d in r]
+
+    def get_total_requirements(self) -> list[res.TechFlowValue]:
+        r = self._get("total-requirements")
+        if not r:
+            return []
+        return [res.TechFlowValue.from_dict(d) for d in r]
+
+    def get_total_requirements_of(
+        self, tech_flow: res.TechFlow
+    ) -> list[res.TechFlowValue]:
+        r = self._get(f"total-requirements-of/{_tech_id(tech_flow)}")
+        if not r:
+            return []
+        return [res.TechFlowValue.from_dict(d) for d in r]
+
+    def get_total_flows(self) -> list[res.EnviFlowValue]:
+        r = self._get(f"total-flows")
+        if not r:
+            return []
+        return [res.EnviFlowValue.from_dict(d) for d in r]
+
+    def get_total_flow_value_of(
+        self, envi_flow: res.EnviFlow
+    ) -> res.EnviFlowValue | None:
+        r = self._get(f"total-flow-value-of/{_envi_id(envi_flow)}")
+        if not r:
+            return None
+        return res.EnviFlowValue.from_dict(r)
+
     def _get(self, path: str) -> Any:
         url = f"{self.client.endpoint}results/{self.uid}/{path}"
         r = requests.get(url)
@@ -176,6 +218,24 @@ def _not_ok(resp: requests.Response) -> bool:
         return False
     log.error("response status != 200; message=%s", resp.text)
     return True
+
+
+def _tech_id(tech_flow: res.TechFlow) -> str:
+    tech_id = ""
+    if tech_flow.provider and tech_flow.provider.id:
+        tech_id = tech_flow.provider.id
+    if tech_flow.flow and tech_flow.flow.id:
+        tech_id += "::" + tech_flow.flow.id
+    return tech_id
+
+
+def _envi_id(envi_flow: res.EnviFlow) -> str:
+    envi_id = ""
+    if envi_flow.flow and envi_flow.flow.id:
+        envi_id = envi_flow.flow.id
+    if envi_flow.location and envi_flow.location.id:
+        envi_id += "::" + envi_flow.location.id
+    return envi_id
 
 
 def _path_of(model_type: Type[E]) -> str | None:
