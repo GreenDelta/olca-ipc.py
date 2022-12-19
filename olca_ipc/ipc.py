@@ -8,9 +8,9 @@ import olca_schema.results as results
 from .ipc_types import *
 from .result import Result
 
-from typing import Any, Iterator, List, Optional, Tuple, Type, TypeVar, Union
+from typing import Any, Optional, Tuple, Type, TypeVar, Union
 
-E = TypeVar('E', bound=schema.RootEntity)
+E = TypeVar("E", bound=schema.RootEntity)
 ModelType = Union[Type[E], str]
 
 
@@ -22,7 +22,7 @@ def _model_type(param: ModelType) -> str:
         return param.__name__
 
 
-def _model_class(param: ModelType) -> Type[schema.RootEntity]:
+def _model_class(param: ModelType) -> Type:
     if isinstance(param, str):
         return schema.__dict__[param]
     else:
@@ -31,10 +31,8 @@ def _model_class(param: ModelType) -> Type[schema.RootEntity]:
 
 class Client(object):
     """
-    A client to communicate with an openLCA IPC server.
-
-    An openLCA IPC server is always connected to a database and operations
-    that are executed via this client are thus executed on that database.
+    A client to communicate with an openLCA IPC server over the JSON-RPC
+    protocol.
 
     Parameters
     ----------
@@ -44,7 +42,7 @@ class Client(object):
     """
 
     def __init__(self, port: int = 8080):
-        self.url = 'http://localhost:%i' % port
+        self.url = "http://localhost:%i" % port
         self.next_id = 1
 
     def __enter__(self):
@@ -56,75 +54,35 @@ class Client(object):
     def close(self):
         return
 
-    def insert(self, model: schema.RootEntity):
-        """
-        Inserts the given model into the database of the IPC server.
+    def put(self, model: schema.RootEntity) -> schema.Ref | None:
+        if model is None:
+            return None
+        json = model.to_dict()
+        resp, err = self.rpc_call("data/put", json)
+        if err:
+            log.error("failed to insert model: %s", err)
+            return None
+        return schema.Ref.from_dict(resp)
 
-        Example
-        -------
-        ```python
-        import olca
-        import uuid
-
-        flow = olca.Flow()
-        flow.name = 'CO2'
-        flow.id = str(uuid.uuid4())
-        flow.flow_type = olca.FlowType.ELEMENTARY_FLOW
-        prop = olca.FlowPropertyFactor()
-        prop.flow_property = olca.ref(
-            olca.FlowProperty,
-            '93a60a56-a3c8-11da-a746-0800200b9a66',
-            'Mass'
-        )
-        prop.conversion_factor = 1.0
-        prop.reference_flow_property = True
-        flow.flow_properties = [prop]
-        response = olca.Client().insert(flow)
-        print(response)
-        ```
-
-        """
+    def delete(
+        self, model: schema.RootEntity | schema.Ref
+    ) -> schema.Ref | None:
         if model is None:
             return
         json = model.to_dict()
-        resp, err = self.rpc_call('insert/model', json)
+        resp, err = self.rpc_call("data/delete", json)
         if err:
-            log.error('failed to insert model: %s', err)
-            return err
-        return resp
-
-    def update(self, model: schema.RootEntity):
-        """
-        Update the given model in the database of the IPC server.
-        """
-        if model is None:
-            return
-        json = model.to_dict()
-        resp, err = self.rpc_call('update/model', json)
-        if err:
-            log.error('failed to update model: %s', err)
-            return err
-        return resp
-
-    def delete(self, model: schema.RootEntity):
-        """
-        Delete the given model from the database of the IPC server.
-        """
-        if model is None:
-            return
-        json = model.to_dict()
-        resp, err = self.rpc_call('delete/model', json)
-        if err:
-            log.error('failed to delete model: %s', err)
-            return err
-        return resp
+            log.error("failed to delete model: %s", err)
+            return None
+        return schema.Ref.from_dict(resp)
 
     def calculate(self, setup: results.CalculationSetup) -> Result:
         """Calculates a result for the given calculation setup."""
-        resp, err = self.rpc_call('result/calculate', setup.to_dict())
+        resp, err = self.rpc_call("result/calculate", setup.to_dict())
         if err:
-            return Result(uid='', client=self,
-                          error=results.ResultState(id='', error=err))
+            return Result(
+                uid="", client=self, error=results.ResultState(id="", error=err)
+            )
         state = results.ResultState.from_dict(resp)
         return Result(uid=state.id, client=self, error=None)
 
@@ -176,9 +134,9 @@ class Client(object):
         client.dispose(simulator)
         ```
         """
-        resp, err = self.rpc_call('simulator', setup.to_dict())
+        resp, err = self.rpc_call("simulator", setup.to_dict())
         if err:
-            log.error('failed to create simulator: %s', err)
+            log.error("failed to create simulator: %s", err)
             return schema.Ref()
         return schema.Ref.from_dict(resp)
 
@@ -197,185 +155,91 @@ class Client(object):
 
         """
         if simulator is None:
-            raise ValueError('No simulator given')
-        resp, err = self.rpc_call('next/simulation', simulator.to_dict())
+            raise ValueError("No simulator given")
+        resp, err = self.rpc_call("next/simulation", simulator.to_dict())
         if err:
-            log.error('failed to get simulation result: %s', err)
+            log.error("failed to get simulation result: %s", err)
             return schema.Result()
         return schema.Result.from_dict(resp)
 
-    def get_descriptors(self, model_type: ModelType) -> Iterator[schema.Ref]:
-        """
-        Get the descriptors of the entities with the type from the database.
-
-        Parameters
-        ----------
-        model_type: ModelType
-            The model type, e.g. olca.Flow or `'Flow'`
-
-        Returns
-        -------
-        Iterator[schema.Ref]
-            An iterator with Ref objects.
-
-        Example:
-        --------
-        ```python
-        import olca
-
-        with olca.Client() as client:
-            for a in client.get_descriptors('Actor'):
-                print('found Actor: %s' % a.name)
-            for s in client.get_descriptors(olca.Source):
-                print('found Source: %s' % s.name)
-        ```
-
-        """
-        params = {'@type': _model_type(model_type)}
-        result, err = self.rpc_call('get/descriptors', params)
+    def get_descriptors(self, model_type: ModelType) -> list[schema.Ref]:
+        params = {"@type": _model_type(model_type)}
+        result, err = self.rpc_call("data/get/descriptors", params)
         if err:
-            log.error('failed to get descriptors of type %s: %s',
-                      model_type, err)
+            log.error(
+                "failed to get descriptors of type %s: %s", model_type, err
+            )
             return []
-        for r in result:
-            yield schema.Ref.from_dict(r)
+        return [schema.Ref.from_dict(r) for r in result]
 
-    def get_descriptor(self, model_type: ModelType,
-                       uid='', name='') -> Optional[schema.Ref]:
-        """
-        Get a descriptor of the model with the given ID or name from the database.
-
-        Models like product systems can be very large but often we just need
-        a reference to a model (e.g. in a calculation setup). In this case
-        this method can be useful.
-
-        since: openLCA 2.0
-
-        Parameters
-        ----------
-        model_type: ModelType
-            The type of the model, e.g. olca.ProductSystem or `'ProductSystem'`
-        uid: str, optional
-            The ID of the model.
-        name: str, optional
-            The name of the model.
-
-        Returns
-        -------
-        schema.Ref
-            The descriptor of the model.
-
-        Example
-        -------
-        ```python
-        import olca
-
-        client = olca.Client()
-        system_ref = client.get_descriptor(
-            olca.ProductSystem,
-            'f50ee15a-968f-4316-a160-4c7741284c62')
-        print(system_ref.to_json())
-        ```
-        """
-
-        params = {'@type': _model_type(model_type)}
-        if uid != '':
-            params['@id'] = uid
-        if name != '':
-            params['name'] = name
-        result, err = self.rpc_call('get/descriptor', params)
+    def get_descriptor(
+        self, model_type: ModelType, uid="", name=""
+    ) -> Optional[schema.Ref]:
+        params = {"@type": _model_type(model_type)}
+        if uid != "":
+            params["@id"] = uid
+        if name != "":
+            params["name"] = name
+        result, err = self.rpc_call("data/get/descriptor", params)
         if err:
-            log.error('failed to get descriptor: %s', err)
+            log.error("failed to get descriptor: %s", err)
             return None
         return schema.Ref.from_dict(result)
 
-    def get(self, model_type: Type[E], uid='', name='') -> Optional[E]:
-        params = {'@type': _model_type(model_type)}
-        if uid != '':
-            params['@id'] = uid
-        if name != '':
-            params['name'] = name
-        result, err = self.rpc_call('get/model', params)
+    def get(self, model_type: Type[E], uid="", name="") -> Optional[E]:
+        params = {"@type": _model_type(model_type)}
+        if uid != "":
+            params["@id"] = uid
+        if name != "":
+            params["name"] = name
+        result, err = self.rpc_call("data/get", params)
         if err:
-            log.warning('failed to get entity of type %s: %s', model_type, err)
+            log.warning("failed to get entity of type %s: %s", model_type, err)
             return None
         return _model_class(model_type).from_dict(result)
 
-    def get_all(self, model_type: Type[E]) -> Iterator[E]:
-        """
-        Returns a generator for all instances of the given type from the
-        database. Note that this will first fetch the complete JSON list from
-        the IPC server and thus should be only used when a small amount of
-        instances is expected as return value.
-
-        Example
-        -------
-        ```python
-        import olca
-
-        client = olca.Client()
-        currencies = client.get_all(olca.Currency)
-        for c in currencies:
-            print(c.name)
-        ```
-        """
-        params = {'@type': model_type.__name__}
-        result, err = self.rpc_call('get/models', params)
+    def get_all(self, model_type: Type[E]) -> list[E]:
+        params = {"@type": model_type.__name__}
+        result, err = self.rpc_call("data/get/all", params)
         if err:
-            log.error('failed to get all of type %s: %s',
-                      model_type, err)
+            log.error("failed to get all of type %s: %s", model_type, err)
         clazz = _model_class(model_type)
-        for r in result:
-            yield clazz.from_dict(r)
+        return [clazz.from_dict(r) for r in result]
 
-    def find(self, model_type: ModelType, name: str) -> Optional[schema.Ref]:
-        """Searches for a data set with the given type and name.
-
-        :param model_type: The class of the data set, e.g. `olca.Flow`.
-        :param name: The name of the data set.
-        :return: The reference to the first data set with the given name and
-                 type from the databases or ``None`` if there is no such data
-                 set in the database.
-        """
+    def find(self, model_type: ModelType, name: str) -> schema.Ref | None:
         for d in self.get_descriptors(model_type):
             if d.name == name:
                 return d
 
-    def get_providers_of(self, flow: Union[schema.Ref, schema.Flow]) \
-            -> Iterator[schema.Ref]:
-        """
-        Get the providers for the given flow.
-
-        For products, these are the processes that have an output of the given
-        product. For waste flows, these are the waste treatment processes that
-        have this flow on the input side. Elementary flows do not have a
-        provider.
-
-        Parameters
-        ----------
-        flow: Union[schema.Ref, schema.Flow]
-            The flow or reference to the flow for which the providers should be
-            returned.
-
-        Example
-        -------
-        ```python
-        steel = client.get('Flow', 'Steel')
-        for provider in client.get_providers_of(steel):
-            print(provider.name)
-        ```
-        """
-        params = {
-            '@type': 'Flow',
-            '@id': flow.id,
-            'name': flow.name,
-        }
-        providers, err = self.rpc_call('get/providers', params)
+    def get_providers(
+        self, flow: schema.Ref | schema.Flow | None = None
+    ) -> list[results.TechFlow]:
+        if flow is None:
+            params = {}
+        else:
+            params = {
+                "@type": "Flow",
+                "@id": flow.id,
+                "name": flow.name,
+            }
+        providers, err = self.rpc_call("data/get/providers", params)
         if err:
-            log.error('failed to get providers: %s', err)
+            log.error("failed to get providers: %s", err)
             return []
-        for obj in providers:
-            yield schema.Ref.from_dict(obj)
+        return [results.TechFlow.from_dict(d) for d in providers]
+
+    def get_parameters(
+        self, model_type: Type[E], uid: str
+    ) -> list[schema.Parameter | schema.ParameterRedef]:
+        params = {"@type": model_type.__name__, "@id": uid}
+        params, err = self.rpc_call("data/get/parameters", params)
+        if err:
+            log.error("failed to get parameters of %s id=%d", model_type, uid)
+            return []
+        if model_type in (schema.Process, schema.ImpactCategory):
+            return [schema.Parameter.from_dict(p) for p in params]
+        else:
+            return [schema.ParameterRedef.from_dict(p) for p in params]
 
     def excel_export(self, result: schema.Result, path: str):
         """Export the given result to an Excel file with the given path.
@@ -385,51 +249,10 @@ class Client(object):
                      written.
         """
         abs_path = os.path.abspath(path)
-        params = {
-            '@id': result.id,
-            'path': abs_path
-        }
-        _, err = self.rpc_call('export/excel', params)
+        params = {"@id": result.id, "path": abs_path}
+        _, err = self.rpc_call("export/excel", params)
         if err:
-            log.error('Excel export to %s failed: %s', path, err)
-
-    def dispose(self, entity: schema.Result):
-        """
-        Removes the given entity from the memory of the IPC server.
-
-        This is required for calculation results that are hold on the server for
-        further processing.
-
-        Parameters
-        ----------
-
-        entity: olca.schema.Entity
-            The entity that should be disposed (typically a result).
-
-        Example
-        -------
-        ```python
-        client = olca.Client()
-        setup = olca.CalculationSetup()
-        setup.calculation_type = olca.CalculationType.UPSTREAM_ANALYSIS
-        setup.product_system = olca.ref(
-          olca.ProductSystem,
-          '7d1cbce0-b5b3-47ba-95b5-014ab3c7f569'
-        )
-        setup.amount = 1.0
-        result = client.calculate(setup)
-        # do something with the result
-        # ...
-        response = client.dispose(result)
-        print(response)  # should print `ok`
-        ```
-        """
-        if entity is None:
-            return
-        arg = {'@type': type(entity).__name__, '@id': entity.id}
-        _, err = self.rpc_call('dispose', arg)
-        if err:
-            log.error('failed to dispose object: %s', err)
+            log.error("Excel export to %s failed: %s", path, err)
 
     def shutdown_server(self):
         """
@@ -438,13 +261,16 @@ class Client(object):
         This method is probably most useful when running a headless server
         (a server without openLCA user interface).
         """
-        _, err = self.rpc_call('runtime/shutdown', None)
+        _, err = self.rpc_call("runtime/shutdown", None)
         if err:
-            log.error('failed to shutdown server: %s', err)
+            log.error("failed to shutdown server: %s", err)
 
-    def create_product_system(self, process_id: str, default_providers='prefer',
-                              preferred_type='LCI_RESULT') -> Optional[
-        schema.Ref]:
+    def create_product_system(
+        self,
+        process_id: str,
+        default_providers="prefer",
+        preferred_type="LCI_RESULT",
+    ) -> Optional[schema.Ref]:
         """
         Creates a product system from the process with the given ID.
 
@@ -490,295 +316,27 @@ class Client(object):
         ```
         """
 
-        r, err = self.rpc_call('create/product_system', {
-            'processId': process_id,
-            'preferredType': preferred_type,
-            'providerLinking': default_providers,
-        })
+        r, err = self.rpc_call(
+            "create/product_system",
+            {
+                "processId": process_id,
+                "preferredType": preferred_type,
+                "providerLinking": default_providers,
+            },
+        )
         if err:
-            log.error('failed to create product system: %s', err)
+            log.error("failed to create product system: %s", err)
             return None
         return schema.Ref.from_dict(r)
 
-    def lci_inputs(self, result: schema.Result) -> List[schema.FlowResult]:
-        """
-        Returns the inputs of the given inventory result.
-
-        Example
-        -------
-        ```python
-        result = client.calculate(setup)
-        # print the first input
-        print(client.lci_inputs(result)[0])
-        client.dispose(result)
-        ```
-        """
-        raw, err = self.rpc_call('get/inventory/inputs', {
-            'resultId': result.id,
-        })
-        if err:
-            log.error('failed to get LCI inputs')
-            return []
-        return [schema.FlowResult.from_dict(it) for it in raw]
-
-    def lci_outputs(self, result: schema.Result) -> List[schema.FlowResult]:
-        """
-        Returns the outputs of the given inventory result.
-
-        Example
-        -------
-        ```python
-        result = client.calculate(setup)
-        # print the first output
-        print(client.lci_outputs(result)[0])
-        client.dispose(result)
-        ```
-        """
-        raw, err = self.rpc_call('get/inventory/outputs', {
-            'resultId': result.id,
-        })
-        if err:
-            log.error('failed to get LCI outputs: %s', err)
-            return []
-        return [schema.FlowResult.from_dict(it) for it in raw]
-
-    def lci_location_contributions(self, result: schema.Result,
-                                   flow: schema.Ref) -> List[ContributionItem]:
-        """
-        Get the contributions of the result of the given flow by location.
-
-        Parameters
-        ----------
-        result: olca.schema.SimpleResult
-            The result which needs to be at least a contribution result.
-
-        flow: olca.schema.Ref
-            The (reference of the) flow for which the calculations should be
-            calculated.
-
-        Returns
-        -------
-        list[ContributionItem]
-            The contributions to the flow result by location.
-
-        Example
-        -------
-        ```python
-        # ...
-        result = client.calculate(setup)
-        # select the first output of the LCI result
-        output = client.lci_outputs(result)[0]
-        # calculate the location contributions of the flow of that output
-        cons = client.lci_location_contributions(result, output.flow)
-        # ...
-        client.dispose(result)
-        ```
-        """
-        raw, err = self.rpc_call('get/inventory/contributions/locations', {
-            'resultId': result.id,
-            'flow': flow.to_dict(),
-        })
-        if err:
-            log.error('failed to ger contributions by location')
-            return []
-        return [ContributionItem.from_dict(it) for it in raw]
-
-    def lci_total_requirements(self, result: schema.Result) -> List[
-        ProductResult]:
-        """
-        Returns the total requirements of the given result.
-
-        The total requirements are the product amounts that are required to
-        fulfill the demand of the product system. As our technology matrix
-        \\(A\\) is indexed symmetrically (means rows and columns refer to the
-        same process-product pair) our product amounts are on the diagonal of
-        the technology matrix and the total requirements can be calculated by
-        the following equation where \\(s\\) is the scaling vector (
-        \\(\\odot\\) denotes element-wise multiplication):
-
-        $$t = diag(A) \odot s$$
-
-        Parameters
-        ----------
-        result: olca.schema.SimpleResult
-            The simple result from which the total requirements should be
-            returned.
-
-        Example
-        -------
-        ```python
-        import olca
-
-        client = olca.Client()
-        setup = olca.CalculationSetup()
-        setup.calculation_type = olca.CalculationType.UPSTREAM_ANALYSIS
-        setup.product_system = olca.ref(
-            olca.ProductSystem,
-            '7d1cbce0-b5b3-47ba-95b5-014ab3c7f569'
-        )
-        setup.amount = 1.0
-        result = client.calculate(setup)
-        print(client.lci_total_requirements(result)[0])
-        client.dispose(result)
-        ```
-        """
-
-        raw, err = self.rpc_call('get/inventory/total_requirements', {
-            'resultId': result.id
-        })
-        if err:
-            log.error('failed to get total requirements %s', err)
-            return []
-        return [ProductResult.from_dict(it) for it in raw]
-
-    def lcia(self, result: schema.Result) -> List[schema.ImpactResult]:
-        """
-        Returns the LCIA result of the given result.
-
-        Parameters
-        ----------
-        result: olca.schema.SimpleResult
-            The result from which the LCIA result should be returned.
-
-        Example
-        -------
-        ```python
-        # ...
-        result = client.calculate(setup)
-        lcia = client.lcia(result)
-        # ...
-        client.dispose(result)
-        ```
-        """
-
-        raw, err = self.rpc_call('get/impacts', {
-            'resultId': result.id,
-        })
-        if err:
-            log.error('failed to get impact results: %s', err)
-            return []
-        return [schema.ImpactResult.from_dict(it) for it in raw]
-
-    def lcia_flow_contributions(self, result: schema.Result,
-                                impact: schema.Ref) -> List[ContributionItem]:
-        """
-        Get the flow contributions to the result of the given impact category.
-
-        Parameters
-        ----------
-        result: olca.schema.SimpleResult
-            The result.
-
-        impact: olca.schema.Ref
-            The (reference to the) LCIA category.
-
-        Example
-        -------
-        ```python
-        # ...
-        result = client.calculate(setup)
-        # select the first LCIA result
-        impact_result = client.lcia(result)[0]
-        # get the flow contributions to the LCIA category of that result
-        cons = client.lcia_flow_contributions(
-            result, impact_result.impact_category)
-        # ...
-        client.dispose(result)
-        ```
-        """
-
-        raw, err = self.rpc_call('get/impacts/contributions/flows', {
-            'resultId': result.id,
-            'impactCategory': impact.to_dict(),
-        })
-        if err:
-            log.error('failed to get contribution items: %s', err)
-            return []
-        return [ContributionItem.from_dict(it) for it in raw]
-
-    def lcia_location_contributions(self, result: schema.Result,
-                                    impact: schema.Ref) -> List[
-        ContributionItem]:
-        """
-        Get the contributions to the result of the given impact category by
-        locations.
-
-        Parameters
-        ----------
-        result: olca.schema.SimpleResult
-            The result.
-
-        impact: olca.schema.Ref
-            The (reference to the) LCIA category.
-
-
-        Example
-        -------
-        ```python
-        # ...
-        result = client.calculate(setup)
-        # select the first LCIA result
-        impact_result = client.lcia(result)[0]
-        # get the flow contributions to the LCIA category of that result
-        cons = client.lcia_location_contributions(
-            result, impact_result.impact_category)
-        # ...
-        client.dispose(result)
-        ```
-        """
-
-        raw, err = self.rpc_call('get/impacts/contributions/locations', {
-            'resultId': result.id,
-            'impactCategory': impact.to_dict(),
-        })
-        if err:
-            log.error('Failed to get contribution items: %s', err)
-            return []
-        return [ContributionItem.from_dict(it) for it in raw]
-
-    def lcia_process_contributions(self, result: schema.Result,
-                                   impact: schema.Ref) -> List[
-        ContributionItem]:
-        """
-        Get the contributions to the result of the given impact category by
-        processes.
-
-        Parameters
-        ----------
-        result: olca.schema.SimpleResult
-            The result.
-
-        impact: olca.schema.Ref
-            The (reference to the) LCIA category.
-
-
-        Example
-        -------
-        ```python
-        # ...
-        result = client.calculate(setup)
-        # select the first LCIA result
-        impact_result = client.lcia(result)[0]
-        # get the flow contributions to the LCIA category of that result
-        cons = client.lcia_process_contributions(
-            result, impact_result.impact_category)
-        # ...
-        client.dispose(result)
-        ```
-        """
-
-        raw, err = self.rpc_call('get/impacts/contributions/processes', {
-            'resultId': result.id,
-            'impactCategory': impact.to_dict(),
-        })
-        if err:
-            log.error('Failed to get contribution items: %s', err)
-            return []
-        return [ContributionItem.from_dict(it) for it in raw]
-
-    def upstream_tree_of(self, result: schema.Result, ref: schema.Ref,
-                         max_depth=5, min_contribution=0.1,
-                         max_recursion_depth=3) -> Optional[UpstreamTree]:
+    def upstream_tree_of(
+        self,
+        result: schema.Result,
+        ref: schema.Ref,
+        max_depth=5,
+        min_contribution=0.1,
+        max_recursion_depth=3,
+    ) -> Optional[UpstreamTree]:
         """
         Get an upstream tree for an impact category or flow.
 
@@ -849,15 +407,18 @@ class Client(object):
         client.dispose(result)
         ```
         """
-        raw, err = self.rpc_call('get/upstream/tree', {
-            'resultId': result.id,
-            'ref': ref.to_dict(),
-            'maxDepth': max_depth,
-            'minContribution': min_contribution,
-            'maxRecursionDepth': max_recursion_depth
-        })
+        raw, err = self.rpc_call(
+            "get/upstream/tree",
+            {
+                "resultId": result.id,
+                "ref": ref.to_dict(),
+                "maxDepth": max_depth,
+                "minContribution": min_contribution,
+                "maxRecursionDepth": max_recursion_depth,
+            },
+        )
         if err:
-            log.error('Failed to get upstream tree: %s', err)
+            log.error("Failed to get upstream tree: %s", err)
             return None
         return UpstreamTree.from_dict(raw)
 
@@ -868,19 +429,18 @@ class Client(object):
         It returns a tuple (result, error).
         """
         req = {
-            'jsonrpc': '2.0',
-            'id': self.next_id,
-            'method': method,
-            'params': params
+            "jsonrpc": "2.0",
+            "id": self.next_id,
+            "method": method,
+            "params": params,
         }
         self.next_id += 1
         resp: dict = requests.post(self.url, json=req).json()
-        err: dict = resp.get('error')
+        err: dict | None = resp.get("error")
         if err is not None:
-            err_msg = '%i: %s' % (err.get('code'), err.get('message'))
+            err_msg = "%i: %s" % (err.get("code"), err.get("message"))
             return None, err_msg
-        result = resp.get('result')
+        result = resp.get("result")
         if result is None:
-            err_msg = 'No error and no result: invalid JSON-RPC response'
-            return None, err_msg
+            return None, "No error and no result: invalid JSON-RPC response"
         return result, None

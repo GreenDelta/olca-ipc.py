@@ -22,28 +22,27 @@ class AllocationTest(unittest.TestCase):
         # these reference data and that there are not
         # multiple flow properties or units with the
         # name 'Mass' or ' kg' in this database
-        mass = client.get(lca.FlowProperty, name='Mass')
-        kg = units.unit_ref('kg')
-        self.assertIsNotNone(mass)
-        self.assertIsNotNone(kg)
+        mass = client.get(lca.FlowProperty, name="Mass")
+        assert mass is not None
+        kg = units.unit_ref("kg")
+        assert kg is not None
 
         # create some flows
-        p = lca.new_product('p', mass)
-        q = lca.new_product('q', mass)
-        e = lca.new_elementary_flow('e', mass)
+        p = lca.new_product("p", mass)
+        q = lca.new_product("q", mass)
+        e = lca.new_elementary_flow("e", mass)
         for f in [p, q, e]:
             client.insert(f)
 
         # create a process with inputs and outputs
-        process = lca.new_process('P')
-        lca.new_output(process, p, 1.0, kg) \
-            .is_quantitative_reference = True
+        process = lca.new_process("P")
+        assert process.id is not None
+        lca.new_output(process, p, 1.0, kg).is_quantitative_reference = True
         lca.new_output(process, q, 1.0, kg)
         ex = lca.new_output(process, e, 1.0, kg)
 
         # define some allocation factors
-        process.default_allocation_method = \
-            lca.AllocationType.CAUSAL_ALLOCATION
+        process.default_allocation_method = lca.AllocationType.CAUSAL_ALLOCATION
         lca.new_physical_allocation_factor(process, p, 0.25)
         lca.new_physical_allocation_factor(process, q, 0.75)
         lca.new_economic_allocation_factor(process, p, 0.4)
@@ -54,11 +53,12 @@ class AllocationTest(unittest.TestCase):
         # save the process and create the product system
         client.insert(process)
         system = client.create_product_system(process.id)
+        assert system is not None
         setup = res.CalculationSetup()
-        setup.product_system = system
-        setup.target = lca.Ref(model_type='ProductSystem', id=system.id)
+        setup.target = system
+        setup.target = lca.Ref(model_type="ProductSystem", id=system.id)
         setup.amount = 500
-        setup.unit = units.unit_ref('g')
+        setup.unit = units.unit_ref("g")
 
         expected = [
             (lca.AllocationType.PHYSICAL_ALLOCATION, 0.125),
@@ -69,17 +69,21 @@ class AllocationTest(unittest.TestCase):
             (None, 0.5),
         ]
         for (method, value) in expected:
-            print('test with allocation method = %s ...' % method)
-            setup.allocation_method = method
+            print("test with allocation method = %s ..." % method)
+            setup.allocation = method
             result = client.calculate(setup)
             result.wait_until_ready()
             # get the result for 'e'; when there is no allocation applied
             # we also have a result for ' q' in our list
-            fr = next(r for r in result.get_total_flows() if r.envi_flow.flow.id == e.id)
+            fr = next(
+                r
+                for r in result.get_total_flows()
+                if r.envi_flow.flow.id == e.id
+            )
             self.assertFalse(fr.envi_flow.is_input)
             self.assertAlmostEqual(value, fr.amount)
             client.dispose(result)
-            print(' ... success')
+            print(" ... success")
 
         # set drop to False if you want to inspect the process in openLCA
         drop = False

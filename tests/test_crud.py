@@ -1,6 +1,6 @@
 import unittest
 
-import olca as ipc
+import olca_ipc as ipc
 import olca_schema as lca
 
 
@@ -11,7 +11,7 @@ class CrudTest(unittest.TestCase):
 
         # create a unit group
         units = lca.new_unit_group('Units of mass', 'kg')
-        client.insert(units)
+        client.put(units)
         units = client.get(lca.UnitGroup, units.id)
         self.assertEqual('kg', units.units[0].name)
 
