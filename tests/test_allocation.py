@@ -1,8 +1,9 @@
 import unittest
 
-import olca as ipc
+import olca_ipc as ipc
 import olca_schema as lca
 import olca_schema.units as units
+import olca_schema.results as res
 
 
 class AllocationTest(unittest.TestCase):
@@ -53,8 +54,9 @@ class AllocationTest(unittest.TestCase):
         # save the process and create the product system
         client.insert(process)
         system = client.create_product_system(process.id)
-        setup = ipc.CalculationSetup()
+        setup = res.CalculationSetup()
         setup.product_system = system
+        setup.target = lca.Ref(model_type='ProductSystem', id=system.id)
         setup.amount = 500
         setup.unit = units.unit_ref('g')
 
@@ -70,11 +72,12 @@ class AllocationTest(unittest.TestCase):
             print('test with allocation method = %s ...' % method)
             setup.allocation_method = method
             result = client.calculate(setup)
+            result.wait_until_ready()
             # get the result for 'e'; when there is no allocation applied
             # we also have a result for ' q' in our list
-            fr = next(r for r in result.flow_results if r.flow.id == e.id)
-            self.assertFalse(fr.input)
-            self.assertAlmostEqual(value, fr.value)
+            fr = next(r for r in result.get_total_flows() if r.envi_flow.flow.id == e.id)
+            self.assertFalse(fr.envi_flow.is_input)
+            self.assertAlmostEqual(value, fr.amount)
             client.dispose(result)
             print(' ... success')
 
