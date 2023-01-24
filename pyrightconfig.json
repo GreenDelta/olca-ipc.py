@@ -2,8 +2,8 @@
     "reportMissingTypeStubs": "none",
     "strictParameterNoneValue": false,
     "reportUnusedImport": "warning",
-    "reportOptionalMemberAccess": "information",
+    "reportOptionalMemberAccess": "none",
     "reportOptionalCall": "information",
-    "reportOptionalSubscript": "information",
+    "reportOptionalSubscript": "none",
     "reportGeneralTypeIssues": "information"
 }
