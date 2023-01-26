@@ -64,6 +64,10 @@ class Client(object):
             return None
         return schema.Ref.from_dict(resp)
 
+    def put_all(self, *models: schema.RootEntity):
+        for model in models:
+            self.put(model)
+
     def delete(
         self, model: schema.RootEntity | schema.Ref
     ) -> schema.Ref | None:
