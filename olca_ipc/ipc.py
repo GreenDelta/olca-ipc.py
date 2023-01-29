@@ -5,6 +5,7 @@ import requests
 import olca_schema as schema
 import olca_schema.results as results
 
+from .protocol import IpcProtocol
 from .ipc_types import *
 from .result import Result
 
@@ -29,7 +30,7 @@ def _model_class(param: ModelType) -> Type:
         return param
 
 
-class Client(object):
+class Client(IpcProtocol):
     """
     A client to communicate with an openLCA IPC server over the JSON-RPC
     protocol.
@@ -57,16 +58,11 @@ class Client(object):
     def put(self, model: schema.RootEntity) -> schema.Ref | None:
         if model is None:
             return None
-        json = model.to_dict()
-        resp, err = self.rpc_call("data/put", json)
+        resp, err = self.rpc_call("data/put", model.to_dict())
         if err:
             log.error("failed to insert model: %s", err)
             return None
         return schema.Ref.from_dict(resp)
-
-    def put_all(self, *models: schema.RootEntity):
-        for model in models:
-            self.put(model)
 
     def delete(
         self, model: schema.RootEntity | schema.Ref
@@ -178,7 +174,7 @@ class Client(object):
 
     def get_descriptor(
         self, model_type: ModelType, uid="", name=""
-    ) -> Optional[schema.Ref]:
+    ) -> schema.Ref | None:
         params = {"@type": _model_type(model_type)}
         if uid != "":
             params["@id"] = uid
@@ -190,7 +186,7 @@ class Client(object):
             return None
         return schema.Ref.from_dict(result)
 
-    def get(self, model_type: Type[E], uid="", name="") -> Optional[E]:
+    def get(self, model_type: Type[E], uid="", name="") -> E | None:
         params = {"@type": _model_type(model_type)}
         if uid != "":
             params["@id"] = uid
@@ -207,13 +203,7 @@ class Client(object):
         result, err = self.rpc_call("data/get/all", params)
         if err:
             log.error("failed to get all of type %s: %s", model_type, err)
-        clazz = _model_class(model_type)
-        return [clazz.from_dict(r) for r in result]
-
-    def find(self, model_type: ModelType, name: str) -> schema.Ref | None:
-        for d in self.get_descriptors(model_type):
-            if d.name == name:
-                return d
+        return [model_type.from_dict(r) for r in result]
 
     def get_providers(
         self, flow: schema.Ref | schema.Flow | None = None

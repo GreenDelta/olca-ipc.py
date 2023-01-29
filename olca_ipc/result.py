@@ -1,7 +1,6 @@
 import logging as log
 import olca_schema as schema
 import olca_schema.results as res
-import time
 import typing
 
 from dataclasses import dataclass
@@ -10,9 +9,11 @@ from typing import List, Optional
 if typing.TYPE_CHECKING:
     from .ipc import Client
 
+from protocol import IpcResult
+
 
 @dataclass
-class Result:
+class Result(IpcResult):
     uid: str
     client: "Client"
     error: Optional[res.ResultState]
@@ -25,23 +26,12 @@ class Result:
             return res.ResultState(id=self.uid, error=err)
         return res.ResultState.from_dict(state)
 
-    def wait_until_ready(self) -> res.ResultState:
-        state = self.get_state()
-        if not state.is_scheduled:
-            return state
-        while state.is_scheduled:
-            time.sleep(0.5)
-            state = self.get_state()
-            if not state.is_scheduled:
-                return state
-        return res.ResultState(error="did not finished")
-
     def dispose(self):
         if self.error is not None:
             return
         self.client.rpc_call("result/dispose", {"@id": self.uid})
 
-    def get_tech_flows(self) -> List[res.TechFlow]:
+    def get_tech_flows(self) -> list[res.TechFlow]:
         (data, err) = self.client.rpc_call(
             "result/tech-flows", {"@id": self.uid}
         )
