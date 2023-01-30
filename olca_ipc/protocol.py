@@ -174,6 +174,8 @@ class IpcResult:
     ) -> res.EnviFlowValue:
         pass
 
+# region: impacts
+
     @abstractmethod
     def get_total_impacts(self) -> list[res.ImpactValue]:
         pass
@@ -182,6 +184,14 @@ class IpcResult:
     def get_total_impact_value_of(
         self, impact_category: schema.Ref
     ) -> res.ImpactValue:
+        pass
+
+    @abstractmethod
+    def get_normalized_impacts(self) -> list[res.ImpactValue]:
+        pass
+
+    @abstractmethod
+    def get_weighted_impacts(self) -> list[res.ImpactValue]:
         pass
 
     @abstractmethod
@@ -249,6 +259,8 @@ class IpcResult:
         self, impact_category: schema.Ref, envi_flow: res.EnviFlow
     ) -> res.EnviFlowValue:
         pass
+
+# endregion: impacts
 
     @abstractmethod
     def get_total_costs(self) -> res.CostValue:

@@ -35,6 +35,12 @@ class SimpleCalculationTest(unittest.TestCase):
         for entity in self.entities:
             client.delete(entity)
 
+    def test_demand(self):
+        demand = self.result.get_demand()
+        self.assertEqual("P", demand.tech_flow.provider.name)
+        self.assertEqual("p", demand.tech_flow.flow.name)
+        self.assertEqual(2, demand.amount)
+
     def test_tech_flow(self):
         tech_flow = self.get_tech_flow()
         self.assertEqual("P", tech_flow.provider.name)
@@ -64,8 +70,8 @@ class SimpleCalculationTest(unittest.TestCase):
         tech_flow = self.get_tech_flow()
         xs = [
             self.result.get_total_flows(),
-            self.result.get_direct_flows_of(tech_flow),
-            self.result.get_total_flows_of(tech_flow),
+            self.result.get_direct_interventions_of(tech_flow),
+            self.result.get_total_interventions_of(tech_flow),
         ]
         for r in xs:
             value: results.EnviFlowValue = next(
@@ -78,8 +84,8 @@ class SimpleCalculationTest(unittest.TestCase):
         tech_flow = self.get_tech_flow()
         values = [
             self.result.get_total_flow_value_of(envi_flow),
-            self.result.get_total_flow_of(envi_flow, tech_flow),
-            self.result.get_direct_flow_of(envi_flow, tech_flow),
+            self.result.get_total_intervention_of(envi_flow, tech_flow),
+            self.result.get_direct_intervention_of(envi_flow, tech_flow),
         ]
         for v in values:
             self.assertEqual(42, v)

@@ -192,7 +192,7 @@ class Result(IpcResult):
         self.client.rpc_call("result/dispose", {"@id": self.uid})
 
     def get_demand(self) -> res.TechFlowValue | None:
-        (data, err) = self.client.rpc_call("result/demand", {"@id", self.uid})
+        (data, err) = self.client.rpc_call("result/demand", {"@id": self.uid})
         if err:
             log.error("failed to get demand: %s", err)
             return None
@@ -239,6 +239,8 @@ class Result(IpcResult):
             return 0
         return r
 
+# region: flows
+
     def get_total_flows(self) -> list[res.EnviFlowValue]:
         args = {"@id": self.uid}
         (r, err) = self.client.rpc_call("result/total-flows", args)
@@ -269,7 +271,7 @@ class Result(IpcResult):
         self, tech_flow: res.TechFlow
     ) -> list[res.EnviFlowValue]:
         args = {"@id": self.uid, "techFlow": tech_flow.to_dict()}
-        (r, err) = self.client.rpc_call("result/direct-flows-of", args)
+        (r, err) = self.client.rpc_call("result/direct-interventions-of", args)
         if err:
             log.error("request direct-flows-of failed: %s", err)
             return []
@@ -337,6 +339,8 @@ class Result(IpcResult):
             return 0
         return r
 
+# endregion: flows
+
     def get_total_impacts(self) -> list[res.ImpactValue]:
         args = {"@id": self.uid}
         (r, err) = self.client.rpc_call("result/total-impacts", args)
@@ -354,6 +358,22 @@ class Result(IpcResult):
             log.error("request total-impact-value-of failed: %s", err)
             return res.ImpactValue(amount=0, impact_category=impact_category)
         return res.ImpactValue.from_dict(r)
+
+    def get_normalized_impacts(self) -> list[res.ImpactValue]:
+        (r, err) = self.client.rpc_call(
+            "result/total-impacts/normalized", {"@id": self.uid})
+        if err:
+            log.error("failed to get normalized impacts: %s", err)
+            return []
+        return [res.ImpactValue.from_dict(d) for d in r]
+
+    def get_weighted_impacts(self) -> list[res.ImpactValue]:
+        (r, err) = self.client.rpc_call(
+            "result/total-impacts/weighted", {"@id": self.uid})
+        if err:
+            log.error("failed to get weighted impacts: %s", err)
+            return []
+        return [res.ImpactValue.from_dict(d) for d in r]
 
     def get_impact_contributions_of(
         self, impact_category: schema.Ref
