@@ -23,13 +23,6 @@ def _model_type(param: ModelType) -> str:
         return param.__name__
 
 
-def _model_class(param: ModelType) -> Type:
-    if isinstance(param, str):
-        return schema.__dict__[param]
-    else:
-        return param
-
-
 class Client(IpcProtocol):
     """
     A client to communicate with an openLCA IPC server over the JSON-RPC
@@ -196,7 +189,7 @@ class Client(IpcProtocol):
         if err:
             log.warning("failed to get entity of type %s: %s", model_type, err)
             return None
-        return _model_class(model_type).from_dict(result)
+        return model_type.from_dict(result)
 
     def get_all(self, model_type: Type[E]) -> list[E]:
         params = {"@type": model_type.__name__}
