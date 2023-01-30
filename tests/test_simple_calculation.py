@@ -16,14 +16,19 @@ class SimpleCalculationTest(unittest.TestCase):
         schema.new_output(process, p, amount=1).is_quantitative_reference = True
         schema.new_output(process, e, amount=21)
 
+        i = schema.new_impact_category("i")
+        schema.new_impact_factor(i, e, 0.5)
+        method = schema.new_impact_method("M", i)
+
         self.process = process
         self.e = e
-        self.entities = [units, mass, e, p, process]
+        self.entities = [units, mass, e, p, process, i, method]
         for entity in self.entities:
             client.put(entity)
 
         setup = results.CalculationSetup(
-            target=schema.Ref(model_type="Process", id=process.id),
+            target=process.to_ref(),
+            impact_method=method.to_ref(),
             amount=2,  # kg
         )
         self.result = client.calculate(setup)
@@ -51,6 +56,10 @@ class SimpleCalculationTest(unittest.TestCase):
         envi_flow = self.get_envi_flow()
         self.assertEqual("e", envi_flow.flow.name)
         self.assertEqual("kg", envi_flow.flow.ref_unit)
+
+    def test_impact(self):
+        impact = self.get_impact()
+        self.assertEqual("i", impact.name)
 
     def test_tech_flow_values(self):
         r = self.result
@@ -88,7 +97,32 @@ class SimpleCalculationTest(unittest.TestCase):
             self.result.get_direct_intervention_of(envi_flow, tech_flow),
         ]
         for v in values:
-            self.assertEqual(42, v)
+            self.assertEqual(42, v.amount)
+            self.assertEqual("e", v.envi_flow.flow.name)
+            self.assertEqual("kg", v.envi_flow.flow.ref_unit)
+
+    def test_impact_values(self):
+        tech_flow = self.get_tech_flow()
+        xs = [
+            self.result.get_total_impacts(),
+            self.result.get_direct_impacts_of(tech_flow),
+            self.result.get_total_impacts_of(tech_flow),
+        ]
+        for r in xs:
+            value: results.ImpactValue = r[0]
+            self.assertEqual(21, value.amount)
+
+    def test_impact_value(self):
+        tech_flow = self.get_tech_flow()
+        impact = self.get_impact()
+        values = [
+            self.result.get_total_impact_value_of(impact),
+            self.result.get_direct_impact_of(impact, tech_flow),
+            self.result.get_total_impact_of(impact, tech_flow),
+        ]
+        for v in values:
+            self.assertEqual(21, v.amount)
+            self.assertEqual("i", v.impact_category.name)
 
     def get_tech_flow(self) -> results.TechFlow:
         tech_flows = self.result.get_tech_flows()
@@ -103,6 +137,13 @@ class SimpleCalculationTest(unittest.TestCase):
             if envi_flow.flow and envi_flow.flow.id == self.e.id:
                 return envi_flow
         raise ValueError("envi. flow not found")
+
+    def get_impact(self) -> schema.Ref:
+        impacts = self.result.get_impact_categories()
+        for i in impacts:
+            if i.name == "i":
+                return i
+        raise ValueError("impact category not found")
 
 
 if __name__ == "__main__":
