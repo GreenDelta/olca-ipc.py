@@ -145,7 +145,9 @@ class Client(IpcProtocol):
         state = res.ResultState.from_dict(resp)
         return Result(uid=state.id, client=self, error=None)
 
-    def rpc_call(self, method: str, params) -> Tuple[Any, Optional[str]]:
+    def rpc_call(
+        self, method: str, params: Any = None
+    ) -> Tuple[Any, Optional[str]]:
         """
         Performs a JSON-RPC request with the given parameters.
 
@@ -155,8 +157,9 @@ class Client(IpcProtocol):
             "jsonrpc": "2.0",
             "id": self.next_id,
             "method": method,
-            "params": params,
         }
+        if params is not None:
+            req["params"] = params
         self.next_id += 1
         resp: dict = requests.post(self.url, json=req).json()
         err: dict | None = resp.get("error")
@@ -187,6 +190,13 @@ class Result(IpcResult):
         if self.error is not None:
             return
         self.client.rpc_call("result/dispose", {"@id": self.uid})
+
+    def get_demand(self) -> res.TechFlowValue | None:
+        (data, err) = self.client.rpc_call("result/demand", {"@id", self.uid})
+        if err:
+            log.error("failed to get demand: %s", err)
+            return None
+        return res.TechFlowValue.from_dict(data)
 
     def get_tech_flows(self) -> list[res.TechFlow]:
         (data, err) = self.client.rpc_call(
@@ -245,27 +255,17 @@ class Result(IpcResult):
             return 0
         return r
 
-    def get_direct_flow_values_of(
+    def get_flow_contributions_of(
         self, envi_flow: res.EnviFlow
     ) -> list[res.TechFlowValue]:
         args = {"@id": self.uid, "enviFlow": envi_flow.to_dict()}
-        (r, err) = self.client.rpc_call("result/direct-flow-values-of", args)
+        (r, err) = self.client.rpc_call("result/flow-contributions-of", args)
         if err:
             log.error("request direct-flow-values-of failed: %s", err)
             return []
         return [res.TechFlowValue.from_dict(d) for d in r]
 
-    def get_total_flow_values_of(
-        self, envi_flow: res.EnviFlow
-    ) -> list[res.TechFlowValue]:
-        args = {"@id": self.uid, "enviFlow": envi_flow.to_dict()}
-        (r, err) = self.client.rpc_call("result/total-flow-values-of", args)
-        if err:
-            log.error("request total-flow-values-of failed: %s", err)
-            return []
-        return [res.TechFlowValue.from_dict(d) for d in r]
-
-    def get_direct_flows_of(
+    def get_direct_interventions_of(
         self, tech_flow: res.TechFlow
     ) -> list[res.EnviFlowValue]:
         args = {"@id": self.uid, "techFlow": tech_flow.to_dict()}
@@ -275,7 +275,7 @@ class Result(IpcResult):
             return []
         return [res.EnviFlowValue.from_dict(d) for d in r]
 
-    def get_direct_flow_of(
+    def get_direct_intervention_of(
         self, envi_flow: res.EnviFlow, tech_flow: res.TechFlow
     ) -> float:
         args = {
@@ -283,23 +283,23 @@ class Result(IpcResult):
             "enviFlow": envi_flow.to_dict(),
             "techFlow": tech_flow.to_dict(),
         }
-        (r, err) = self.client.rpc_call("result/direct-flow-of", args)
+        (r, err) = self.client.rpc_call("result/direct-intervention-of", args)
         if err:
             log.error("request direct-flow-of failed: %s", err)
             return 0
         return r
 
-    def get_total_flows_of_one(
+    def get_flow_intensities_of(
         self, tech_flow: res.TechFlow
     ) -> list[res.EnviFlowValue]:
         args = {"@id": self.uid, "techFlow": tech_flow.to_dict()}
-        (r, err) = self.client.rpc_call("result/total-flows-of-one", args)
+        (r, err) = self.client.rpc_call("result/flow-intensities-of", args)
         if err:
             log.error("request total-flows-of-one failed: %s", err)
             return []
         return [res.EnviFlowValue.from_dict(d) for d in r]
 
-    def get_total_flow_of_one(
+    def get_flow_intensity_of(
         self, envi_flow: res.EnviFlow, tech_flow: res.TechFlow
     ) -> float:
         args = {
@@ -307,23 +307,23 @@ class Result(IpcResult):
             "enviFlow": envi_flow.to_dict(),
             "techFlow": tech_flow.to_dict(),
         }
-        (r, err) = self.client.rpc_call("result/total-flow-of-one", args)
+        (r, err) = self.client.rpc_call("result/flow-intensity-of", args)
         if err:
             log.error("request total-flow-of-one failed: %s", err)
             return 0
         return r
 
-    def get_total_flows_of(
+    def get_total_interventions_of(
         self, tech_flow: res.TechFlow
     ) -> list[res.EnviFlowValue]:
         args = {"@id": self.uid, "techFlow": tech_flow.to_dict()}
-        (r, err) = self.client.rpc_call("result/total-flows-of", args)
+        (r, err) = self.client.rpc_call("result/total-interventions-of", args)
         if err:
             log.error("request total-flows-of failed: %s", err)
             return []
         return [res.EnviFlowValue.from_dict(d) for d in r]
 
-    def get_total_flow_of(
+    def get_total_intervention_of(
         self, envi_flow: res.EnviFlow, tech_flow: res.TechFlow
     ) -> float:
         args = {
@@ -331,7 +331,7 @@ class Result(IpcResult):
             "enviFlow": envi_flow.to_dict(),
             "techFlow": tech_flow.to_dict(),
         }
-        (r, err) = self.client.rpc_call("result/total-flow-of", args)
+        (r, err) = self.client.rpc_call("result/total-intervention-of", args)
         if err:
             log.error("request total-flow-of failed: %s", err)
             return 0
@@ -345,31 +345,23 @@ class Result(IpcResult):
             return []
         return [res.ImpactValue.from_dict(d) for d in r]
 
-    def get_total_impact_value_of(self, impact_category: schema.Ref) -> float:
+    def get_total_impact_value_of(
+        self, impact_category: schema.Ref
+    ) -> res.ImpactValue:
         args = {"@id": self.uid, "impactCategory": impact_category.to_dict()}
         (r, err) = self.client.rpc_call("result/total-impact-value-of", args)
         if err:
             log.error("request total-impact-value-of failed: %s", err)
-            return 0
-        return r
+            return res.ImpactValue(amount=0, impact_category=impact_category)
+        return res.ImpactValue.from_dict(r)
 
-    def get_direct_impact_values_of(
+    def get_impact_contributions_of(
         self, impact_category: schema.Ref
     ) -> list[res.TechFlowValue]:
         args = {"@id": self.uid, "impactCategory": impact_category.to_dict()}
-        (r, err) = self.client.rpc_call("result/direct-impact-values-of", args)
+        (r, err) = self.client.rpc_call("result/impact-contributions-of", args)
         if err:
             log.error("request direct-impact-values-of failed: %s", err)
-            return []
-        return [res.TechFlowValue.from_dict(d) for d in r]
-
-    def get_total_impact_values_of(
-        self, impact_category: schema.Ref
-    ) -> list[res.TechFlowValue]:
-        args = {"@id": self.uid, "impactCategory": impact_category.to_dict()}
-        (r, err) = self.client.rpc_call("result/total-impact-values-of", args)
-        if err:
-            log.error("request total-impact-values-of failed: %s", err)
             return []
         return [res.TechFlowValue.from_dict(d) for d in r]
 
@@ -385,7 +377,7 @@ class Result(IpcResult):
 
     def get_direct_impact_of(
         self, impact_category: schema.Ref, tech_flow: res.TechFlow
-    ) -> float:
+    ) -> res.ImpactValue:
         args = {
             "@id": self.uid,
             "impactCategory": impact_category.to_dict(),
@@ -394,10 +386,10 @@ class Result(IpcResult):
         (r, err) = self.client.rpc_call("result/direct-impact-of", args)
         if err:
             log.error("request direct-impact-of failed: %s", err)
-            return 0
-        return r
+            return res.ImpactValue(amount=0, impact_category=impact_category)
+        return res.ImpactValue.from_dict(r)
 
-    def get_total_impacts_of_one(
+    def get_impact_intensities_of(
         self, tech_flow: res.TechFlow
     ) -> list[res.ImpactValue]:
         args = {"@id": self.uid, "techFlow": tech_flow.to_dict()}
@@ -407,19 +399,19 @@ class Result(IpcResult):
             return []
         return [res.ImpactValue.from_dict(d) for d in r]
 
-    def get_total_impact_of_one(
+    def get_impact_intensity_of(
         self, impact_category: schema.Ref, tech_flow: res.TechFlow
-    ) -> float:
+    ) -> res.ImpactValue:
         args = {
             "@id": self.uid,
             "impactCategory": impact_category.to_dict(),
             "techFlow": tech_flow.to_dict(),
         }
-        (r, err) = self.client.rpc_call("result/total-impact-of-one", args)
+        (r, err) = self.client.rpc_call("result/impact-intensity-of", args)
         if err:
             log.error("request total-impact-of-one failed: %s", err)
-            return 0
-        return r
+            return res.ImpactValue(amount=0, impact_category=impact_category)
+        return res.ImpactValue.from_dict(r)
 
     def get_total_impacts_of(
         self, tech_flow: res.TechFlow
@@ -433,7 +425,7 @@ class Result(IpcResult):
 
     def get_total_impact_of(
         self, impact_category: schema.Ref, tech_flow: res.TechFlow
-    ) -> float:
+    ) -> res.ImpactValue:
         args = {
             "@id": self.uid,
             "impactCategory": impact_category.to_dict(),
@@ -442,8 +434,8 @@ class Result(IpcResult):
         (r, err) = self.client.rpc_call("result/total-impact-of", args)
         if err:
             log.error("request total-impact-of failed: %s", err)
-            return 0
-        return r
+            return res.ImpactValue(amount=0, impact_category=impact_category)
+        return res.ImpactValue.from_dict(r)
 
     def get_impact_factors_of(
         self, impact_category: schema.Ref
@@ -469,29 +461,19 @@ class Result(IpcResult):
             return 0
         return r
 
-    def get_flow_impacts_of_one(
-        self, envi_flow: res.EnviFlow
-    ) -> list[res.ImpactValue]:
-        args = {"@id": self.uid, "enviFlow": envi_flow.to_dict()}
-        (r, err) = self.client.rpc_call("result/flow-impacts-of-one", args)
-        if err:
-            log.error("request flow-impacts-of-one failed: %s", err)
-            return []
-        return [res.ImpactValue.from_dict(d) for d in r]
-
     def get_flow_impacts_of(
-        self, envi_flow: res.EnviFlow
-    ) -> list[res.ImpactValue]:
-        args = {"@id": self.uid, "enviFlow": envi_flow.to_dict()}
+        self, impact_category: schema.Ref
+    ) -> list[res.EnviFlowValue]:
+        args = {"@id": self.uid, "impactCategory": impact_category.to_dict()}
         (r, err) = self.client.rpc_call("result/flow-impacts-of", args)
         if err:
             log.error("request flow-impacts-of failed: %s", err)
             return []
-        return [res.ImpactValue.from_dict(d) for d in r]
+        return [res.EnviFlowValue.from_dict(d) for d in r]
 
     def get_flow_impact_of(
         self, impact_category: schema.Ref, envi_flow: res.EnviFlow
-    ) -> float:
+    ) -> res.EnviFlowValue:
         args = {
             "@id": self.uid,
             "impactCategory": impact_category.to_dict(),
@@ -500,40 +482,22 @@ class Result(IpcResult):
         (r, err) = self.client.rpc_call("result/flow-impact-of", args)
         if err:
             log.error("request flow-impact-of failed: %s", err)
-            return 0
-        return 0
+            return res.EnviFlowValue(amount=0, envi_flow=envi_flow)
+        return res.EnviFlowValue.from_dict(r)
 
-    def get_flow_impact_values_of(
-        self, impact_category: schema.Ref
-    ) -> list[res.EnviFlowValue]:
-        args = {"@id": self.uid, "impactCategory": impact_category.to_dict()}
-        (r, err) = self.client.rpc_call("result/flow-impact-values-of", args)
-        if err:
-            log.error("request flow-impact-values-of failed: %s", err)
-            return []
-        return [res.EnviFlowValue.from_dict(d) for d in r]
-
-    def get_total_costs(self) -> float:
+    def get_total_costs(self) -> res.CostValue:
         args = {"@id": self.uid}
         (r, err) = self.client.rpc_call("result/total-costs", args)
         if err:
             log.error("request total-costs failed: %s", err)
-            return 0
-        return r
+            return res.CostValue(amount=0)
+        return res.CostValue.from_dict(r)
 
-    def get_direct_cost_values(self) -> list[res.TechFlowValue]:
+    def get_cost_contributions(self) -> list[res.TechFlowValue]:
         args = {"@id": self.uid}
-        (r, err) = self.client.rpc_call("result/direct-cost-values", args)
+        (r, err) = self.client.rpc_call("result/cost-contributions", args)
         if err:
             log.error("request direct-cost-values failed: %s", err)
-            return []
-        return [res.TechFlowValue.from_dict(d) for d in r]
-
-    def get_total_cost_values(self) -> list[res.TechFlowValue]:
-        args = {"@id": self.uid}
-        (r, err) = self.client.rpc_call("result/total-cost-values", args)
-        if err:
-            log.error("request total-cost-values failed: %s", err)
             return []
         return [res.TechFlowValue.from_dict(d) for d in r]
 
@@ -545,9 +509,9 @@ class Result(IpcResult):
             return 0
         return r
 
-    def get_total_costs_of_one(self, tech_flow: res.TechFlow) -> float:
+    def get_cost_intensities_of(self, tech_flow: res.TechFlow) -> float:
         args = {"@id": self.uid, "techFlow": tech_flow.to_dict()}
-        (r, err) = self.client.rpc_call("result/total-costs-of-one", args)
+        (r, err) = self.client.rpc_call("result/cost-intensities-of", args)
         if err:
             log.error("request total-costs-of-one failed: %s", err)
             return 0

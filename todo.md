@@ -257,3 +257,7 @@ Removed Excel - Exports from the IPC protocol as this is out-of-scope:
         if err:
             log.error("Excel export to %s failed: %s", path, err)
 ```
+
+* result/demand
+* get_direct_flows_of
+  * ->

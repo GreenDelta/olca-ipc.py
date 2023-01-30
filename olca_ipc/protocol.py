@@ -57,7 +57,7 @@ class IpcProtocol:
     def create_product_system(
         self,
         process: schema.Ref | schema.Process,
-        config: schema.LinkingConfig | None = None
+        config: schema.LinkingConfig | None = None,
     ) -> schema.Ref | None:
         pass
 
@@ -163,13 +163,13 @@ class IpcResult:
         pass
 
     @abstractmethod
-    def get_total_flows_of(
+    def get_total_interventions_of(
         self, tech_flow: res.TechFlow
     ) -> list[res.EnviFlowValue]:
         pass
 
     @abstractmethod
-    def get_total_flow_of(
+    def get_total_intervention_of(
         self, envi_flow: res.EnviFlow, tech_flow: res.TechFlow
     ) -> res.EnviFlowValue:
         pass
@@ -242,6 +242,12 @@ class IpcResult:
     def get_flow_impacts_of(
         self, impact_category: schema.Ref
     ) -> list[res.EnviFlowValue]:
+        pass
+
+    @abstractmethod
+    def get_flow_impact_of(
+        self, impact_category: schema.Ref, envi_flow: res.EnviFlow
+    ) -> res.EnviFlowValue:
         pass
 
     @abstractmethod
