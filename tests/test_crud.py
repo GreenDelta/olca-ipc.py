@@ -1,12 +1,12 @@
 import unittest
 
-import olca_ipc as ipc
 import olca_schema as lca
+
+from config import client
 
 
 class CrudTest(unittest.TestCase):
     def test_unit_group(self):
-        client = ipc.Client()
 
         # create a unit group
         units = lca.new_unit_group("Units of mass", "kg")
@@ -41,21 +41,20 @@ class CrudTest(unittest.TestCase):
         process = lca.new_process("Steel production")
         lca.new_output(process, steel).is_quantitative_reference = True
 
-        with ipc.Client() as client:
-            for e in [units, mass, steel, process]:
-                client.put(e)
-            assert process.id is not None
-            process = client.get(lca.Process, process.id)
+        for e in [units, mass, steel, process]:
+            client.put(e)
+        assert process.id is not None
+        process = client.get(lca.Process, process.id)
 
-            output = process.exchanges[0]
-            self.assertEqual(steel.id, output.flow.id)
-            self.assertTrue(output.is_quantitative_reference)
-            self.assertFalse(output.is_input)
-            self.assertFalse(output.is_avoided_product)
-            self.assertEqual(1.0, output.amount)
+        output = process.exchanges[0]
+        self.assertEqual(steel.id, output.flow.id)
+        self.assertTrue(output.is_quantitative_reference)
+        self.assertFalse(output.is_input)
+        self.assertFalse(output.is_avoided_product)
+        self.assertEqual(1.0, output.amount)
 
-            for e in [process, steel, mass, units]:
-                client.delete(e)
+        for e in [process, steel, mass, units]:
+            client.delete(e)
 
 
 if __name__ == "__main__":

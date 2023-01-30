@@ -247,7 +247,7 @@ class IpcResult:
         pass
 
     @abstractmethod
-    def get_cost_contibutions(self) -> list[res.TechFlowValue]:
+    def get_cost_contributions(self) -> list[res.TechFlowValue]:
         pass
 
     @abstractmethod

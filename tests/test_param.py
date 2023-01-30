@@ -1,14 +1,14 @@
-import olca_ipc as ipc
 import olca_schema as lca
 
 import unittest
+
+from config import client
 
 
 class ParamTest(unittest.TestCase):
     def test_global_params(self):
         x = lca.new_parameter("X", 4.0)
         y = lca.new_parameter("Y", "X * 10")
-        client = ipc.Client()
         client.put(x)
         client.put(y)
 

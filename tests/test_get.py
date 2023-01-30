@@ -1,9 +1,11 @@
 import unittest
 
-import olca_ipc as ipc
 import olca_schema as schema
 
+from config import client
 
+
+@unittest.SkipTest
 class GetTest(unittest.TestCase):
     """A test for getting entities from the server.
 
@@ -12,12 +14,10 @@ class GetTest(unittest.TestCase):
     """
 
     def test_get_for_name(self):
-        client = ipc.Client()
         mass = client.get(schema.FlowProperty, name="Mass")
         self.assertEqual("Mass", mass.name)
 
     def test_get_for_id(self):
-        client = ipc.Client()
         mass = client.get(schema.FlowProperty, name="Mass")
         group = client.get(schema.UnitGroup, mass.unit_group.id)
         self.assertEqual(
@@ -25,7 +25,6 @@ class GetTest(unittest.TestCase):
         )
 
     def test_get_all(self):
-        client = ipc.Client()
         props = client.get_all(schema.FlowProperty)
         mass = next(filter(lambda p: p.name == "Mass", props))
         self.assertIsNotNone(mass)

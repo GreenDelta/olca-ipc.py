@@ -9,7 +9,7 @@ from typing import List, Optional
 if typing.TYPE_CHECKING:
     from .ipc import Client
 
-from protocol import IpcResult
+from .protocol import IpcResult
 
 
 @dataclass

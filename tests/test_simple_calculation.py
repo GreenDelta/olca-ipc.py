@@ -1,11 +1,12 @@
 import unittest
 
-import olca_ipc as ipc
 import olca_schema as schema
 import olca_schema.results as results
 
+from config import client
 
-class SimpleCalculatioTest(unittest.TestCase):
+
+class SimpleCalculationTest(unittest.TestCase):
     def setUp(self):
         units = schema.new_unit_group("Units of mass", "kg")
         mass = schema.new_flow_property("Mass", units)
@@ -15,25 +16,24 @@ class SimpleCalculatioTest(unittest.TestCase):
         schema.new_output(process, p, amount=1).is_quantitative_reference = True
         schema.new_output(process, e, amount=21)
 
-        self.client = ipc.Client()
         self.process = process
         self.e = e
         self.entities = [units, mass, e, p, process]
         for entity in self.entities:
-            self.client.put(entity)
+            client.put(entity)
 
         setup = results.CalculationSetup(
             target=schema.Ref(model_type="Process", id=process.id),
             amount=2,  # kg
         )
-        self.result = self.client.calculate(setup)
+        self.result = client.calculate(setup)
         self.result.wait_until_ready()
 
     def tearDown(self):
         self.result.dispose()
         self.entities.reverse()
         for entity in self.entities:
-            self.client.delete(entity)
+            client.delete(entity)
 
     def test_tech_flow(self):
         tech_flow = self.get_tech_flow()
@@ -62,12 +62,12 @@ class SimpleCalculatioTest(unittest.TestCase):
 
     def test_envi_flow_values(self):
         tech_flow = self.get_tech_flow()
-        results = [
+        xs = [
             self.result.get_total_flows(),
             self.result.get_direct_flows_of(tech_flow),
             self.result.get_total_flows_of(tech_flow),
         ]
-        for r in results:
+        for r in xs:
             value: results.EnviFlowValue = next(
                 filter(lambda x: x.envi_flow.flow.id == self.e.id, r)
             )

@@ -1,9 +1,10 @@
 import unittest
 
-import olca_ipc as ipc
 import olca_schema as lca
 import olca_schema.units as units
 import olca_schema.results as res
+
+from config import client
 
 
 class AllocationTest(unittest.TestCase):
@@ -12,7 +13,6 @@ class AllocationTest(unittest.TestCase):
     """
 
     def test_example(self):
-        client = ipc.Client()
 
         # get our quantity and unit, assuming that we are connected to an
         # openLCA database that contains these reference data
