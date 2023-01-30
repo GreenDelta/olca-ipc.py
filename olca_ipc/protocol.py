@@ -22,6 +22,12 @@ class IpcProtocol:
     def get_descriptors(self, model_type: Type[E]) -> list[schema.Ref]:
         pass
 
+    @abstractmethod
+    def get_descriptor(
+        self, model_type: Type[E], uid="", name=""
+    ) -> schema.Ref | None:
+        pass
+
     def find(self, model_type: Type[E], name: str) -> schema.Ref | None:
         for d in self.get_descriptors(model_type):
             if d.name == name:
@@ -40,12 +46,6 @@ class IpcProtocol:
         pass
 
     @abstractmethod
-    def get_descriptor(
-        self, model_type: Type[E], uid="", name=""
-    ) -> schema.Ref | None:
-        pass
-
-    @abstractmethod
     def put(self, model: schema.RootEntity) -> schema.Ref | None:
         pass
 
@@ -55,7 +55,9 @@ class IpcProtocol:
 
     @abstractmethod
     def create_product_system(
-        self, process: schema.Ref | schema.Process, config: schema.LinkingConfig
+        self,
+        process: schema.Ref | schema.Process,
+        config: schema.LinkingConfig | None = None
     ) -> schema.Ref | None:
         pass
 
