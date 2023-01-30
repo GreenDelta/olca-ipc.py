@@ -32,8 +32,6 @@ class CrudTest(unittest.TestCase):
         self.assertIsNone(client.get(lca.UnitGroup, units.id))
         self.assertIsNone(client.get(lca.FlowProperty, mass.id))
 
-        client.close()
-
     def test_process(self):
         units = lca.new_unit_group("Mass units", "kg")
         mass = lca.new_flow_property("Mass", units)

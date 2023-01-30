@@ -46,7 +46,7 @@ class AllocationTest(unittest.TestCase):
 
         # save the process and create the product system
         client.put(process)
-        system = client.create_product_system(process.id)
+        system = client.create_product_system(process)
         assert system is not None
         setup = res.CalculationSetup()
         setup.target = lca.Ref(model_type="ProductSystem", id=system.id)
