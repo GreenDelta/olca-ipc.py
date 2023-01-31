@@ -57,12 +57,14 @@ class Client(IpcProtocol):
         return [schema.Ref.from_dict(r) for r in result]
 
     def get_descriptor(
-        self, model_type: Type[E], uid="", name=""
+        self, model_type: Type[E],
+        uid: str | None = None,
+        name: str | None = None,
     ) -> schema.Ref | None:
         params = {"@type": model_type.__name__}
-        if uid != "":
+        if uid is not None:
             params["@id"] = uid
-        if name != "":
+        if name is not None:
             params["name"] = name
         result, err = self.rpc_call("data/get/descriptor", params)
         if err:

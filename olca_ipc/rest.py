@@ -8,8 +8,6 @@ from olca_schema import results as res
 
 from .protocol import E, IpcProtocol, IpcResult
 
-OK = 200
-
 T = TypeVar("T")
 
 
@@ -62,44 +60,98 @@ class RestClient(IpcProtocol):
             schema.Ref.from_dict,
         )
 
-    def get_descriptor(self, model_type: Type[E], uid: str) -> schema.Ref | None:
-        return self._get(
-            f"data/{_path_of(model_type)}/{uid}/info", schema.Ref.from_dict
-        )
+    def get_descriptor(
+        self,
+        model_type: Type[E],
+        uid: str | None = None,
+        name: str | None = None,
+    ) -> schema.Ref | None:
+        if uid is None and name is None:
+            log.error("error: no uuid or name given")
+            return None
+        if uid is not None:
+            return self._get(
+                f"data/{_path_of(model_type)}/{uid}/info", schema.Ref.from_dict
+            )
+        if name is not None:
+            return self._get(
+                f"data/{_path_of(model_type)}/name/{name}/info",
+                schema.Ref.from_dict,
+            )
 
-    def get_providers(self, flow: schema.Ref | schema.Flow | None = None) -> list[res.TechFlow]:
-        url: str
-        if flow_id:
-            url = f"{self.endpoint}data/providers/{flow_id}"
+    def get_providers(
+        self, flow: schema.Ref | schema.Flow | None = None
+    ) -> list[res.TechFlow]:
+        if flow is not None:
+            path = f"data/providers/{flow.id}"
         else:
-            url = f"{self.endpoint}data/providers"
-        r = requests.get(url)
-        if _not_ok(r):
-            log.error("failed to get providers: %s", url)
-            return []
-        return [res.TechFlow.from_dict(d) for d in r.json()]
+            path = "data/providers"
+        return self._get_each(path, res.TechFlow.from_dict)
 
     def get_parameters(
         self, model_type: Type[E], uid: str
     ) -> list[schema.Parameter] | list[schema.ParameterRedef]:
-        path = _path_of(model_type)
-        if path is None:
-            return []
-        r = requests.get(f"{self.endpoint}data/{path}/{uid}/parameters")
-        if _not_ok(r):
-            log.error(
-                "failed to get parameters of type=%s id=%s", model_type, uid
-            )
-            return []
+        path = f"data/{_path_of(model_type)}/{uid}/parameters"
         if model_type in (schema.ProductSystem, schema.Project):
-            return [schema.ParameterRedef.from_dict(d) for d in r.json()]
+            return self._get_each(path, schema.ParameterRedef.from_dict)
         else:
-            return [schema.Parameter.from_dict(d) for d in r.json()]
+            return self._get_each(path, schema.Parameter.from_dict)
+
+    def put(self, model: schema.RootEntity) -> schema.Ref | None:
+        resp = requests.put(
+            f"{self.endpoint}data/{_path_of(model.__class__)}",
+            json=model.to_dict(),
+        )
+        if _not_ok(resp):
+            log.error("failed to upload entity: %s", resp.text)
+            return None
+        return schema.Ref.from_dict(resp.json())
+
+    def create_product_system(
+        self,
+        process: schema.Ref | schema.Process,
+        config: schema.LinkingConfig | None = None,
+    ) -> schema.Ref | None:
+        params: dict[str, Any] = {"process": schema.as_ref(process)}
+        if config is not None:
+            params["config"] = config.to_dict()
+        resp = requests.post(f"{self.endpoint}data/create-system", json=params)
+        if _not_ok(resp):
+            log.error("failed to create system: %s", resp.text)
+            return None
+        return schema.Ref.from_dict(resp.json())
+
+    def delete(
+        self, model: schema.RootEntity | schema.Ref
+    ) -> schema.Ref | None:
+        if isinstance(model, schema.Ref):
+            t = model.model_type
+        else:
+            t = model.__class__.__name__
+        path = ""
+        for char in t:
+            if char.isupper() and len(path) > 0:
+                path += "-"
+            path += char
+        url = f"{self.endpoint}data/{path}/{model.id}"
+        resp = requests.delete(url)
+        if _not_ok(resp):
+            log.error("failed to delete model: %s", resp.text)
+            return None
+        return schema.Ref.from_dict(resp.json())
+
+    def calculate(self, setup: res.CalculationSetup) -> "Result" | None:
+        resp = requests.post(
+            f"{self.endpoint}result/calculate", json=setup.to_dict()
+        )
+        if _not_ok(resp):
+            log.error("calculation failed: %s", resp.text)
+            return None
+        state = res.ResultState.from_dict(resp.json())
+        return Result(self, state)
 
 
-
-
-class Result:
+class Result(IpcResult):
     def __init__(self, client: RestClient, state: res.ResultState):
         self.client = client
         self.uid = state.id
@@ -110,35 +162,21 @@ class Result:
     def get_state(self) -> res.ResultState:
         if self.error is not None:
             return self.error
-        r = self._get("state")
-        if not r:
+        state = self._get("state", res.ResultState.from_dict)
+        if state is None:
             self.error = res.ResultState(
                 id=self.uid,
                 error="no result state could be retreived from server",
             )
             return self.error
-        state = res.ResultState.from_dict(r)
         if state.error:
             self.error = state
         return state
 
-    def wait_until_ready(self) -> res.ResultState:
-        state = self.get_state()
-        if not state.is_scheduled:
-            return state
-        while state.is_scheduled:
-            time.sleep(0.5)
-            state = self.get_state()
-            if not state.is_scheduled:
-                return state
-        self.error = res.ResultState(self.uid, error="did not finished")
-        return self.error
-
     def dispose(self) -> res.ResultState:
         if self.error:
             return self.error
-        url = f"{self.client.endpoint}results/{self.uid}/dispose"
-        r = requests.post(url)
+        r = requests.post(f"{self.client.endpoint}result/{self.uid}/dispose")
         if _not_ok(r):
             self.error = res.ResultState(
                 id=self.uid, error="dispose did not return state"
@@ -146,62 +184,61 @@ class Result:
             return self.error
         return res.ResultState.from_dict(r.json())
 
+    def get_demand(self) -> res.TechFlowValue | None:
+        return self._get("demand", res.TechFlowValue.from_dict)
+
     def get_tech_flows(self) -> list[res.TechFlow]:
-        r = self._get("tech-flows")
-        if not r:
-            return []
-        else:
-            return [res.TechFlow.from_dict(d) for d in r]
+        return self._get_each("tech-flows", res.TechFlow.from_dict)
 
     def get_envi_flows(self) -> list[res.EnviFlow]:
-        r = self._get("envi-flows")
-        if not r:
-            return []
-        else:
-            return [res.EnviFlow.from_dict(d) for d in r]
+        return self._get_each("envi-flows", res.EnviFlow.from_dict)
 
     def get_impact_categories(self) -> list[schema.Ref]:
-        r = self._get("impact-categories")
-        if not r:
-            return []
-        else:
-            return [schema.Ref.from_dict(d) for d in r]
+        return self._get_each("impact-categories", schema.Ref.from_dict)
 
     def get_total_requirements(self) -> list[res.TechFlowValue]:
-        r = self._get("total-requirements")
-        if not r:
-            return []
-        return [res.TechFlowValue.from_dict(d) for d in r]
+        return self._get_each("total-requirements", res.TechFlowValue.from_dict)
 
     def get_total_requirements_of(
         self, tech_flow: res.TechFlow
     ) -> list[res.TechFlowValue]:
-        r = self._get(f"total-requirements-of/{_tech_id(tech_flow)}")
-        if not r:
-            return []
-        return [res.TechFlowValue.from_dict(d) for d in r]
+        return self._get_each(
+            f"total-requirements-of/{_tech_id(tech_flow)}",
+            res.TechFlowValue.from_dict,
+        )
 
     def get_total_flows(self) -> list[res.EnviFlowValue]:
-        r = self._get(f"total-flows")
-        if not r:
-            return []
-        return [res.EnviFlowValue.from_dict(d) for d in r]
+        return self._get_each("total-flows", res.EnviFlowValue.from_dict)
 
     def get_total_flow_value_of(
         self, envi_flow: res.EnviFlow
     ) -> res.EnviFlowValue | None:
-        r = self._get(f"total-flow-value-of/{_envi_id(envi_flow)}")
-        if not r:
-            return None
-        return res.EnviFlowValue.from_dict(r)
+        return self._get(
+            f"total-flow-value-of/{_envi_id(envi_flow)}",
+            res.EnviFlowValue.from_dict,
+        )
 
-    def _get(self, path: str) -> Any:
-        url = f"{self.client.endpoint}results/{self.uid}/{path}"
-        r = requests.get(url)
-        if _not_ok(r):
-            log.error("GET: %s; failed for result=%s", path, self.uid)
-            return None
-        return r.json()
+    def get_flow_contributions_of(
+        self, envi_flow: res.EnviFlow
+    ) -> list[res.TechFlowValue]:
+        return self._get_each(
+            f"flow-contributions-of/{_envi_id(envi_flow)}",
+            res.TechFlowValue.from_dict,
+        )
+
+    def get_direct_interventions_of(
+        self, tech_flow: res.TechFlow
+    ) -> list[res.EnviFlowValue]:
+        return self._get_each(
+            f"direct-interventions-of/{_tech_id(tech_flow)}",
+            res.EnviFlowValue.from_dict,
+        )
+
+    def _get(self, path: str, transform: Callable[[Any], T]) -> T | None:
+        return self.client._get(f"result/{self.uid}/{path}", transform)
+
+    def _get_each(self, path: str, transform: Callable[[Any], T]) -> list[T]:
+        return self.client._get_each(f"result/{self.uid}/{path}", transform)
 
 
 def _not_ok(resp: requests.Response) -> bool:

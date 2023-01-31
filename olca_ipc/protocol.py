@@ -29,7 +29,9 @@ class IpcProtocol:
 
     @abstractmethod
     def get_descriptor(
-        self, model_type: Type[E], uid="", name=""
+        self, model_type: Type[E],
+        uid: str | None = None,
+        name: str | None = None,
     ) -> schema.Ref | None:
         pass
 
@@ -102,7 +104,7 @@ class IpcResult:
         pass
 
     @abstractmethod
-    def get_demand(self) -> res.TechFlowValue:
+    def get_demand(self) -> res.TechFlowValue | None:
         pass
 
     @abstractmethod
@@ -146,7 +148,7 @@ class IpcResult:
     @abstractmethod
     def get_direct_interventions_of(
         self, tech_flow: res.TechFlow
-    ) -> list[res.EnviFlow]:
+    ) -> list[res.EnviFlowValue]:
         pass
 
     @abstractmethod
