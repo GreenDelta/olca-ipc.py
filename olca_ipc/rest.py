@@ -1,5 +1,4 @@
 import logging as log
-import time
 from typing import cast, Any, Callable, Type, TypeVar
 
 import olca_schema as schema
@@ -233,6 +232,211 @@ class Result(IpcResult):
             f"direct-interventions-of/{_tech_id(tech_flow)}",
             res.EnviFlowValue.from_dict,
         )
+
+    def get_direct_intervention_of(
+        self, envi_flow: res.EnviFlow, tech_flow: res.TechFlow
+    ) -> res.EnviFlowValue:
+        val = self._get(
+            f"direct-intervention-of/{_envi_id(envi_flow)}/{_tech_id(tech_flow)}",
+            res.EnviFlowValue.from_dict,
+        )
+        if val is None:
+            return res.EnviFlowValue(amount=0, envi_flow=envi_flow)
+        return val
+
+    def get_flow_intensities_of(
+        self, tech_flow: res.TechFlow
+    ) -> list[res.EnviFlow]:
+        return self._get_each(
+            f"flow-intensities-of/{_tech_id(tech_flow)}", res.EnviFlow.from_dict
+        )
+
+    def get_flow_intensity_of(
+        self, envi_flow: res.EnviFlow, tech_flow: res.TechFlow
+    ) -> res.EnviFlowValue:
+        val = self._get(
+            f"flow-intensity-of/{_envi_id(envi_flow)}/{_tech_id(tech_flow)}",
+            res.EnviFlowValue.from_dict,
+        )
+        if val is None:
+            return res.EnviFlowValue(amount=0, envi_flow=envi_flow)
+        return val
+
+    def get_total_interventions_of(
+        self, tech_flow: res.TechFlow
+    ) -> list[res.EnviFlowValue]:
+        return self._get_each(
+            f"total-interventions-of/{_tech_id(tech_flow)}",
+            res.EnviFlowValue.from_dict,
+        )
+
+    def get_total_intervention_of(
+        self, envi_flow: res.EnviFlow, tech_flow: res.TechFlow
+    ) -> res.EnviFlowValue:
+        val = self._get(
+            f"total-intervention-of/{_envi_id(envi_flow)}/{_tech_id(tech_flow)}",
+            res.EnviFlowValue.from_dict,
+        )
+        if val is None:
+            return res.EnviFlowValue(amount=0, envi_flow=envi_flow)
+        return val
+
+    def get_total_impacts(self) -> list[res.ImpactValue]:
+        return self._get_each(f"total-impacts", res.ImpactValue.from_dict)
+
+    def get_total_impact_value_of(
+        self, impact_category: schema.Ref
+    ) -> res.ImpactValue:
+        val = self._get(
+            f"total-impact-value-of/{impact_category.id}",
+            res.ImpactValue.from_dict,
+        )
+        if val is None:
+            return res.ImpactValue(amount=0, impact_category=impact_category)
+        return val
+
+    def get_normalized_impacts(self) -> list[res.ImpactValue]:
+        return self._get_each(f"normalized-impacts", res.ImpactValue.from_dict)
+
+    def get_weighted_impacts(self) -> list[res.ImpactValue]:
+        return self._get_each(f"weighted-impacts", res.ImpactValue.from_dict)
+
+    def get_impact_contributions_of(
+        self, impact_category: schema.Ref
+    ) -> list[res.TechFlowValue]:
+        return self._get_each(
+            f"impact-contributions-of/{impact_category.id}",
+            res.TechFlowValue.from_dict,
+        )
+
+    def get_direct_impacts_of(
+        self, tech_flow: res.TechFlow
+    ) -> list[res.ImpactValue]:
+        return self._get_each(
+            f"direct-impacts-of/{_tech_id(tech_flow)}",
+            res.ImpactValue.from_dict,
+        )
+
+    def get_direct_impact_of(
+        self, impact_category: schema.Ref, tech_flow: res.TechFlow
+    ) -> res.ImpactValue:
+        val = self._get(
+            f"direct-impact-of/{impact_category.id}/{_tech_id(tech_flow)}",
+            res.ImpactValue.from_dict,
+        )
+        if val is None:
+            return res.ImpactValue(amount=0, impact_category=impact_category)
+        return val
+
+    def get_impact_intensities_of(
+        self, tech_flow: res.TechFlow
+    ) -> list[res.ImpactValue]:
+        return self._get_each(
+            f"impact-intensities-of/{_tech_id(tech_flow)}",
+            res.ImpactValue.from_dict,
+        )
+
+    def get_impact_intensity_of(
+        self, impact_category: schema.Ref, tech_flow: res.TechFlow
+    ) -> res.ImpactValue:
+        val = self._get(
+            f"impact-intensity-of/{impact_category.id}/{_tech_id(tech_flow)}",
+            res.ImpactValue.from_dict,
+        )
+        if val is None:
+            return res.ImpactValue(amount=0, impact_category=impact_category)
+        return val
+
+    def get_total_impacts_of(
+        self, tech_flow: res.TechFlow
+    ) -> list[res.ImpactValue]:
+        return self._get_each(
+            f"total-impacts-of/{_tech_id(tech_flow)}", res.ImpactValue.from_dict
+        )
+
+    def get_total_impact_of(
+        self, impact_category: schema.Ref, tech_flow: res.TechFlow
+    ) -> res.ImpactValue:
+        val = self._get(
+            f"total-impact-of/{impact_category.id}/{_tech_id(tech_flow)}",
+            res.ImpactValue.from_dict,
+        )
+        if val is None:
+            return res.ImpactValue(amount=0, impact_category=impact_category)
+        return val
+
+    def get_impact_factors_of(
+        self, impact_category: schema.Ref
+    ) -> list[res.EnviFlowValue]:
+        return self._get_each(
+            f"impact-factors-of/{impact_category.id}",
+            res.EnviFlowValue.from_dict,
+        )
+
+    def get_impact_factor_of(
+        self, impact_category: schema.Ref, envi_flow: res.EnviFlow
+    ) -> res.EnviFlowValue:
+        val = self._get(
+            f"impact-factor-of/{impact_category.id}/{_envi_id(envi_flow)}",
+            res.EnviFlowValue.from_dict,
+        )
+        if val is None:
+            return res.EnviFlowValue(amount=0, envi_flow=envi_flow)
+        return val
+
+    def get_flow_impacts_of(
+        self, impact_category: schema.Ref
+    ) -> list[res.EnviFlowValue]:
+        return self._get_each(
+            f"flow-impacts-of/{impact_category.id}", res.EnviFlowValue.from_dict
+        )
+
+    def get_flow_impact_of(
+        self, impact_category: schema.Ref, envi_flow: res.EnviFlow
+    ) -> res.EnviFlowValue:
+        val = self._get(
+            f"flow-impact-of/{impact_category.id}/{_envi_id(envi_flow)}",
+            res.EnviFlowValue.from_dict,
+        )
+        if val is None:
+            return res.EnviFlowValue(amount=0, envi_flow=envi_flow)
+        return val
+
+    def get_total_costs(self) -> res.CostValue:
+        val = self._get(f"total-costs", res.CostValue.from_dict)
+        if val is None:
+            return res.CostValue(amount=0)
+        return val
+
+    def get_cost_contributions(self) -> list[res.TechFlowValue]:
+        return self._get_each(
+            f"cost-contributions", res.TechFlowValue.from_dict
+        )
+
+    def get_direct_costs_of(self, tech_flow: res.TechFlow) -> res.CostValue:
+        val = self._get(
+            f"direct-costs-of/{_tech_id(tech_flow)}", res.CostValue.from_dict
+        )
+        if val is None:
+            return res.CostValue(amount=0)
+        return val
+
+    def get_cost_intensities_of(self, tech_flow: res.TechFlow) -> res.CostValue:
+        val = self._get(
+            f"cost-intensities-of/{_tech_id(tech_flow)}",
+            res.CostValue.from_dict,
+        )
+        if val is None:
+            return res.CostValue(amount=0)
+        return val
+
+    def get_total_costs_of(self, tech_flow: res.TechFlow) -> res.CostValue:
+        val = self._get(
+            f"total-costs-of/{_tech_id(tech_flow)}", res.CostValue.from_dict
+        )
+        if val is None:
+            return res.CostValue(amount=0)
+        return val
 
     def _get(self, path: str, transform: Callable[[Any], T]) -> T | None:
         return self.client._get(f"result/{self.uid}/{path}", transform)
