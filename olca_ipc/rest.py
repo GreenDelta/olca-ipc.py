@@ -1,27 +1,38 @@
 import logging as log
 import time
-from typing import cast, Any, Type, TypeVar
+from typing import cast, Any, Callable, Type, TypeVar
 
-import olca_schema as lca
+import olca_schema as schema
 import requests
 from olca_schema import results as res
 
-E = TypeVar("E", bound=lca.RootEntity)
+from .protocol import E, IpcProtocol, IpcResult
+
 OK = 200
 
+T = TypeVar("T")
 
-class RestClient:
-    def __init__(self, endpoint: str):
+
+class RestClient(IpcProtocol):
+    def __init__(self, endpoint: str, **kwargs):
         self.endpoint = endpoint if endpoint.endswith("/") else endpoint + "/"
+        self.req_args = kwargs
 
-    def __enter__(self):
-        return self
+    def _get(self, path, transform: Callable[[Any], T]) -> T | None:
+        url = self.endpoint + path
+        response = requests.get(url, self.req_args)
+        if _not_ok(response):
+            log.error("ERROR: GET %s failed: %s", path, response.text)
+            return None
+        return transform(response.json())
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        return
-
-    def close(self):
-        return
+    def _get_each(self, path, transform: Callable[[Any], T]) -> list[T]:
+        url = self.endpoint + path
+        response = requests.get(url, self.req_args)
+        if _not_ok(response):
+            log.error("ERROR: GET %s failed: %s", path, response.text)
+            return []
+        return [transform(x) for x in response.json()]
 
     def get(
         self,
@@ -29,73 +40,34 @@ class RestClient:
         uid: str | None = None,
         name: str | None = None,
     ) -> E | None:
-        path = _path_of(model_type)
-        if path is None:
-            return None
         if not uid and not name:
             log.error("no ID or name given")
-            return
-
-        url: str
-        if uid:
-            url = f"{self.endpoint}data/{path}/{uid}"
-        else:
-            url = f"{self.endpoint}data/{path}/name/{name}"
-
-        r = requests.get(url)
-        if _not_ok(r):
-            log.error("failed to get %s id=%s: %s", model_type, uid, r.text)
             return None
-        return cast(E, model_type.from_dict(r.json()))
+        if uid:
+            path = f"data/{_path_of(model_type)}/{uid}"
+        else:
+            path = f"data/{_path_of(model_type)}/name/{name}"
+        return cast(E, self._get(path, model_type.from_dict))
 
     def get_all(self, model_type: Type[E]) -> list[E]:
-        path = _path_of(model_type)
-        if path is None:
-            return []
-        r = requests.get(f"{self.endpoint}data/{path}/all")
-        if _not_ok(r):
-            log.error("failed to get all objects of type %s", model_type)
-            return []
-        return cast(list[E], [model_type.from_dict(d) for d in r.json()])
+        xs = self._get_each(
+            f"data/{_path_of(model_type)}/all",
+            model_type.from_dict,
+        )
+        return cast(list[E], xs)
 
-    def get_descriptors(self, model_type: Type[E]) -> list[lca.Ref]:
-        path = _path_of(model_type)
-        if path is None:
-            return []
-        r = requests.get(f"{self.endpoint}data/{path}")
-        if _not_ok(r):
-            log.error("failed to get descriptors of type %s", model_type)
-            return []
-        return [lca.Ref.from_dict(d) for d in r.json()]
+    def get_descriptors(self, model_type: Type[E]) -> list[schema.Ref]:
+        return self._get_each(
+            f"data/{_path_of(model_type)}",
+            schema.Ref.from_dict,
+        )
 
-    def get_descriptor(self, model_type: Type[E], uid: str) -> lca.Ref | None:
-        path = _path_of(model_type)
-        if path is None:
-            return None
-        r = requests.get(f"{self.endpoint}data/{path}/{uid}/info")
-        if _not_ok(r):
-            log.error("failed to get descriptor type=%s id=%s", model_type, uid)
-            return None
-        return lca.Ref.from_dict(r.json())
+    def get_descriptor(self, model_type: Type[E], uid: str) -> schema.Ref | None:
+        return self._get(
+            f"data/{_path_of(model_type)}/{uid}/info", schema.Ref.from_dict
+        )
 
-    def get_parameters(
-        self, model_type: Type[E], uid: str
-    ) -> list[lca.Parameter] | list[lca.ParameterRedef]:
-        path = _path_of(model_type)
-        if path is None:
-            return []
-        r = requests.get(f"{self.endpoint}data/{path}/{uid}/parameters")
-        if _not_ok(r):
-            log.error(
-                "failed to get parameters of type=%s id=%s", model_type, uid
-            )
-            return []
-        if model_type in (lca.ProductSystem, lca.Project):
-            return [lca.ParameterRedef.from_dict(d) for d in r.json()]
-        else:
-            return [lca.Parameter.from_dict(d) for d in r.json()]
-
-    def get_providers(self, flow_id: str | None = None) -> list[res.TechFlow]:
+    def get_providers(self, flow: schema.Ref | schema.Flow | None = None) -> list[res.TechFlow]:
         url: str
         if flow_id:
             url = f"{self.endpoint}data/providers/{flow_id}"
@@ -106,6 +78,25 @@ class RestClient:
             log.error("failed to get providers: %s", url)
             return []
         return [res.TechFlow.from_dict(d) for d in r.json()]
+
+    def get_parameters(
+        self, model_type: Type[E], uid: str
+    ) -> list[schema.Parameter] | list[schema.ParameterRedef]:
+        path = _path_of(model_type)
+        if path is None:
+            return []
+        r = requests.get(f"{self.endpoint}data/{path}/{uid}/parameters")
+        if _not_ok(r):
+            log.error(
+                "failed to get parameters of type=%s id=%s", model_type, uid
+            )
+            return []
+        if model_type in (schema.ProductSystem, schema.Project):
+            return [schema.ParameterRedef.from_dict(d) for d in r.json()]
+        else:
+            return [schema.Parameter.from_dict(d) for d in r.json()]
+
+
 
 
 class Result:
@@ -169,12 +160,12 @@ class Result:
         else:
             return [res.EnviFlow.from_dict(d) for d in r]
 
-    def get_impact_categories(self) -> list[lca.Ref]:
+    def get_impact_categories(self) -> list[schema.Ref]:
         r = self._get("impact-categories")
         if not r:
             return []
         else:
-            return [lca.Ref.from_dict(d) for d in r]
+            return [schema.Ref.from_dict(d) for d in r]
 
     def get_total_requirements(self) -> list[res.TechFlowValue]:
         r = self._get("total-requirements")
@@ -243,39 +234,39 @@ def _path_of(model_type: Type[E]) -> str | None:
         log.error("no model type given")
         return None
     match model_type:
-        case lca.Actor:
+        case schema.Actor:
             return "actors"
-        case lca.Currency:
+        case schema.Currency:
             return "currencies"
-        case lca.DQSystem:
+        case schema.DQSystem:
             return "dq-systems"
-        case lca.Epd:
+        case schema.Epd:
             return "epds"
-        case lca.Flow:
+        case schema.Flow:
             return "flows"
-        case lca.FlowProperty:
+        case schema.FlowProperty:
             return "flow-properties"
-        case lca.ImpactCategory:
+        case schema.ImpactCategory:
             return "impact-categories"
-        case lca.ImpactMethod:
+        case schema.ImpactMethod:
             return "impact-methods"
-        case lca.Location:
+        case schema.Location:
             return "locations"
-        case lca.Parameter:
+        case schema.Parameter:
             return "parameters"
-        case lca.Process:
+        case schema.Process:
             return "processes"
-        case lca.ProductSystem:
+        case schema.ProductSystem:
             return "product-systems"
-        case lca.Project:
+        case schema.Project:
             return "projects"
-        case lca.Result:
+        case schema.Result:
             return "results"
-        case lca.SocialIndicator:
+        case schema.SocialIndicator:
             return "social-indicators"
-        case lca.Source:
+        case schema.Source:
             return "sources"
-        case lca.UnitGroup:
+        case schema.UnitGroup:
             return "unit-groups"
         case _:
             log.error("unknown root entity type: %s", model_type)

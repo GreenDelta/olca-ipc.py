@@ -11,7 +11,12 @@ E = TypeVar("E", bound=schema.RootEntity)
 
 class IpcProtocol:
     @abstractmethod
-    def get(self, model_type: Type[E], uid="", name="") -> E | None:
+    def get(
+        self,
+        model_type: Type[E],
+        uid: str | None = None,
+        name: str | None = None,
+    ) -> E | None:
         pass
 
     @abstractmethod
@@ -174,7 +179,7 @@ class IpcResult:
     ) -> res.EnviFlowValue:
         pass
 
-# region: impacts
+    # region: impacts
 
     @abstractmethod
     def get_total_impacts(self) -> list[res.ImpactValue]:
@@ -260,7 +265,7 @@ class IpcResult:
     ) -> res.EnviFlowValue:
         pass
 
-# endregion: impacts
+    # endregion: impacts
 
     @abstractmethod
     def get_total_costs(self) -> res.CostValue:

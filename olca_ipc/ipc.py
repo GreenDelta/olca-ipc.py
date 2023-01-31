@@ -1,6 +1,6 @@
 import logging as log
 from dataclasses import dataclass
-from typing import Any, Optional, Tuple, Type
+from typing import cast, Any, Optional, Tuple, Type
 
 import requests
 import olca_schema as schema
@@ -19,24 +19,32 @@ class Client(IpcProtocol):
         self.url = "http://localhost:%i" % port
         self.next_id = 1
 
-    def get(self, model_type: Type[E], uid="", name="") -> E | None:
+    def get(
+        self,
+        model_type: Type[E],
+        uid: str | None = None,
+        name: str | None = None,
+    ) -> E | None:
+        if not uid and not name:
+            log.error("no ID or name given")
+            return None
         params = {"@type": model_type.__name__}
-        if uid != "":
+        if uid is not None:
             params["@id"] = uid
-        if name != "":
+        if name is not None:
             params["name"] = name
         result, err = self.rpc_call("data/get", params)
         if err:
             log.warning("failed to get entity of type %s: %s", model_type, err)
             return None
-        return model_type.from_dict(result)
+        return cast(E, model_type.from_dict(result))
 
     def get_all(self, model_type: Type[E]) -> list[E]:
         params = {"@type": model_type.__name__}
         result, err = self.rpc_call("data/get/all", params)
         if err:
             log.error("failed to get all of type %s: %s", model_type, err)
-        return [model_type.from_dict(r) for r in result]
+        return cast(list[E], [model_type.from_dict(r) for r in result])
 
     def get_descriptors(self, model_type: Type[E]) -> list[schema.Ref]:
         params = {"@type": model_type.__name__}
