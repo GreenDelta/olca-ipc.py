@@ -111,7 +111,7 @@ class RestClient(IpcProtocol):
         process: schema.Ref | schema.Process,
         config: schema.LinkingConfig | None = None,
     ) -> schema.Ref | None:
-        params: dict[str, Any] = {"process": schema.as_ref(process)}
+        params: dict[str, Any] = {"process": schema.as_ref(process).to_dict()}
         if config is not None:
             params["config"] = config.to_dict()
         resp = requests.post(f"{self.endpoint}data/create-system", json=params)
@@ -132,14 +132,14 @@ class RestClient(IpcProtocol):
             if char.isupper() and len(path) > 0:
                 path += "-"
             path += char
-        url = f"{self.endpoint}data/{path}/{model.id}"
+        url = f"{self.endpoint}data/{path.lower()}/{model.id}"
         resp = requests.delete(url)
         if _not_ok(resp):
             log.error("failed to delete model: %s", resp.text)
             return None
         return schema.Ref.from_dict(resp.json())
 
-    def calculate(self, setup: res.CalculationSetup) -> "Result" | None:
+    def calculate(self, setup: res.CalculationSetup) -> IpcResult | None:
         resp = requests.post(
             f"{self.endpoint}result/calculate", json=setup.to_dict()
         )
