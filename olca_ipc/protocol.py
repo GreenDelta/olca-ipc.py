@@ -82,10 +82,18 @@ class IpcProtocol:
     def calculate(self, setup: res.CalculationSetup) -> "IpcResult":
         pass
 
+    @abstractmethod
+    def simulate(self, setup: res.CalculationSetup) -> "IpcResult":
+        pass
+
 
 class IpcResult:
     @abstractmethod
     def get_state(self) -> res.ResultState:
+        pass
+
+    @abstractmethod
+    def simulate_next(self) -> res.ResultState:
         pass
 
     def wait_until_ready(self) -> res.ResultState:

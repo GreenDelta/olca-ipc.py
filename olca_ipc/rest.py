@@ -16,20 +16,27 @@ class RestClient(IpcProtocol):
         self.req_args = kwargs
 
     def _get(self, path, transform: Callable[[Any], T]) -> T | None:
-        url = self.endpoint + path
-        response = requests.get(url, self.req_args)
-        if _not_ok(response):
-            log.error("ERROR: GET %s failed: %s", path, response.text)
+        resp = requests.get(self.endpoint + path, **self.req_args)
+        if _not_ok(resp):
+            log.error("ERROR: GET %s failed: %s", path, resp.text)
             return None
-        return transform(response.json())
+        return transform(resp.json())
+
+    def _post(
+        self, path, transform: Callable[[Any], T], data: Any | None = None
+    ) -> T | None:
+        resp = requests.post(self.endpoint + path, json=data, **self.req_args)
+        if _not_ok(resp):
+            log.error("ERROR: POST %s failed: %s", path, resp.text)
+            return None
+        return transform(resp.json())
 
     def _get_each(self, path, transform: Callable[[Any], T]) -> list[T]:
-        url = self.endpoint + path
-        response = requests.get(url, self.req_args)
-        if _not_ok(response):
-            log.error("ERROR: GET %s failed: %s", path, response.text)
+        resp = requests.get(self.endpoint + path, **self.req_args)
+        if _not_ok(resp):
+            log.error("ERROR: GET %s failed: %s", path, resp.text)
             return []
-        return [transform(x) for x in response.json()]
+        return [transform(x) for x in resp.json()]
 
     def get(
         self,
@@ -100,6 +107,7 @@ class RestClient(IpcProtocol):
         resp = requests.put(
             f"{self.endpoint}data/{_path_of(model.__class__)}",
             json=model.to_dict(),
+            **self.req_args,
         )
         if _not_ok(resp):
             log.error("failed to upload entity: %s", resp.text)
@@ -114,11 +122,7 @@ class RestClient(IpcProtocol):
         params: dict[str, Any] = {"process": schema.as_ref(process).to_dict()}
         if config is not None:
             params["config"] = config.to_dict()
-        resp = requests.post(f"{self.endpoint}data/create-system", json=params)
-        if _not_ok(resp):
-            log.error("failed to create system: %s", resp.text)
-            return None
-        return schema.Ref.from_dict(resp.json())
+        return self._post("data/create-system", schema.Ref.from_dict, params)
 
     def delete(
         self, model: schema.RootEntity | schema.Ref
@@ -133,20 +137,26 @@ class RestClient(IpcProtocol):
                 path += "-"
             path += char
         url = f"{self.endpoint}data/{path.lower()}/{model.id}"
-        resp = requests.delete(url)
+        resp = requests.delete(url, **self.req_args)
         if _not_ok(resp):
             log.error("failed to delete model: %s", resp.text)
             return None
         return schema.Ref.from_dict(resp.json())
 
     def calculate(self, setup: res.CalculationSetup) -> IpcResult | None:
-        resp = requests.post(
-            f"{self.endpoint}result/calculate", json=setup.to_dict()
+        state = self._post(
+            "result/calculate", res.ResultState.from_dict, setup.to_dict()
         )
-        if _not_ok(resp):
-            log.error("calculation failed: %s", resp.text)
+        if state is None:
             return None
-        state = res.ResultState.from_dict(resp.json())
+        return Result(self, state)
+
+    def simulate(self, setup: res.CalculationSetup) -> IpcResult | None:
+        state = self._post(
+            "result/simulate", res.ResultState.from_dict, setup.to_dict()
+        )
+        if state is None:
+            return None
         return Result(self, state)
 
 
@@ -172,16 +182,31 @@ class Result(IpcResult):
             self.error = state
         return state
 
+    def simulate_next(self) -> res.ResultState:
+        if self.error is not None:
+            return self.error
+        state = self.client._post(
+            f"result/{self.uid}/simulate/next", res.ResultState.from_dict
+        )
+        if state is None:
+            self.err = res.ResultState(
+                id=self.uid, error="failed to run simulation"
+            )
+            return self.err
+        return state
+
     def dispose(self) -> res.ResultState:
         if self.error:
             return self.error
-        r = requests.post(f"{self.client.endpoint}result/{self.uid}/dispose")
-        if _not_ok(r):
+        state = self.client._post(
+            f"result/{self.uid}/dispose", res.ResultState.from_dict
+        )
+        if state is None:
             self.error = res.ResultState(
                 id=self.uid, error="dispose did not return state"
             )
             return self.error
-        return res.ResultState.from_dict(r.json())
+        return state
 
     def get_demand(self) -> res.TechFlowValue | None:
         return self._get("demand", res.TechFlowValue.from_dict)

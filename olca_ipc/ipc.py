@@ -57,7 +57,8 @@ class Client(IpcProtocol):
         return [schema.Ref.from_dict(r) for r in result]
 
     def get_descriptor(
-        self, model_type: Type[E],
+        self,
+        model_type: Type[E],
         uid: str | None = None,
         name: str | None = None,
     ) -> schema.Ref | None:
@@ -155,6 +156,15 @@ class Client(IpcProtocol):
         state = res.ResultState.from_dict(resp)
         return Result(uid=state.id, client=self, error=None)
 
+    def simulate(self, setup: res.CalculationSetup) -> "Result":
+        resp, err = self.rpc_call("result/simulate", setup.to_dict())
+        if err:
+            return Result(
+                uid="", client=self, error=res.ResultState(id="", error=err)
+            )
+        state = res.ResultState.from_dict(resp)
+        return Result(uid=state.id, client=self, error=None)
+
     def rpc_call(
         self, method: str, params: Any = None
     ) -> Tuple[Any, Optional[str]]:
@@ -193,7 +203,19 @@ class Result(IpcResult):
             return self.error
         (state, err) = self.client.rpc_call("result/state", {"@id": self.uid})
         if err:
-            return res.ResultState(id=self.uid, error=err)
+            self.err = res.ResultState(id=self.uid, error=err)
+            return self.err
+        return res.ResultState.from_dict(state)
+
+    def simulate_next(self) -> res.ResultState:
+        if self.error is not None:
+            return self.error
+        (state, err) = self.client.rpc_call(
+            "result/simulate/next", {"@id": self.uid}
+        )
+        if err:
+            self.err = res.ResultState(id=self.uid, error=err)
+            return self.err
         return res.ResultState.from_dict(state)
 
     def dispose(self):
