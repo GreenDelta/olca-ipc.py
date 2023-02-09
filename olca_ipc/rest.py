@@ -217,6 +217,8 @@ class Result(IpcResult):
     def get_impact_categories(self) -> list[o.Ref]:
         return self._get_each("impact-categories", o.Ref.from_dict)
 
+    # region: tech-flows
+
     def get_total_requirements(self) -> list[o.TechFlowValue]:
         return self._get_each("total-requirements", o.TechFlowValue.from_dict)
 
@@ -227,6 +229,27 @@ class Result(IpcResult):
             f"total-requirements-of/{_tech_id(tech_flow)}",
             o.TechFlowValue.from_dict,
         )
+
+    def get_scaling_factors(self) -> list[o.TechFlowValue]:
+        return self._get_each("scaling-factors", o.TechFlowValue.from_dict)
+
+    def get_scaled_tech_flows_of(
+        self, tech_flow: o.TechFlow
+    ) -> list[o.TechFlowValue]:
+        return self._get_each(
+            f"scaled-tech-flows-of/{_tech_id(tech_flow)}",
+            o.TechFlowValue.from_dict,
+        )
+
+    def get_unscaled_tech_flows_of(
+        self, tech_flow: o.TechFlow
+    ) -> list[o.TechFlowValue]:
+        return self._get_each(
+            f"unscaled-tech-flows-of/{_tech_id(tech_flow)}",
+            o.TechFlowValue.from_dict,
+        )
+
+    # endregion
 
     def get_total_flows(self) -> list[o.EnviFlowValue]:
         return self._get_each("total-flows", o.EnviFlowValue.from_dict)

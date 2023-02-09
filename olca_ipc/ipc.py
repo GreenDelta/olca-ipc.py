@@ -1,11 +1,13 @@
 import logging as log
 from dataclasses import dataclass
-from typing import cast, Any, Optional, Tuple, Type
+from typing import cast, Any, Callable, Optional, Tuple, Type, TypeVar
 
 import requests
 import olca_schema as o
 
 from .protocol import E, IpcProtocol, IpcResult
+
+_T = TypeVar("_T")
 
 
 class Client(IpcProtocol):
@@ -188,6 +190,24 @@ class Client(IpcProtocol):
             return None, "No error and no result: invalid JSON-RPC response"
         return result, None
 
+    def _call(
+        self, method: str, transform: Callable[[Any], _T], data: Any = None
+    ) -> _T | None:
+        (resp, err) = self.rpc_call(method, data)
+        if err is not None:
+            log.error("failed to call method %s: %s", method, err)
+            return None
+        return transform(resp)
+
+    def _call_each(
+        self, method: str, transform: Callable[[Any], _T], data: Any = None
+    ) -> list[_T]:
+        (resp, err) = self.rpc_call(method, data)
+        if err is not None:
+            log.error("failed to call method %s: %s", method, err)
+            return []
+        return [transform(r) for r in resp]
+
 
 @dataclass
 class Result(IpcResult):
@@ -252,6 +272,8 @@ class Result(IpcResult):
             return []
         return [o.Ref.from_dict(d) for d in r]
 
+    # region: tech-flows
+
     def get_total_requirements(self) -> list[o.TechFlowValue]:
         args = {"@id": self.uid}
         (r, err) = self.client.rpc_call("result/total-requirements", args)
@@ -269,6 +291,33 @@ class Result(IpcResult):
             log.error("request total-requirements-of failed: %s", err)
             return o.TechFlowValue(amount=0, tech_flow=tech_flow)
         return o.TechFlowValue.from_dict(r)
+
+    def get_scaling_factors(self) -> list[o.TechFlowValue]:
+        return self.client._call_each(
+            "result/scaling-factors",
+            o.TechFlowValue.from_dict,
+            {"@id": self.uid},
+        )
+
+    def get_scaled_tech_flows_of(
+        self, tech_flow: o.TechFlow
+    ) -> list[o.TechFlowValue]:
+        return self.client._call_each(
+            "result/scaled-tech-flows-of",
+            o.TechFlowValue.from_dict,
+            {"@id": self.uid, "techFlow": tech_flow.to_dict()},
+        )
+
+    def get_unscaled_tech_flows_of(
+        self, tech_flow: o.TechFlow
+    ) -> list[o.TechFlowValue]:
+        return self.client._call_each(
+            "result/unscaled-tech-flows-of",
+            o.TechFlowValue.from_dict,
+            {"@id": self.uid, "techFlow": tech_flow.to_dict()},
+        )
+
+    # endregion
 
     # region: flows
 

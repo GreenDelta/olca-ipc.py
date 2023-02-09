@@ -138,6 +138,10 @@ class IpcResult:
         pass
 
     @abstractmethod
+    def get_scaling_factors(self) -> list[o.TechFlowValue]:
+        pass
+
+    @abstractmethod
     def get_scaled_tech_flows_of(
         self, tech_flow: o.TechFlow
     ) -> list[o.TechFlowValue]:
