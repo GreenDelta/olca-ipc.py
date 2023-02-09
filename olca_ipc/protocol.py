@@ -125,6 +125,8 @@ class IpcResult:
     def get_impact_categories(self) -> list[o.Ref]:
         pass
 
+    # region: tech-flows
+
     @abstractmethod
     def get_total_requirements(self) -> list[o.TechFlowValue]:
         pass
@@ -134,6 +136,20 @@ class IpcResult:
         self, tech_flow: o.TechFlow
     ) -> o.TechFlowValue:
         pass
+
+    @abstractmethod
+    def get_scaled_tech_flows_of(
+        self, tech_flow: o.TechFlow
+    ) -> list[o.TechFlowValue]:
+        pass
+
+    @abstractmethod
+    def get_unscaled_tech_flows_of(
+        self, tech_flow: o.TechFlow
+    ) -> list[o.TechFlowValue]:
+        pass
+
+    # endregion
 
     @abstractmethod
     def get_total_flows(self) -> list[o.EnviFlowValue]:
