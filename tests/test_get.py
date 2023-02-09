@@ -1,6 +1,6 @@
 import unittest
 
-import olca_schema as schema
+import olca_schema as o
 
 from config import client
 
@@ -14,18 +14,18 @@ class GetTest(unittest.TestCase):
     """
 
     def test_get_for_name(self):
-        mass = client.get(schema.FlowProperty, name="Mass")
+        mass = client.get(o.FlowProperty, name="Mass")
         self.assertEqual("Mass", mass.name)
 
     def test_get_for_id(self):
-        mass = client.get(schema.FlowProperty, name="Mass")
-        group = client.get(schema.UnitGroup, mass.unit_group.id)
+        mass = client.get(o.FlowProperty, name="Mass")
+        group = client.get(o.UnitGroup, mass.unit_group.id)
         self.assertEqual(
             "kg", next(filter(lambda u: u.is_ref_unit, group.units)).name
         )
 
     def test_get_all(self):
-        props = client.get_all(schema.FlowProperty)
+        props = client.get_all(o.FlowProperty)
         mass = next(filter(lambda p: p.name == "Mass", props))
         self.assertIsNotNone(mass)
 

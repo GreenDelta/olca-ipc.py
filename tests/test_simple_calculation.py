@@ -1,24 +1,23 @@
 import unittest
 
-import olca_schema as schema
-import olca_schema.results as results
+import olca_schema as o
 
 from config import client
 
 
 class SimpleCalculationTest(unittest.TestCase):
     def setUp(self):
-        units = schema.new_unit_group("Units of mass", "kg")
-        mass = schema.new_flow_property("Mass", units)
-        e = schema.new_elementary_flow("e", mass)
-        p = schema.new_product("p", mass)
-        process = schema.new_process("P")
-        schema.new_output(process, p, amount=1).is_quantitative_reference = True
-        schema.new_output(process, e, amount=21)
+        units = o.new_unit_group("Units of mass", "kg")
+        mass = o.new_flow_property("Mass", units)
+        e = o.new_elementary_flow("e", mass)
+        p = o.new_product("p", mass)
+        process = o.new_process("P")
+        o.new_output(process, p, amount=1).is_quantitative_reference = True
+        o.new_output(process, e, amount=21)
 
-        i = schema.new_impact_category("i")
-        schema.new_impact_factor(i, e, 0.5)
-        method = schema.new_impact_method("M", i)
+        i = o.new_impact_category("i")
+        o.new_impact_factor(i, e, 0.5)
+        method = o.new_impact_method("M", i)
 
         self.process = process
         self.e = e
@@ -26,7 +25,7 @@ class SimpleCalculationTest(unittest.TestCase):
         for entity in self.entities:
             client.put(entity)
 
-        setup = results.CalculationSetup(
+        setup = o.CalculationSetup(
             target=process.to_ref(),
             impact_method=method.to_ref(),
             amount=2,  # kg
@@ -68,7 +67,7 @@ class SimpleCalculationTest(unittest.TestCase):
             (r.get_total_requirements(), 2)
         ]
         for (values, expected) in seq:
-            value: results.TechFlowValue = next(
+            value: o.TechFlowValue = next(
                 filter(
                     lambda x: x.tech_flow.provider.id == self.process.id, values
                 )
@@ -83,7 +82,7 @@ class SimpleCalculationTest(unittest.TestCase):
             self.result.get_total_interventions_of(tech_flow),
         ]
         for r in xs:
-            value: results.EnviFlowValue = next(
+            value: o.EnviFlowValue = next(
                 filter(lambda x: x.envi_flow.flow.id == self.e.id, r)
             )
             self.assertEqual(42, value.amount)
@@ -109,7 +108,7 @@ class SimpleCalculationTest(unittest.TestCase):
             self.result.get_total_impacts_of(tech_flow),
         ]
         for r in xs:
-            value: results.ImpactValue = r[0]
+            value: o.ImpactValue = r[0]
             self.assertEqual(21, value.amount)
 
     def test_impact_value(self):
@@ -124,21 +123,21 @@ class SimpleCalculationTest(unittest.TestCase):
             self.assertEqual(21, v.amount)
             self.assertEqual("i", v.impact_category.name)
 
-    def get_tech_flow(self) -> results.TechFlow:
+    def get_tech_flow(self) -> o.TechFlow:
         tech_flows = self.result.get_tech_flows()
         for tech_flow in tech_flows:
             if tech_flow.provider and tech_flow.provider.id == self.process.id:
                 return tech_flow
         raise ValueError("tech. flow not found")
 
-    def get_envi_flow(self) -> results.EnviFlow:
+    def get_envi_flow(self) -> o.EnviFlow:
         envi_flows = self.result.get_envi_flows()
         for envi_flow in envi_flows:
             if envi_flow.flow and envi_flow.flow.id == self.e.id:
                 return envi_flow
         raise ValueError("envi. flow not found")
 
-    def get_impact(self) -> schema.Ref:
+    def get_impact(self) -> o.Ref:
         impacts = self.result.get_impact_categories()
         for i in impacts:
             if i.name == "i":

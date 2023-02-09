@@ -3,10 +3,9 @@ import time
 from abc import abstractmethod
 from typing import TypeVar, Type
 
-import olca_schema as schema
-import olca_schema.results as res
+import olca_schema as o
 
-E = TypeVar("E", bound=schema.RootEntity)
+E = TypeVar("E", bound=o.RootEntity)
 
 
 class IpcProtocol:
@@ -24,79 +23,78 @@ class IpcProtocol:
         pass
 
     @abstractmethod
-    def get_descriptors(self, model_type: Type[E]) -> list[schema.Ref]:
+    def get_descriptors(self, model_type: Type[E]) -> list[o.Ref]:
         pass
 
     @abstractmethod
     def get_descriptor(
-        self, model_type: Type[E],
+        self,
+        model_type: Type[E],
         uid: str | None = None,
         name: str | None = None,
-    ) -> schema.Ref | None:
+    ) -> o.Ref | None:
         pass
 
-    def find(self, model_type: Type[E], name: str) -> schema.Ref | None:
+    def find(self, model_type: Type[E], name: str) -> o.Ref | None:
         for d in self.get_descriptors(model_type):
             if d.name == name:
                 return d
 
     @abstractmethod
     def get_providers(
-        self, flow: schema.Ref | schema.Flow | None = None
-    ) -> list[res.TechFlow]:
+        self, flow: o.Ref | o.Flow | None = None
+    ) -> list[o.TechFlow]:
         pass
 
     @abstractmethod
     def get_parameters(
         self, model_type: Type[E], uid: str
-    ) -> list[schema.Parameter | schema.ParameterRedef]:
+    ) -> list[o.Parameter | o.ParameterRedef]:
         pass
 
     @abstractmethod
-    def put(self, model: schema.RootEntity) -> schema.Ref | None:
+    def put(self, model: o.RootEntity) -> o.Ref | None:
         pass
 
-    def put_all(self, *models: schema.RootEntity):
+    def put_all(self, *models: o.RootEntity):
         for model in models:
             self.put(model)
 
     @abstractmethod
     def create_product_system(
         self,
-        process: schema.Ref | schema.Process,
-        config: schema.LinkingConfig | None = None,
-    ) -> schema.Ref | None:
+        process: o.Ref | o.Process,
+        config: o.LinkingConfig | None = None,
+    ) -> o.Ref | None:
         pass
 
     @abstractmethod
-    def delete(
-        self, model: schema.RootEntity | schema.Ref
-    ) -> schema.Ref | None:
+    def delete(self, model: o.RootEntity | o.Ref) -> o.Ref | None:
         pass
 
-    def delete_all(self, *models: schema.RootEntity | schema.Ref):
+    def delete_all(self, *models: o.RootEntity | o.Ref):
         for model in models:
             self.delete(model)
 
     @abstractmethod
-    def calculate(self, setup: res.CalculationSetup) -> "IpcResult":
+    def calculate(self, setup: o.CalculationSetup) -> "IpcResult":
         pass
 
     @abstractmethod
-    def simulate(self, setup: res.CalculationSetup) -> "IpcResult":
+    def simulate(self, setup: o.CalculationSetup) -> "IpcResult":
         pass
 
 
 class IpcResult:
     @abstractmethod
-    def get_state(self) -> res.ResultState:
+    def get_state(self) -> o.ResultState:
         pass
 
     @abstractmethod
-    def simulate_next(self) -> res.ResultState:
+    def simulate_next(self) -> o.ResultState:
         pass
 
-    def wait_until_ready(self) -> res.ResultState:
+    def wait_until_ready(self) -> o.ResultState:
         state = self.get_state()
         if not state.is_scheduled:
             return state
@@ -105,194 +103,192 @@ class IpcResult:
             state = self.get_state()
             if not state.is_scheduled:
                 return state
-        return res.ResultState(error="did not finished")
+        return o.ResultState(error="did not finished")
 
     @abstractmethod
     def dispose(self):
         pass
 
     @abstractmethod
-    def get_demand(self) -> res.TechFlowValue | None:
+    def get_demand(self) -> o.TechFlowValue | None:
         pass
 
     @abstractmethod
-    def get_tech_flows(self) -> list[res.TechFlow]:
+    def get_tech_flows(self) -> list[o.TechFlow]:
         pass
 
     @abstractmethod
-    def get_envi_flows(self) -> list[res.EnviFlow]:
+    def get_envi_flows(self) -> list[o.EnviFlow]:
         pass
 
     @abstractmethod
-    def get_impact_categories(self) -> list[schema.Ref]:
+    def get_impact_categories(self) -> list[o.Ref]:
         pass
 
     @abstractmethod
-    def get_total_requirements(self) -> list[res.TechFlowValue]:
+    def get_total_requirements(self) -> list[o.TechFlowValue]:
         pass
 
     @abstractmethod
     def get_total_requirements_of(
-        self, tech_flow: res.TechFlow
-    ) -> res.TechFlowValue:
+        self, tech_flow: o.TechFlow
+    ) -> o.TechFlowValue:
         pass
 
     @abstractmethod
-    def get_total_flows(self) -> list[res.EnviFlowValue]:
+    def get_total_flows(self) -> list[o.EnviFlowValue]:
         pass
 
     @abstractmethod
-    def get_total_flow_value_of(
-        self, envi_flow: res.EnviFlow
-    ) -> res.EnviFlowValue:
+    def get_total_flow_value_of(self, envi_flow: o.EnviFlow) -> o.EnviFlowValue:
         pass
 
     @abstractmethod
     def get_flow_contributions_of(
-        self, envi_flow: res.EnviFlow
-    ) -> list[res.TechFlowValue]:
+        self, envi_flow: o.EnviFlow
+    ) -> list[o.TechFlowValue]:
         pass
 
     @abstractmethod
     def get_direct_interventions_of(
-        self, tech_flow: res.TechFlow
-    ) -> list[res.EnviFlowValue]:
+        self, tech_flow: o.TechFlow
+    ) -> list[o.EnviFlowValue]:
         pass
 
     @abstractmethod
     def get_direct_intervention_of(
-        self, envi_flow: res.EnviFlow, tech_flow: res.TechFlow
-    ) -> res.EnviFlowValue:
+        self, envi_flow: o.EnviFlow, tech_flow: o.TechFlow
+    ) -> o.EnviFlowValue:
         pass
 
     @abstractmethod
     def get_flow_intensities_of(
-        self, tech_flow: res.TechFlow
-    ) -> list[res.EnviFlow]:
+        self, tech_flow: o.TechFlow
+    ) -> list[o.EnviFlow]:
         pass
 
     @abstractmethod
     def get_flow_intensity_of(
-        self, envi_flow: res.EnviFlow, tech_flow: res.TechFlow
-    ) -> res.EnviFlowValue:
+        self, envi_flow: o.EnviFlow, tech_flow: o.TechFlow
+    ) -> o.EnviFlowValue:
         pass
 
     @abstractmethod
     def get_total_interventions_of(
-        self, tech_flow: res.TechFlow
-    ) -> list[res.EnviFlowValue]:
+        self, tech_flow: o.TechFlow
+    ) -> list[o.EnviFlowValue]:
         pass
 
     @abstractmethod
     def get_total_intervention_of(
-        self, envi_flow: res.EnviFlow, tech_flow: res.TechFlow
-    ) -> res.EnviFlowValue:
+        self, envi_flow: o.EnviFlow, tech_flow: o.TechFlow
+    ) -> o.EnviFlowValue:
         pass
 
     # region: impacts
 
     @abstractmethod
-    def get_total_impacts(self) -> list[res.ImpactValue]:
+    def get_total_impacts(self) -> list[o.ImpactValue]:
         pass
 
     @abstractmethod
     def get_total_impact_value_of(
-        self, impact_category: schema.Ref
-    ) -> res.ImpactValue:
+        self, impact_category: o.Ref
+    ) -> o.ImpactValue:
         pass
 
     @abstractmethod
-    def get_normalized_impacts(self) -> list[res.ImpactValue]:
+    def get_normalized_impacts(self) -> list[o.ImpactValue]:
         pass
 
     @abstractmethod
-    def get_weighted_impacts(self) -> list[res.ImpactValue]:
+    def get_weighted_impacts(self) -> list[o.ImpactValue]:
         pass
 
     @abstractmethod
     def get_impact_contributions_of(
-        self, impact_category: schema.Ref
-    ) -> list[res.TechFlowValue]:
+        self, impact_category: o.Ref
+    ) -> list[o.TechFlowValue]:
         pass
 
     @abstractmethod
     def get_direct_impacts_of(
-        self, tech_flow: res.TechFlow
-    ) -> list[res.ImpactValue]:
+        self, tech_flow: o.TechFlow
+    ) -> list[o.ImpactValue]:
         pass
 
     @abstractmethod
     def get_direct_impact_of(
-        self, impact_category: schema.Ref, tech_flow: res.TechFlow
-    ) -> res.ImpactValue:
+        self, impact_category: o.Ref, tech_flow: o.TechFlow
+    ) -> o.ImpactValue:
         pass
 
     @abstractmethod
     def get_impact_intensities_of(
-        self, tech_flow: res.TechFlow
-    ) -> list[res.ImpactValue]:
+        self, tech_flow: o.TechFlow
+    ) -> list[o.ImpactValue]:
         pass
 
     @abstractmethod
     def get_impact_intensity_of(
-        self, impact_category: schema.Ref, tech_flow: res.TechFlow
-    ) -> res.ImpactValue:
+        self, impact_category: o.Ref, tech_flow: o.TechFlow
+    ) -> o.ImpactValue:
         pass
 
     @abstractmethod
     def get_total_impacts_of(
-        self, tech_flow: res.TechFlow
-    ) -> list[res.ImpactValue]:
+        self, tech_flow: o.TechFlow
+    ) -> list[o.ImpactValue]:
         pass
 
     @abstractmethod
     def get_total_impact_of(
-        self, impact_category: schema.Ref, tech_flow: res.TechFlow
-    ) -> res.ImpactValue:
+        self, impact_category: o.Ref, tech_flow: o.TechFlow
+    ) -> o.ImpactValue:
         pass
 
     @abstractmethod
     def get_impact_factors_of(
-        self, impact_category: schema.Ref
-    ) -> list[res.EnviFlowValue]:
+        self, impact_category: o.Ref
+    ) -> list[o.EnviFlowValue]:
         pass
 
     @abstractmethod
     def get_impact_factor_of(
-        self, impact_category: schema.Ref, envi_flow: res.EnviFlow
-    ) -> res.EnviFlowValue:
+        self, impact_category: o.Ref, envi_flow: o.EnviFlow
+    ) -> o.EnviFlowValue:
         pass
 
     @abstractmethod
     def get_flow_impacts_of(
-        self, impact_category: schema.Ref
-    ) -> list[res.EnviFlowValue]:
+        self, impact_category: o.Ref
+    ) -> list[o.EnviFlowValue]:
         pass
 
     @abstractmethod
     def get_flow_impact_of(
-        self, impact_category: schema.Ref, envi_flow: res.EnviFlow
-    ) -> res.EnviFlowValue:
+        self, impact_category: o.Ref, envi_flow: o.EnviFlow
+    ) -> o.EnviFlowValue:
         pass
 
     # endregion: impacts
 
     @abstractmethod
-    def get_total_costs(self) -> res.CostValue:
+    def get_total_costs(self) -> o.CostValue:
         pass
 
     @abstractmethod
-    def get_cost_contributions(self) -> list[res.TechFlowValue]:
+    def get_cost_contributions(self) -> list[o.TechFlowValue]:
         pass
 
     @abstractmethod
-    def get_direct_costs_of(self, tech_flow: res.TechFlow) -> res.CostValue:
+    def get_direct_costs_of(self, tech_flow: o.TechFlow) -> o.CostValue:
         pass
 
     @abstractmethod
-    def get_cost_intensities_of(self, tech_flow: res.TechFlow) -> res.CostValue:
+    def get_cost_intensities_of(self, tech_flow: o.TechFlow) -> o.CostValue:
         pass
 
     @abstractmethod
-    def get_total_costs_of(self, tech_flow: res.TechFlow) -> res.CostValue:
+    def get_total_costs_of(self, tech_flow: o.TechFlow) -> o.CostValue:
         pass

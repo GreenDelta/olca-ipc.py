@@ -1,9 +1,8 @@
 import logging as log
 from typing import cast, Any, Callable, Type, TypeVar
 
-import olca_schema as schema
+import olca_schema as o
 import requests
-from olca_schema import results as res
 
 from .protocol import E, IpcProtocol, IpcResult
 
@@ -60,10 +59,10 @@ class RestClient(IpcProtocol):
         )
         return cast(list[E], xs)
 
-    def get_descriptors(self, model_type: Type[E]) -> list[schema.Ref]:
+    def get_descriptors(self, model_type: Type[E]) -> list[o.Ref]:
         return self._get_each(
             f"data/{_path_of(model_type)}",
-            schema.Ref.from_dict,
+            o.Ref.from_dict,
         )
 
     def get_descriptor(
@@ -71,39 +70,39 @@ class RestClient(IpcProtocol):
         model_type: Type[E],
         uid: str | None = None,
         name: str | None = None,
-    ) -> schema.Ref | None:
+    ) -> o.Ref | None:
         if uid is None and name is None:
             log.error("error: no uuid or name given")
             return None
         if uid is not None:
             return self._get(
-                f"data/{_path_of(model_type)}/{uid}/info", schema.Ref.from_dict
+                f"data/{_path_of(model_type)}/{uid}/info", o.Ref.from_dict
             )
         if name is not None:
             return self._get(
                 f"data/{_path_of(model_type)}/name/{name}/info",
-                schema.Ref.from_dict,
+                o.Ref.from_dict,
             )
 
     def get_providers(
-        self, flow: schema.Ref | schema.Flow | None = None
-    ) -> list[res.TechFlow]:
+        self, flow: o.Ref | o.Flow | None = None
+    ) -> list[o.TechFlow]:
         if flow is not None:
             path = f"data/providers/{flow.id}"
         else:
             path = "data/providers"
-        return self._get_each(path, res.TechFlow.from_dict)
+        return self._get_each(path, o.TechFlow.from_dict)
 
     def get_parameters(
         self, model_type: Type[E], uid: str
-    ) -> list[schema.Parameter] | list[schema.ParameterRedef]:
+    ) -> list[o.Parameter] | list[o.ParameterRedef]:
         path = f"data/{_path_of(model_type)}/{uid}/parameters"
-        if model_type in (schema.ProductSystem, schema.Project):
-            return self._get_each(path, schema.ParameterRedef.from_dict)
+        if model_type in (o.ProductSystem, o.Project):
+            return self._get_each(path, o.ParameterRedef.from_dict)
         else:
-            return self._get_each(path, schema.Parameter.from_dict)
+            return self._get_each(path, o.Parameter.from_dict)
 
-    def put(self, model: schema.RootEntity) -> schema.Ref | None:
+    def put(self, model: o.RootEntity) -> o.Ref | None:
         resp = requests.put(
             f"{self.endpoint}data/{_path_of(model.__class__)}",
             json=model.to_dict(),
@@ -112,22 +111,20 @@ class RestClient(IpcProtocol):
         if _not_ok(resp):
             log.error("failed to upload entity: %s", resp.text)
             return None
-        return schema.Ref.from_dict(resp.json())
+        return o.Ref.from_dict(resp.json())
 
     def create_product_system(
         self,
-        process: schema.Ref | schema.Process,
-        config: schema.LinkingConfig | None = None,
-    ) -> schema.Ref | None:
-        params: dict[str, Any] = {"process": schema.as_ref(process).to_dict()}
+        process: o.Ref | o.Process,
+        config: o.LinkingConfig | None = None,
+    ) -> o.Ref | None:
+        params: dict[str, Any] = {"process": o.as_ref(process).to_dict()}
         if config is not None:
             params["config"] = config.to_dict()
-        return self._post("data/create-system", schema.Ref.from_dict, params)
+        return self._post("data/create-system", o.Ref.from_dict, params)
 
-    def delete(
-        self, model: schema.RootEntity | schema.Ref
-    ) -> schema.Ref | None:
-        if isinstance(model, schema.Ref):
+    def delete(self, model: o.RootEntity | o.Ref) -> o.Ref | None:
+        if isinstance(model, o.Ref):
             t = model.model_type
         else:
             t = model.__class__.__name__
@@ -141,19 +138,19 @@ class RestClient(IpcProtocol):
         if _not_ok(resp):
             log.error("failed to delete model: %s", resp.text)
             return None
-        return schema.Ref.from_dict(resp.json())
+        return o.Ref.from_dict(resp.json())
 
-    def calculate(self, setup: res.CalculationSetup) -> IpcResult | None:
+    def calculate(self, setup: o.CalculationSetup) -> IpcResult | None:
         state = self._post(
-            "result/calculate", res.ResultState.from_dict, setup.to_dict()
+            "result/calculate", o.ResultState.from_dict, setup.to_dict()
         )
         if state is None:
             return None
         return Result(self, state)
 
-    def simulate(self, setup: res.CalculationSetup) -> IpcResult | None:
+    def simulate(self, setup: o.CalculationSetup) -> IpcResult | None:
         state = self._post(
-            "result/simulate", res.ResultState.from_dict, setup.to_dict()
+            "result/simulate", o.ResultState.from_dict, setup.to_dict()
         )
         if state is None:
             return None
@@ -161,19 +158,19 @@ class RestClient(IpcProtocol):
 
 
 class Result(IpcResult):
-    def __init__(self, client: RestClient, state: res.ResultState):
+    def __init__(self, client: RestClient, state: o.ResultState):
         self.client = client
         self.uid = state.id
-        self.error: res.ResultState | None = None
+        self.error: o.ResultState | None = None
         if state.error:
             self.error = state
 
-    def get_state(self) -> res.ResultState:
+    def get_state(self) -> o.ResultState:
         if self.error is not None:
             return self.error
-        state = self._get("state", res.ResultState.from_dict)
+        state = self._get("state", o.ResultState.from_dict)
         if state is None:
-            self.error = res.ResultState(
+            self.error = o.ResultState(
                 id=self.uid,
                 error="no result state could be retreived from server",
             )
@@ -182,285 +179,283 @@ class Result(IpcResult):
             self.error = state
         return state
 
-    def simulate_next(self) -> res.ResultState:
+    def simulate_next(self) -> o.ResultState:
         if self.error is not None:
             return self.error
         state = self.client._post(
-            f"result/{self.uid}/simulate/next", res.ResultState.from_dict
+            f"result/{self.uid}/simulate/next", o.ResultState.from_dict
         )
         if state is None:
-            self.err = res.ResultState(
+            self.err = o.ResultState(
                 id=self.uid, error="failed to run simulation"
             )
             return self.err
         return state
 
-    def dispose(self) -> res.ResultState:
+    def dispose(self) -> o.ResultState:
         if self.error:
             return self.error
         state = self.client._post(
-            f"result/{self.uid}/dispose", res.ResultState.from_dict
+            f"result/{self.uid}/dispose", o.ResultState.from_dict
         )
         if state is None:
-            self.error = res.ResultState(
+            self.error = o.ResultState(
                 id=self.uid, error="dispose did not return state"
             )
             return self.error
         return state
 
-    def get_demand(self) -> res.TechFlowValue | None:
-        return self._get("demand", res.TechFlowValue.from_dict)
+    def get_demand(self) -> o.TechFlowValue | None:
+        return self._get("demand", o.TechFlowValue.from_dict)
 
-    def get_tech_flows(self) -> list[res.TechFlow]:
-        return self._get_each("tech-flows", res.TechFlow.from_dict)
+    def get_tech_flows(self) -> list[o.TechFlow]:
+        return self._get_each("tech-flows", o.TechFlow.from_dict)
 
-    def get_envi_flows(self) -> list[res.EnviFlow]:
-        return self._get_each("envi-flows", res.EnviFlow.from_dict)
+    def get_envi_flows(self) -> list[o.EnviFlow]:
+        return self._get_each("envi-flows", o.EnviFlow.from_dict)
 
-    def get_impact_categories(self) -> list[schema.Ref]:
-        return self._get_each("impact-categories", schema.Ref.from_dict)
+    def get_impact_categories(self) -> list[o.Ref]:
+        return self._get_each("impact-categories", o.Ref.from_dict)
 
-    def get_total_requirements(self) -> list[res.TechFlowValue]:
-        return self._get_each("total-requirements", res.TechFlowValue.from_dict)
+    def get_total_requirements(self) -> list[o.TechFlowValue]:
+        return self._get_each("total-requirements", o.TechFlowValue.from_dict)
 
     def get_total_requirements_of(
-        self, tech_flow: res.TechFlow
-    ) -> list[res.TechFlowValue]:
+        self, tech_flow: o.TechFlow
+    ) -> list[o.TechFlowValue]:
         return self._get_each(
             f"total-requirements-of/{_tech_id(tech_flow)}",
-            res.TechFlowValue.from_dict,
+            o.TechFlowValue.from_dict,
         )
 
-    def get_total_flows(self) -> list[res.EnviFlowValue]:
-        return self._get_each("total-flows", res.EnviFlowValue.from_dict)
+    def get_total_flows(self) -> list[o.EnviFlowValue]:
+        return self._get_each("total-flows", o.EnviFlowValue.from_dict)
 
     def get_total_flow_value_of(
-        self, envi_flow: res.EnviFlow
-    ) -> res.EnviFlowValue | None:
+        self, envi_flow: o.EnviFlow
+    ) -> o.EnviFlowValue | None:
         return self._get(
             f"total-flow-value-of/{_envi_id(envi_flow)}",
-            res.EnviFlowValue.from_dict,
+            o.EnviFlowValue.from_dict,
         )
 
     def get_flow_contributions_of(
-        self, envi_flow: res.EnviFlow
-    ) -> list[res.TechFlowValue]:
+        self, envi_flow: o.EnviFlow
+    ) -> list[o.TechFlowValue]:
         return self._get_each(
             f"flow-contributions-of/{_envi_id(envi_flow)}",
-            res.TechFlowValue.from_dict,
+            o.TechFlowValue.from_dict,
         )
 
     def get_direct_interventions_of(
-        self, tech_flow: res.TechFlow
-    ) -> list[res.EnviFlowValue]:
+        self, tech_flow: o.TechFlow
+    ) -> list[o.EnviFlowValue]:
         return self._get_each(
             f"direct-interventions-of/{_tech_id(tech_flow)}",
-            res.EnviFlowValue.from_dict,
+            o.EnviFlowValue.from_dict,
         )
 
     def get_direct_intervention_of(
-        self, envi_flow: res.EnviFlow, tech_flow: res.TechFlow
-    ) -> res.EnviFlowValue:
+        self, envi_flow: o.EnviFlow, tech_flow: o.TechFlow
+    ) -> o.EnviFlowValue:
         val = self._get(
             f"direct-intervention-of/{_envi_id(envi_flow)}/{_tech_id(tech_flow)}",
-            res.EnviFlowValue.from_dict,
+            o.EnviFlowValue.from_dict,
         )
         if val is None:
-            return res.EnviFlowValue(amount=0, envi_flow=envi_flow)
+            return o.EnviFlowValue(amount=0, envi_flow=envi_flow)
         return val
 
     def get_flow_intensities_of(
-        self, tech_flow: res.TechFlow
-    ) -> list[res.EnviFlow]:
+        self, tech_flow: o.TechFlow
+    ) -> list[o.EnviFlow]:
         return self._get_each(
-            f"flow-intensities-of/{_tech_id(tech_flow)}", res.EnviFlow.from_dict
+            f"flow-intensities-of/{_tech_id(tech_flow)}", o.EnviFlow.from_dict
         )
 
     def get_flow_intensity_of(
-        self, envi_flow: res.EnviFlow, tech_flow: res.TechFlow
-    ) -> res.EnviFlowValue:
+        self, envi_flow: o.EnviFlow, tech_flow: o.TechFlow
+    ) -> o.EnviFlowValue:
         val = self._get(
             f"flow-intensity-of/{_envi_id(envi_flow)}/{_tech_id(tech_flow)}",
-            res.EnviFlowValue.from_dict,
+            o.EnviFlowValue.from_dict,
         )
         if val is None:
-            return res.EnviFlowValue(amount=0, envi_flow=envi_flow)
+            return o.EnviFlowValue(amount=0, envi_flow=envi_flow)
         return val
 
     def get_total_interventions_of(
-        self, tech_flow: res.TechFlow
-    ) -> list[res.EnviFlowValue]:
+        self, tech_flow: o.TechFlow
+    ) -> list[o.EnviFlowValue]:
         return self._get_each(
             f"total-interventions-of/{_tech_id(tech_flow)}",
-            res.EnviFlowValue.from_dict,
+            o.EnviFlowValue.from_dict,
         )
 
     def get_total_intervention_of(
-        self, envi_flow: res.EnviFlow, tech_flow: res.TechFlow
-    ) -> res.EnviFlowValue:
+        self, envi_flow: o.EnviFlow, tech_flow: o.TechFlow
+    ) -> o.EnviFlowValue:
         val = self._get(
             f"total-intervention-of/{_envi_id(envi_flow)}/{_tech_id(tech_flow)}",
-            res.EnviFlowValue.from_dict,
+            o.EnviFlowValue.from_dict,
         )
         if val is None:
-            return res.EnviFlowValue(amount=0, envi_flow=envi_flow)
+            return o.EnviFlowValue(amount=0, envi_flow=envi_flow)
         return val
 
-    def get_total_impacts(self) -> list[res.ImpactValue]:
-        return self._get_each(f"total-impacts", res.ImpactValue.from_dict)
+    def get_total_impacts(self) -> list[o.ImpactValue]:
+        return self._get_each(f"total-impacts", o.ImpactValue.from_dict)
 
     def get_total_impact_value_of(
-        self, impact_category: schema.Ref
-    ) -> res.ImpactValue:
+        self, impact_category: o.Ref
+    ) -> o.ImpactValue:
         val = self._get(
             f"total-impact-value-of/{impact_category.id}",
-            res.ImpactValue.from_dict,
+            o.ImpactValue.from_dict,
         )
         if val is None:
-            return res.ImpactValue(amount=0, impact_category=impact_category)
+            return o.ImpactValue(amount=0, impact_category=impact_category)
         return val
 
-    def get_normalized_impacts(self) -> list[res.ImpactValue]:
-        return self._get_each(f"normalized-impacts", res.ImpactValue.from_dict)
+    def get_normalized_impacts(self) -> list[o.ImpactValue]:
+        return self._get_each(f"normalized-impacts", o.ImpactValue.from_dict)
 
-    def get_weighted_impacts(self) -> list[res.ImpactValue]:
-        return self._get_each(f"weighted-impacts", res.ImpactValue.from_dict)
+    def get_weighted_impacts(self) -> list[o.ImpactValue]:
+        return self._get_each(f"weighted-impacts", o.ImpactValue.from_dict)
 
     def get_impact_contributions_of(
-        self, impact_category: schema.Ref
-    ) -> list[res.TechFlowValue]:
+        self, impact_category: o.Ref
+    ) -> list[o.TechFlowValue]:
         return self._get_each(
             f"impact-contributions-of/{impact_category.id}",
-            res.TechFlowValue.from_dict,
+            o.TechFlowValue.from_dict,
         )
 
     def get_direct_impacts_of(
-        self, tech_flow: res.TechFlow
-    ) -> list[res.ImpactValue]:
+        self, tech_flow: o.TechFlow
+    ) -> list[o.ImpactValue]:
         return self._get_each(
             f"direct-impacts-of/{_tech_id(tech_flow)}",
-            res.ImpactValue.from_dict,
+            o.ImpactValue.from_dict,
         )
 
     def get_direct_impact_of(
-        self, impact_category: schema.Ref, tech_flow: res.TechFlow
-    ) -> res.ImpactValue:
+        self, impact_category: o.Ref, tech_flow: o.TechFlow
+    ) -> o.ImpactValue:
         val = self._get(
             f"direct-impact-of/{impact_category.id}/{_tech_id(tech_flow)}",
-            res.ImpactValue.from_dict,
+            o.ImpactValue.from_dict,
         )
         if val is None:
-            return res.ImpactValue(amount=0, impact_category=impact_category)
+            return o.ImpactValue(amount=0, impact_category=impact_category)
         return val
 
     def get_impact_intensities_of(
-        self, tech_flow: res.TechFlow
-    ) -> list[res.ImpactValue]:
+        self, tech_flow: o.TechFlow
+    ) -> list[o.ImpactValue]:
         return self._get_each(
             f"impact-intensities-of/{_tech_id(tech_flow)}",
-            res.ImpactValue.from_dict,
+            o.ImpactValue.from_dict,
         )
 
     def get_impact_intensity_of(
-        self, impact_category: schema.Ref, tech_flow: res.TechFlow
-    ) -> res.ImpactValue:
+        self, impact_category: o.Ref, tech_flow: o.TechFlow
+    ) -> o.ImpactValue:
         val = self._get(
             f"impact-intensity-of/{impact_category.id}/{_tech_id(tech_flow)}",
-            res.ImpactValue.from_dict,
+            o.ImpactValue.from_dict,
         )
         if val is None:
-            return res.ImpactValue(amount=0, impact_category=impact_category)
+            return o.ImpactValue(amount=0, impact_category=impact_category)
         return val
 
     def get_total_impacts_of(
-        self, tech_flow: res.TechFlow
-    ) -> list[res.ImpactValue]:
+        self, tech_flow: o.TechFlow
+    ) -> list[o.ImpactValue]:
         return self._get_each(
-            f"total-impacts-of/{_tech_id(tech_flow)}", res.ImpactValue.from_dict
+            f"total-impacts-of/{_tech_id(tech_flow)}", o.ImpactValue.from_dict
         )
 
     def get_total_impact_of(
-        self, impact_category: schema.Ref, tech_flow: res.TechFlow
-    ) -> res.ImpactValue:
+        self, impact_category: o.Ref, tech_flow: o.TechFlow
+    ) -> o.ImpactValue:
         val = self._get(
             f"total-impact-of/{impact_category.id}/{_tech_id(tech_flow)}",
-            res.ImpactValue.from_dict,
+            o.ImpactValue.from_dict,
         )
         if val is None:
-            return res.ImpactValue(amount=0, impact_category=impact_category)
+            return o.ImpactValue(amount=0, impact_category=impact_category)
         return val
 
     def get_impact_factors_of(
-        self, impact_category: schema.Ref
-    ) -> list[res.EnviFlowValue]:
+        self, impact_category: o.Ref
+    ) -> list[o.EnviFlowValue]:
         return self._get_each(
             f"impact-factors-of/{impact_category.id}",
-            res.EnviFlowValue.from_dict,
+            o.EnviFlowValue.from_dict,
         )
 
     def get_impact_factor_of(
-        self, impact_category: schema.Ref, envi_flow: res.EnviFlow
-    ) -> res.EnviFlowValue:
+        self, impact_category: o.Ref, envi_flow: o.EnviFlow
+    ) -> o.EnviFlowValue:
         val = self._get(
             f"impact-factor-of/{impact_category.id}/{_envi_id(envi_flow)}",
-            res.EnviFlowValue.from_dict,
+            o.EnviFlowValue.from_dict,
         )
         if val is None:
-            return res.EnviFlowValue(amount=0, envi_flow=envi_flow)
+            return o.EnviFlowValue(amount=0, envi_flow=envi_flow)
         return val
 
     def get_flow_impacts_of(
-        self, impact_category: schema.Ref
-    ) -> list[res.EnviFlowValue]:
+        self, impact_category: o.Ref
+    ) -> list[o.EnviFlowValue]:
         return self._get_each(
-            f"flow-impacts-of/{impact_category.id}", res.EnviFlowValue.from_dict
+            f"flow-impacts-of/{impact_category.id}", o.EnviFlowValue.from_dict
         )
 
     def get_flow_impact_of(
-        self, impact_category: schema.Ref, envi_flow: res.EnviFlow
-    ) -> res.EnviFlowValue:
+        self, impact_category: o.Ref, envi_flow: o.EnviFlow
+    ) -> o.EnviFlowValue:
         val = self._get(
             f"flow-impact-of/{impact_category.id}/{_envi_id(envi_flow)}",
-            res.EnviFlowValue.from_dict,
+            o.EnviFlowValue.from_dict,
         )
         if val is None:
-            return res.EnviFlowValue(amount=0, envi_flow=envi_flow)
+            return o.EnviFlowValue(amount=0, envi_flow=envi_flow)
         return val
 
-    def get_total_costs(self) -> res.CostValue:
-        val = self._get(f"total-costs", res.CostValue.from_dict)
+    def get_total_costs(self) -> o.CostValue:
+        val = self._get(f"total-costs", o.CostValue.from_dict)
         if val is None:
-            return res.CostValue(amount=0)
+            return o.CostValue(amount=0)
         return val
 
-    def get_cost_contributions(self) -> list[res.TechFlowValue]:
-        return self._get_each(
-            f"cost-contributions", res.TechFlowValue.from_dict
-        )
+    def get_cost_contributions(self) -> list[o.TechFlowValue]:
+        return self._get_each(f"cost-contributions", o.TechFlowValue.from_dict)
 
-    def get_direct_costs_of(self, tech_flow: res.TechFlow) -> res.CostValue:
+    def get_direct_costs_of(self, tech_flow: o.TechFlow) -> o.CostValue:
         val = self._get(
-            f"direct-costs-of/{_tech_id(tech_flow)}", res.CostValue.from_dict
+            f"direct-costs-of/{_tech_id(tech_flow)}", o.CostValue.from_dict
         )
         if val is None:
-            return res.CostValue(amount=0)
+            return o.CostValue(amount=0)
         return val
 
-    def get_cost_intensities_of(self, tech_flow: res.TechFlow) -> res.CostValue:
+    def get_cost_intensities_of(self, tech_flow: o.TechFlow) -> o.CostValue:
         val = self._get(
             f"cost-intensities-of/{_tech_id(tech_flow)}",
-            res.CostValue.from_dict,
+            o.CostValue.from_dict,
         )
         if val is None:
-            return res.CostValue(amount=0)
+            return o.CostValue(amount=0)
         return val
 
-    def get_total_costs_of(self, tech_flow: res.TechFlow) -> res.CostValue:
+    def get_total_costs_of(self, tech_flow: o.TechFlow) -> o.CostValue:
         val = self._get(
-            f"total-costs-of/{_tech_id(tech_flow)}", res.CostValue.from_dict
+            f"total-costs-of/{_tech_id(tech_flow)}", o.CostValue.from_dict
         )
         if val is None:
-            return res.CostValue(amount=0)
+            return o.CostValue(amount=0)
         return val
 
     def _get(self, path: str, transform: Callable[[Any], T]) -> T | None:
@@ -477,7 +472,7 @@ def _not_ok(resp: requests.Response) -> bool:
     return True
 
 
-def _tech_id(tech_flow: res.TechFlow) -> str:
+def _tech_id(tech_flow: o.TechFlow) -> str:
     tech_id = ""
     if tech_flow.provider and tech_flow.provider.id:
         tech_id = tech_flow.provider.id
@@ -486,7 +481,7 @@ def _tech_id(tech_flow: res.TechFlow) -> str:
     return tech_id
 
 
-def _envi_id(envi_flow: res.EnviFlow) -> str:
+def _envi_id(envi_flow: o.EnviFlow) -> str:
     envi_id = ""
     if envi_flow.flow and envi_flow.flow.id:
         envi_id = envi_flow.flow.id
@@ -500,39 +495,39 @@ def _path_of(model_type: Type[E]) -> str | None:
         log.error("no model type given")
         return None
     match model_type:
-        case schema.Actor:
+        case o.Actor:
             return "actors"
-        case schema.Currency:
+        case o.Currency:
             return "currencies"
-        case schema.DQSystem:
+        case o.DQSystem:
             return "dq-systems"
-        case schema.Epd:
+        case o.Epd:
             return "epds"
-        case schema.Flow:
+        case o.Flow:
             return "flows"
-        case schema.FlowProperty:
+        case o.FlowProperty:
             return "flow-properties"
-        case schema.ImpactCategory:
+        case o.ImpactCategory:
             return "impact-categories"
-        case schema.ImpactMethod:
+        case o.ImpactMethod:
             return "impact-methods"
-        case schema.Location:
+        case o.Location:
             return "locations"
-        case schema.Parameter:
+        case o.Parameter:
             return "parameters"
-        case schema.Process:
+        case o.Process:
             return "processes"
-        case schema.ProductSystem:
+        case o.ProductSystem:
             return "product-systems"
-        case schema.Project:
+        case o.Project:
             return "projects"
-        case schema.Result:
+        case o.Result:
             return "results"
-        case schema.SocialIndicator:
+        case o.SocialIndicator:
             return "social-indicators"
-        case schema.Source:
+        case o.Source:
             return "sources"
-        case schema.UnitGroup:
+        case o.UnitGroup:
             return "unit-groups"
         case _:
             log.error("unknown root entity type: %s", model_type)

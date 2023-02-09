@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "olca-ipc"
-version = "2.0.0a2"
+version = "2.0.0a3"
 description = "A package for calling openLCA functions from Python."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 keywords=["openLCA", "life cycle assessment", "LCA"]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
@@ -19,7 +19,7 @@ classifiers = [
     "Topic :: Utilities",
 ]
 dependencies = [
-    "olca-schema>=0.0.10",
+    "olca-schema>=0.0.11",
     "requests>=2.28.1"
 ]
 

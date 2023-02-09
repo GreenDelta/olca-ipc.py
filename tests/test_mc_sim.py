@@ -2,7 +2,6 @@ import unittest
 import statistics as stats
 
 import olca_schema as o
-import olca_schema.results as r
 from config import client
 
 
@@ -36,7 +35,7 @@ class MCSimTest(unittest.TestCase):
 
         client.put_all(units, mass, p, q, e, process, i, method)
 
-        setup = r.CalculationSetup(
+        setup = o.CalculationSetup(
             allocation=o.AllocationType.PHYSICAL_ALLOCATION,
             target=o.as_ref(process),
             amount=1,

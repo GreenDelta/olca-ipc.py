@@ -1,8 +1,7 @@
 import unittest
 
-import olca_schema as lca
+import olca_schema as o
 import olca_schema.units as units
-import olca_schema.results as res
 
 from config import client
 
@@ -16,49 +15,49 @@ class AllocationTest(unittest.TestCase):
 
         # get our quantity and unit, assuming that we are connected to an
         # openLCA database that contains these reference data
-        mass = client.get(lca.FlowProperty, name="Mass")
+        mass = client.get(o.FlowProperty, name="Mass")
         assert mass is not None
         kg = units.unit_ref("kg")
         assert kg is not None
 
         # create the flows p, q, e
-        p = lca.new_product("p", mass)
-        q = lca.new_product("q", mass)
-        e = lca.new_elementary_flow("e", mass)
+        p = o.new_product("p", mass)
+        q = o.new_product("q", mass)
+        e = o.new_elementary_flow("e", mass)
         for f in [p, q, e]:
             client.put(f)
 
         # create the process with inputs and outputs
-        process = lca.new_process("P")
+        process = o.new_process("P")
         assert process.id is not None
-        lca.new_output(process, p, 1.0, kg).is_quantitative_reference = True
-        lca.new_output(process, q, 1.0, kg)
-        ex = lca.new_output(process, e, 1.0, kg)
+        o.new_output(process, p, 1.0, kg).is_quantitative_reference = True
+        o.new_output(process, q, 1.0, kg)
+        ex = o.new_output(process, e, 1.0, kg)
 
         # define the allocation factors
-        process.default_allocation_method = lca.AllocationType.CAUSAL_ALLOCATION
-        lca.new_physical_allocation_factor(process, p, 0.25)
-        lca.new_physical_allocation_factor(process, q, 0.75)
-        lca.new_economic_allocation_factor(process, p, 0.4)
-        lca.new_economic_allocation_factor(process, q, 0.6)
-        lca.new_causal_allocation_factor(process, p, 0.1, ex)
-        lca.new_causal_allocation_factor(process, q, 0.9, ex)
+        process.default_allocation_method = o.AllocationType.CAUSAL_ALLOCATION
+        o.new_physical_allocation_factor(process, p, 0.25)
+        o.new_physical_allocation_factor(process, q, 0.75)
+        o.new_economic_allocation_factor(process, p, 0.4)
+        o.new_economic_allocation_factor(process, q, 0.6)
+        o.new_causal_allocation_factor(process, p, 0.1, ex)
+        o.new_causal_allocation_factor(process, q, 0.9, ex)
 
         # save the process and create the product system
         client.put(process)
         system = client.create_product_system(process)
         assert system is not None
-        setup = res.CalculationSetup()
-        setup.target = lca.Ref(model_type="ProductSystem", id=system.id)
+        setup = o.CalculationSetup()
+        setup.target = o.Ref(ref_type=o.RefType.ProductSystem, id=system.id)
         setup.amount = 500
         setup.unit = units.unit_ref("g")
 
         expected = [
-            (lca.AllocationType.PHYSICAL_ALLOCATION, 0.25 / 2),
-            (lca.AllocationType.ECONOMIC_ALLOCATION, 0.4 / 2),
-            (lca.AllocationType.CAUSAL_ALLOCATION, 0.1 / 2),
-            (lca.AllocationType.USE_DEFAULT_ALLOCATION, 0.1 / 2),
-            (lca.AllocationType.NO_ALLOCATION, 0.5),
+            (o.AllocationType.PHYSICAL_ALLOCATION, 0.25 / 2),
+            (o.AllocationType.ECONOMIC_ALLOCATION, 0.4 / 2),
+            (o.AllocationType.CAUSAL_ALLOCATION, 0.1 / 2),
+            (o.AllocationType.USE_DEFAULT_ALLOCATION, 0.1 / 2),
+            (o.AllocationType.NO_ALLOCATION, 0.5),
             (None, 0.5),
         ]
         for (method, value) in expected:
