@@ -19,6 +19,7 @@ class Client(IpcProtocol):
     def __init__(self, port: int = 8080):
         self.url = "http://localhost:%i" % port
         self.next_id = 1
+        self._s = requests.Session()
 
     def get(
         self,
@@ -180,7 +181,10 @@ class Client(IpcProtocol):
         if params is not None:
             req["params"] = params
         self.next_id += 1
-        resp: dict = requests.post(self.url, json=req).json()
+
+        raw = self._s.post(self.url, json=req)
+        resp: dict = raw.json()
+        raw.close()
         err: dict | None = resp.get("error")
         if err is not None:
             err_msg = "%i: %s" % (err.get("code"), err.get("message"))
