@@ -6,7 +6,6 @@ from config import client
 
 
 class ProcessLinkTest(unittest.TestCase):
-
     def setUp(self):
         units = o.new_unit_group("Units of mass", "kg")
         mass = o.new_flow_property("Mass", units)
@@ -52,7 +51,20 @@ class ProcessLinkTest(unittest.TestCase):
     def test_process_links(self):
         system = client.get(o.ProductSystem, self.system.id)
         self.assertIsNotNone(system.process_links)
-        self.assertEquals(1, len(system.process_links))
+        self.assertEqual(1, len(system.process_links))
+
+    def test_calculation(self):
+        setup = o.CalculationSetup(target=self.system.to_ref())
+        result = client.calculate(setup)
+        result.wait_until_ready()
+        e = next(
+            filter(
+                lambda ei: ei.envi_flow.flow.name == "e",
+                result.get_total_flows(),
+            )
+        )
+        self.assertAlmostEqual(42.0, e.amount)
+        result.dispose()
 
 
 if __name__ == "__main__":
