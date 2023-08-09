@@ -155,6 +155,8 @@ class IpcResult:
 
     # endregion
 
+    # region: inventory results
+
     @abstractmethod
     def get_total_flows(self) -> list[o.EnviFlowValue]:
         pass
@@ -204,6 +206,14 @@ class IpcResult:
         self, envi_flow: o.EnviFlow, tech_flow: o.TechFlow
     ) -> o.EnviFlowValue:
         pass
+
+    @abstractmethod
+    def get_upstream_interventions_of(
+        self, envi_flow: o.EnviFlow, path: list[o.TechFlow]
+    ) -> list[o.UpstreamNode]:
+        pass
+
+    # endregion
 
     # region: impacts
 
@@ -291,7 +301,15 @@ class IpcResult:
     ) -> o.EnviFlowValue:
         pass
 
-    # endregion: impacts
+    @abstractmethod
+    def get_upstream_impacts_of(
+        self, impact_category: o.Ref, path: list[o.TechFlow]
+    ) -> list[o.UpstreamNode]:
+        pass
+
+    # endregion
+
+    # region: costs
 
     @abstractmethod
     def get_total_costs(self) -> o.CostValue:
@@ -312,3 +330,11 @@ class IpcResult:
     @abstractmethod
     def get_total_costs_of(self, tech_flow: o.TechFlow) -> o.CostValue:
         pass
+
+    @abstractmethod
+    def get_upstream_cost_of(
+        self, path: list[o.TechFlow]
+    ) -> list[o.UpstreamNode]:
+        pass
+
+    # endregion

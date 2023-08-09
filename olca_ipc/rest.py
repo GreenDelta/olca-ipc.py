@@ -21,6 +21,13 @@ class RestClient(IpcProtocol):
             return None
         return transform(resp.json())
 
+    def _get_each(self, path, transform: Callable[[Any], T]) -> list[T]:
+        resp = requests.get(self.endpoint + path, **self.req_args)
+        if _not_ok(resp):
+            log.error("ERROR: GET %s failed: %s", path, resp.text)
+            return []
+        return [transform(x) for x in resp.json()]
+
     def _post(
         self, path, transform: Callable[[Any], T], data: Any | None = None
     ) -> T | None:
@@ -30,10 +37,12 @@ class RestClient(IpcProtocol):
             return None
         return transform(resp.json())
 
-    def _get_each(self, path, transform: Callable[[Any], T]) -> list[T]:
-        resp = requests.get(self.endpoint + path, **self.req_args)
+    def _post_each(
+        self, path, transform: Callable[[Any], T], data: Any | None = None
+    ) -> list[T]:
+        resp = requests.post(self.endpoint + path, json=data, **self.req_args)
         if _not_ok(resp):
-            log.error("ERROR: GET %s failed: %s", path, resp.text)
+            log.error("ERROR: POST %s failed: %s", path, resp.text)
             return []
         return [transform(x) for x in resp.json()]
 
@@ -251,6 +260,8 @@ class Result(IpcResult):
 
     # endregion
 
+    # region: inventory results
+
     def get_total_flows(self) -> list[o.EnviFlowValue]:
         return self._get_each("total-flows", o.EnviFlowValue.from_dict)
 
@@ -325,6 +336,22 @@ class Result(IpcResult):
         if val is None:
             return o.EnviFlowValue(amount=0, envi_flow=envi_flow)
         return val
+
+    def get_upstream_interventions_of(
+        self, envi_flow: o.EnviFlow, path: list[o.TechFlow]
+    ) -> list[o.UpstreamNode]:
+        params: dict[str, Any] = {
+            "path": _encode_path(path),
+        }
+        return self.client._post_each(
+            f"upstream-interventions-of/{_envi_id(envi_flow)}",
+            o.UpstreamNode.from_dict,
+            params,
+        )
+
+    # endregion
+
+    # region: impact results
 
     def get_total_impacts(self) -> list[o.ImpactValue]:
         return self._get_each(f"total-impacts", o.ImpactValue.from_dict)
@@ -447,6 +474,22 @@ class Result(IpcResult):
             return o.EnviFlowValue(amount=0, envi_flow=envi_flow)
         return val
 
+    def get_upstream_impacts_of(
+        self, impact_category: o.Ref, path: list[o.TechFlow]
+    ) -> list[o.UpstreamNode]:
+        params: dict[str, Any] = {
+            "path": _encode_path(path),
+        }
+        return self.client._post_each(
+            f"upstream-impacts-of/{impact_category.id}",
+            o.UpstreamNode.from_dict,
+            params,
+        )
+
+    # endregion
+
+    # region: cost results
+
     def get_total_costs(self) -> o.CostValue:
         val = self._get(f"total-costs", o.CostValue.from_dict)
         if val is None:
@@ -480,6 +523,18 @@ class Result(IpcResult):
         if val is None:
             return o.CostValue(amount=0)
         return val
+
+    def get_upstream_costs_of(
+        self, path: list[o.TechFlow]
+    ) -> list[o.UpstreamNode]:
+        params: dict[str, Any] = {
+            "path": _encode_path(path),
+        }
+        return self.client._post_each(
+            f"upstream-costs-of", o.UpstreamNode.from_dict, params
+        )
+
+    # endregion
 
     def _get(self, path: str, transform: Callable[[Any], T]) -> T | None:
         return self.client._get(f"result/{self.uid}/{path}", transform)
@@ -555,3 +610,20 @@ def _path_of(model_type: Type[E]) -> str | None:
         case _:
             log.error("unknown root entity type: %s", model_type)
             return None
+
+
+def _encode_path(path: list[o.TechFlow]) -> str | None:
+    if path is None or len(path) == 0:
+        return None
+    p = None
+    for tf in path:
+        next = ""
+        if tf.provider and tf.provider.id:
+            next += tf.provider.id
+        if tf.flow and tf.flow.id:
+            next += "::" + tf.flow.id
+        if p is None:
+            p = next
+        else:
+            p += "/" + next
+    return p

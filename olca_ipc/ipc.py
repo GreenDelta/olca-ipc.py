@@ -323,7 +323,7 @@ class Result(IpcResult):
 
     # endregion
 
-    # region: flows
+    # region: inventory results
 
     def get_total_flows(self) -> list[o.EnviFlowValue]:
         args = {"@id": self.uid}
@@ -423,7 +423,25 @@ class Result(IpcResult):
             return o.EnviFlowValue(amount=0, envi_flow=envi_flow)
         return o.EnviFlowValue.from_dict(r)
 
-    # endregion: flows
+    def get_upstream_interventions_of(
+        self, envi_flow: o.EnviFlow, path: list[o.TechFlow]
+    ) -> list[o.UpstreamNode]:
+        args = {
+            "@id": self.uid,
+            "enviFlow": envi_flow.to_dict(),
+            "path": _encode_path(path),
+        }
+        (r, err) = self.client.rpc_call(
+            "result/upstream-interventions-of", args
+        )
+        if err:
+            log.error("request upstream-interventions-of failed: %s", err)
+            return []
+        return [o.UpstreamNode.from_dict(d) for d in r]
+
+    # endregion
+
+    # region: impact results
 
     def get_total_impacts(self) -> list[o.ImpactValue]:
         args = {"@id": self.uid}
@@ -591,6 +609,24 @@ class Result(IpcResult):
             return o.EnviFlowValue(amount=0, envi_flow=envi_flow)
         return o.EnviFlowValue.from_dict(r)
 
+    def get_upstream_impacts_of(
+        self, impact_category: o.Ref, path: list[o.TechFlow]
+    ) -> list[o.UpstreamNode]:
+        args = {
+            "@id": self.uid,
+            "impactCategory": impact_category.to_dict(),
+            "path": _encode_path(path),
+        }
+        (r, err) = self.client.rpc_call("result/upstream-impacts-of", args)
+        if err:
+            log.error("request upstream-impacts-of failed: %s", err)
+            return []
+        return [o.UpstreamNode.from_dict(d) for d in r]
+
+    # endregion
+
+    # region: cost results
+
     def get_total_costs(self) -> o.CostValue:
         args = {"@id": self.uid}
         (r, err) = self.client.rpc_call("result/total-costs", args)
@@ -630,3 +666,35 @@ class Result(IpcResult):
             log.error("request total-costs-of failed: %s", err)
             return o.CostValue(amount=0)
         return o.CostValue.from_dict(r)
+
+    def get_upstream_costs_of(
+        self, path: list[o.TechFlow]
+    ) -> list[o.UpstreamNode]:
+        args = {
+            "@id": self.uid,
+            "path": _encode_path(path),
+        }
+        (r, err) = self.client.rpc_call("result/upstream-costs-of", args)
+        if err:
+            log.error("request upstream-costs-of failed: %s", err)
+            return []
+        return [o.UpstreamNode.from_dict(d) for d in r]
+
+    # endregion
+
+
+def _encode_path(path: list[o.TechFlow]) -> str | None:
+    if path is None or len(path) == 0:
+        return None
+    p = None
+    for tf in path:
+        next = ""
+        if tf.provider and tf.provider.id:
+            next += tf.provider.id
+        if tf.flow and tf.flow.id:
+            next += "::" + tf.flow.id
+        if p is None:
+            p = next
+        else:
+            p += "/" + next
+    return p
