@@ -16,8 +16,12 @@ class Client(IpcProtocol):
     protocol.
     """
 
-    def __init__(self, port: int = 8080):
-        self.url = "http://localhost:%i" % port
+    def __init__(self, endpoint: str | int = 8080):
+        self.url: str
+        if isinstance(endpoint, str):
+            self.url = endpoint
+        else:
+            self.url = "http://localhost:%i" % endpoint
         self.next_id = 1
         self._s = requests.Session()
 
