@@ -7,8 +7,8 @@ JSON-RPC and REST APIs. The documentation of these protocols and examples can be
 found in the __[openLCA IPC
 documentation](https://greendelta.github.io/openLCA-ApiDoc/ipc/)__.
 
-**Note** that this version only works with the openLCA 2. The last stable
-version for **openLCA 1.x** is
+**Note** that this version only works with the **openLCA >= 2** and requires
+**Python >= 3.11**. The last stable version for **openLCA 1.x** is
 [0.0.12](https://pypi.org/project/olca-ipc/0.0.12/):
 
 ```bash
@@ -22,7 +22,7 @@ version from [pypi.org](https://pypi.org/project/olca-ipc).
 
 ```bash
 # for openLCA >= 2
-pip install olca-ipc
+pip install -U olca-ipc
 ```
 
 If you just want to read and write data for openLCA 2, you can also directly
