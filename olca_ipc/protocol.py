@@ -338,3 +338,7 @@ class IpcResult:
         pass
 
     # endregion
+
+    @abstractmethod
+    def get_sankey_graph(self, config: o.SankeyRequest) -> o.SankeyGraph:
+        pass

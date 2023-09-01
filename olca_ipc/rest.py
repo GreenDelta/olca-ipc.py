@@ -191,9 +191,7 @@ class Result(IpcResult):
     def simulate_next(self) -> o.ResultState:
         if self.error is not None:
             return self.error
-        state = self.client._post(
-            f"result/{self.uid}/simulate/next", o.ResultState.from_dict
-        )
+        state = self._post("simulate/next", o.ResultState.from_dict)
         if state is None:
             self.err = o.ResultState(
                 id=self.uid, error="failed to run simulation"
@@ -204,9 +202,7 @@ class Result(IpcResult):
     def dispose(self) -> o.ResultState:
         if self.error:
             return self.error
-        state = self.client._post(
-            f"result/{self.uid}/dispose", o.ResultState.from_dict
-        )
+        state = self._post("dispose", o.ResultState.from_dict)
         if state is None:
             self.error = o.ResultState(
                 id=self.uid, error="dispose did not return state"
@@ -343,7 +339,7 @@ class Result(IpcResult):
         params: dict[str, Any] = {
             "path": _encode_path(path),
         }
-        return self.client._post_each(
+        return self._post_each(
             f"upstream-interventions-of/{_envi_id(envi_flow)}",
             o.UpstreamNode.from_dict,
             params,
@@ -480,7 +476,7 @@ class Result(IpcResult):
         params: dict[str, Any] = {
             "path": _encode_path(path),
         }
-        return self.client._post_each(
+        return self._post_each(
             f"upstream-impacts-of/{impact_category.id}",
             o.UpstreamNode.from_dict,
             params,
@@ -530,17 +526,32 @@ class Result(IpcResult):
         params: dict[str, Any] = {
             "path": _encode_path(path),
         }
-        return self.client._post_each(
-            f"upstream-costs-of", o.UpstreamNode.from_dict, params
+        return self._post_each(
+            "upstream-costs-of", o.UpstreamNode.from_dict, params
         )
 
     # endregion
+
+    def get_sankey_graph(self, config: o.SankeyRequest) -> o.SankeyGraph | None:
+        return self._post("sankey", o.SankeyGraph.from_dict, config.to_dict())
 
     def _get(self, path: str, transform: Callable[[Any], T]) -> T | None:
         return self.client._get(f"result/{self.uid}/{path}", transform)
 
     def _get_each(self, path: str, transform: Callable[[Any], T]) -> list[T]:
         return self.client._get_each(f"result/{self.uid}/{path}", transform)
+
+    def _post(
+        self, path, transform: Callable[[Any], T], data: Any | None = None
+    ) -> T | None:
+        return self.client._post(f"result/{self.uid}/{path}", transform, data)
+
+    def _post_each(
+        self, path, transform: Callable[[Any], T], data: Any | None = None
+    ) -> list[T]:
+        return self.client._post_each(
+            f"result/{self.uid}/{path}", transform, data
+        )
 
 
 def _not_ok(resp: requests.Response) -> bool:

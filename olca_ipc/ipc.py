@@ -686,6 +686,17 @@ class Result(IpcResult):
 
     # endregion
 
+    def get_sankey_graph(self, config: o.SankeyRequest) -> o.SankeyGraph | None:
+        args = {
+            "@id": self.uid,
+            "config": config.to_dict(),
+        }
+        (r, err) = self.client.rpc_call("result/sankey", args)
+        if err:
+            log.error("request result/sankey failed: %s", err)
+            return None
+        return o.SankeyGraph.from_dict(r)
+
 
 def _encode_path(path: list[o.TechFlow]) -> str | None:
     if path is None or len(path) == 0:
