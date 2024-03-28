@@ -17,6 +17,11 @@ class UpstreamTree:
     ):
         self.result = result
 
+        # Set defaults to prevent unset vs none errors
+        self._envi_flow = None
+        self._impact_category = None
+        self._is_for_costs = None
+
         if envi_flow is not None:
             self._envi_flow = envi_flow
             cons = result.get_flow_contributions_of(envi_flow)
