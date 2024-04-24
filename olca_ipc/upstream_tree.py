@@ -17,6 +17,11 @@ class UpstreamTree:
     ):
         self.result = result
 
+        # Set defaults to prevent unset vs none errors
+        self._envi_flow = None
+        self._impact_category = None
+        self._is_for_costs = None
+
         if envi_flow is not None:
             self._envi_flow = envi_flow
             cons = result.get_flow_contributions_of(envi_flow)
@@ -28,8 +33,7 @@ class UpstreamTree:
             cons = result.get_cost_contributions()
         else:
             raise AssertionError(
-                "an intervention flow, impact "
-                + "category, cost flag must be provided"
+                "an intervention flow, impact " + "category, cost flag must be provided"
             )
 
         (self._diag, self._direct) = _unscaled_vecs(result, cons)
@@ -69,14 +73,10 @@ class UpstreamTree:
             return v.amount
 
         if self._envi_flow is not None:
-            return _v(
-                self.result.get_flow_intensity_of(self._envi_flow, provider)
-            )
+            return _v(self.result.get_flow_intensity_of(self._envi_flow, provider))
         if self._impact_category is not None:
             return _v(
-                self.result.get_impact_intensity_of(
-                    self._impact_category, provider
-                )
+                self.result.get_impact_intensity_of(self._impact_category, provider)
             )
         if self._is_for_costs:
             return _v(self.result.get_cost_intensities_of(provider))
@@ -112,9 +112,7 @@ class UpstreamNode:
         return childs
 
 
-def _unscaled_vecs(
-    result: IpcResult, cons: list[o.TechFlowValue]
-) -> tuple[_vec, _vec]:
+def _unscaled_vecs(result: IpcResult, cons: list[o.TechFlowValue]) -> tuple[_vec, _vec]:
     s: _vec = {}
     t: _vec = {}
     d: _vec = {}
@@ -127,7 +125,7 @@ def _unscaled_vecs(
 
     diag: _vec = {}
     direct: _vec = {}
-    for (key, ti) in t.items():
+    for key, ti in t.items():
         si = s.get(key, 0.0)
         di = d.get(key, 0.0)
         if si == 0 or ti == 0:
@@ -139,11 +137,7 @@ def _unscaled_vecs(
 
 
 def _key(tech_flow: o.TechFlow | None) -> str:
-    if (
-        tech_flow is None
-        or tech_flow.provider is None
-        or tech_flow.flow is None
-    ):
+    if tech_flow is None or tech_flow.provider is None or tech_flow.flow is None:
         return ""
     return f"{tech_flow.provider.id}/{tech_flow.flow.id}"
 
