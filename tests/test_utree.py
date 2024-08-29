@@ -1,7 +1,7 @@
 import unittest
 
 import olca_schema as o
-import olca_ipc.upstream_tree as u
+import olca_ipc.utree as utree
 
 from config import client
 
@@ -35,30 +35,31 @@ class TestUpstreamTree(unittest.TestCase):
             filter(lambda ei: ei.flow.id == e.id, result.get_envi_flows())
         )
 
-        root = u.UpstreamTree(result, envi_flow=envi_flow).root
-        self.assertAlmostEqual(12, root.total)
-        self.assertAlmostEqual(2, root.direct)
+        root = utree.of(result, envi_flow)
+        self.assertAlmostEqual(12., root.result)
+        self.assertAlmostEqual(2., root.direct_contribution)
 
         l1 = root.childs[0]
-        self.assertAlmostEqual(10, l1.total)
-        self.assertAlmostEqual(4, l1.direct)
+        self.assertAlmostEqual(10., l1.result)
+        self.assertAlmostEqual(4., l1.direct_contribution)
 
         l2 = l1.childs[0]
-        self.assertAlmostEqual(6, l2.total)
-        self.assertAlmostEqual(1, l2.direct)
+        self.assertAlmostEqual(6., l2.result)
+        self.assertAlmostEqual(1., l2.direct_contribution)
 
         l3 = l2.childs[0]
-        self.assertAlmostEqual(5, l3.total)
-        self.assertAlmostEqual(2, l3.direct)
+        self.assertAlmostEqual(5., l3.result)
+        self.assertAlmostEqual(2., l3.direct_contribution)
 
         l4 = l3.childs[0]
-        self.assertAlmostEqual(3, l4.total)
-        self.assertAlmostEqual(0.5, l4.direct)
+        self.assertAlmostEqual(3., l4.result)
+        self.assertAlmostEqual(0.5, l4.direct_contribution)
 
         l5 = l4.childs[0]
-        self.assertAlmostEqual(2.5, l5.total)
-        self.assertAlmostEqual(1.0, l5.direct)
+        self.assertAlmostEqual(2.5, l5.result)
+        self.assertAlmostEqual(1.0, l5.direct_contribution)
 
+        result.dispose()
         client.delete_all(Q, P, q, p, e, mass, units)
 
 
