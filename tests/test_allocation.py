@@ -77,11 +77,7 @@ class AllocationTest(unittest.TestCase):
             result.dispose()
             print(" ... success")
 
-        # set drop to False if you want to inspect the process in openLCA
-        drop = False
-        if drop:
-            for each in (system, process, p, q, e):
-                client.delete(each)
+        client.delete_all(system, process, p, q, e)
 
 
 if __name__ == "__main__":
