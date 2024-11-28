@@ -213,6 +213,12 @@ class IpcResult:
     ) -> list[o.UpstreamNode]:
         pass
 
+    @abstractmethod
+    def get_grouped_flow_results_of(
+        self, envi_flow: o.EnviFlow
+    ) -> list[o.GroupValue]:
+        pass
+
     # endregion
 
     # region: impacts
@@ -307,6 +313,12 @@ class IpcResult:
     ) -> list[o.UpstreamNode]:
         pass
 
+    @abstractmethod
+    def get_grouped_impact_results_of(
+        self, impact: o.Ref
+    ) -> list[o.GroupValue]:
+        pass
+
     # endregion
 
     # region: costs
@@ -335,6 +347,10 @@ class IpcResult:
     def get_upstream_cost_of(
         self, path: list[o.TechFlow]
     ) -> list[o.UpstreamNode]:
+        pass
+
+    @abstractmethod
+    def get_grouped_cost_results(self) -> list[o.GroupValue]:
         pass
 
     # endregion

@@ -134,7 +134,7 @@ class RestClient(IpcProtocol):
 
     def delete(self, model: o.RootEntity | o.Ref) -> o.Ref | None:
         if isinstance(model, o.Ref):
-            t = model.model_type
+            t = model.ref_type
         else:
             t = model.__class__.__name__
         path = ""
@@ -193,10 +193,10 @@ class Result(IpcResult):
             return self.error
         state = self._post("simulate/next", o.ResultState.from_dict)
         if state is None:
-            self.err = o.ResultState(
+            self.error = o.ResultState(
                 id=self.uid, error="failed to run simulation"
             )
-            return self.err
+            return self.error
         return state
 
     def dispose(self) -> o.ResultState:
@@ -345,6 +345,14 @@ class Result(IpcResult):
             params,
         )
 
+    def get_grouped_flow_results_of(
+        self, envi_flow: o.EnviFlow
+    ) -> list[o.GroupValue]:
+        return self._get_each(
+            f"grouped-flow-results-of/{_envi_id(envi_flow)}",
+            o.GroupValue.from_dict,
+        )
+
     # endregion
 
     # region: impact results
@@ -482,6 +490,14 @@ class Result(IpcResult):
             params,
         )
 
+    def get_grouped_impact_results_of(
+        self, impact_category: o.Ref
+    ) -> list[o.GroupValue]:
+        return self._get_each(
+            f"grouped-impact-results-of/{impact_category.id}",
+            o.GroupValue.from_dict,
+        )
+
     # endregion
 
     # region: cost results
@@ -528,6 +544,12 @@ class Result(IpcResult):
         }
         return self._post_each(
             "upstream-costs-of", o.UpstreamNode.from_dict, params
+        )
+
+    def get_grouped_cost_results(self) -> list[o.GroupValue]:
+        return self._get_each(
+            f"grouped-cost-results",
+            o.GroupValue.from_dict,
         )
 
     # endregion

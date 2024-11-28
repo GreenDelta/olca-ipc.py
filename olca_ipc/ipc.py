@@ -443,6 +443,19 @@ class Result(IpcResult):
             return []
         return [o.UpstreamNode.from_dict(d) for d in r]
 
+    def get_grouped_flow_results_of(
+        self, envi_flow: o.EnviFlow
+    ) -> list[o.GroupValue]:
+        args = {
+            "@id": self.uid,
+            "enviFlow": envi_flow.to_dict(),
+        }
+        (r, err) = self.client.rpc_call("result/grouped-flow-results-of", args)
+        if err:
+            log.error("request grouped-flow-results-of failed: %s", err)
+            return []
+        return [o.GroupValue.from_dict(d) for d in r]
+
     # endregion
 
     # region: impact results
@@ -627,6 +640,21 @@ class Result(IpcResult):
             return []
         return [o.UpstreamNode.from_dict(d) for d in r]
 
+    def get_grouped_impact_results_of(
+        self, impact: o.Ref
+    ) -> list[o.GroupValue]:
+        args = {
+            "@id": self.uid,
+            "impactCategory": impact.to_dict(),
+        }
+        (r, err) = self.client.rpc_call(
+            "result/grouped-impact-results-of", args
+        )
+        if err:
+            log.error("request grouped-impact-results-of failed: %s", err)
+            return []
+        return [o.GroupValue.from_dict(d) for d in r]
+
     # endregion
 
     # region: cost results
@@ -684,6 +712,14 @@ class Result(IpcResult):
             return []
         return [o.UpstreamNode.from_dict(d) for d in r]
 
+    def get_grouped_cost_results(self) -> list[o.GroupValue]:
+        args = {"@id": self.uid}
+        (r, err) = self.client.rpc_call("result/grouped-cost-results", args)
+        if err:
+            log.error("request grouped-cost-results failed: %s", err)
+            return []
+        return [o.GroupValue.from_dict(d) for d in r]
+
     # endregion
 
     def get_sankey_graph(self, config: o.SankeyRequest) -> o.SankeyGraph | None:
@@ -703,13 +739,13 @@ def _encode_path(path: list[o.TechFlow]) -> str | None:
         return None
     p = None
     for tf in path:
-        next = ""
+        next_id = ""
         if tf.provider and tf.provider.id:
-            next += tf.provider.id
+            next_id += tf.provider.id
         if tf.flow and tf.flow.id:
-            next += "::" + tf.flow.id
+            next_id += "::" + tf.flow.id
         if p is None:
-            p = next
+            p = next_id
         else:
-            p += "/" + next
+            p += "/" + next_id
     return p
