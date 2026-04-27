@@ -5,8 +5,11 @@ import olca_ipc.rest as rest
 # configure here the client against which
 # the test suite should be executed
 client: protocol.IpcProtocol
-use_rest = False
+use_rest = True
 if use_rest:
-    client = rest.RestClient("http://localhost:8080")
+    client = rest.RestClient(
+        "http://localhost:8080",
+        headers={"X-API-TOKEN": "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456"},
+    )
 else:
     client = ipc.Client(8080)

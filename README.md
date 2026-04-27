@@ -15,26 +15,34 @@ can be installed / updated like this:
 pip install -U olca-ipc
 ```
 
-Note that this version only works with the openLCA >= 2.x and requires
-**Python >= 3.11**. The last stable version for openLCA 1.x is
-[0.0.12](https://pypi.org/project/olca-ipc/0.0.12/):
-
-```bash
-# for openLCA 1.x
-pip install olca-ipc==0.0.12
-```
-
-The source code and API documentation of the version for openLCA 1.x is in the
-`v1` branch of this repository. If you just want to read and write data for
-openLCA 2, you can also just use the
-[olca-schema package](https://pypi.org/project/olca-schema/), which is a
-dependency of `olca-ipc`.
+If you just want to read and write data for openLCA 2, you can also use the
+[olca-schema package](https://pypi.org/project/olca-schema/) directly, which is
+a dependency of `olca-ipc`.
 
 
 ## Tests and packaging
 
+If you want to run the test suite, make sure you have a server running and
+configured in [tests/config.py](./tests/config.py). Then you can run the tests
+with `pytest`, e.g. with `uv`:
+
 ```bash
+cd olca-ipc.py
+# create a virtual environment
 uv venv [-p 3.12]
+# install the test dependencies
 uv sync --extra test
+# run all tests
 uv run pytest tests
+```
+
+Build and validate a release package with:
+
+```bash
+# install the packaging dependencies
+uv sync --extra packaging
+# build the source and wheel distributions
+uv run python -m build
+# validate the generated artifacts
+uv run twine check dist/*
 ```
