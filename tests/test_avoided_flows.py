@@ -1,7 +1,6 @@
 import unittest
 
 import olca_schema as o
-
 from config import client
 
 
@@ -35,6 +34,7 @@ class AvoidedFlowTest(unittest.TestCase):
         client.put_all(units, mass, e, p, q, w, P, W, Q)
         self.entities = [units, mass, e, p, q, w, P, W, Q]
         self.Q = Q
+        self.eid = e.id
 
     def tearDown(self):
         client.delete_all(*self.entities)
@@ -45,7 +45,7 @@ class AvoidedFlowTest(unittest.TestCase):
         result.wait_until_ready()
         e = next(
             filter(
-                lambda ei: ei.envi_flow.flow.name == "e",
+                lambda ei: ei.envi_flow.flow.id == self.eid,
                 result.get_total_flows(),
             )
         )

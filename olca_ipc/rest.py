@@ -1,5 +1,5 @@
 import logging as log
-from typing import cast, Any, Callable, Type, TypeVar
+from typing import Any, Callable, Type, TypeVar, cast
 
 import olca_schema as o
 import requests
@@ -134,7 +134,7 @@ class RestClient(IpcProtocol):
 
     def delete(self, model: o.RootEntity | o.Ref) -> o.Ref | None:
         if isinstance(model, o.Ref):
-            t = model.ref_type
+            t = model.ref_type.value
         else:
             t = model.__class__.__name__
         path = ""
@@ -547,10 +547,7 @@ class Result(IpcResult):
         )
 
     def get_grouped_cost_results(self) -> list[o.GroupValue]:
-        return self._get_each(
-            f"grouped-cost-results",
-            o.GroupValue.from_dict,
-        )
+        return self._get_each("grouped-cost-results", o.GroupValue.from_dict)
 
     # endregion
 
