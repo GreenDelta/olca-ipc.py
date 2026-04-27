@@ -104,7 +104,7 @@ class RestClient(IpcProtocol):
 
     def get_parameters(
         self, model_type: Type[E], uid: str
-    ) -> list[o.Parameter] | list[o.ParameterRedef]:
+    ) -> list[o.Parameter | o.ParameterRedef]:
         path = f"data/{_path_of(model_type)}/{uid}/parameters"
         if model_type in (o.ProductSystem, o.Project):
             return self._get_each(path, o.ParameterRedef.from_dict)
@@ -358,7 +358,7 @@ class Result(IpcResult):
     # region: impact results
 
     def get_total_impacts(self) -> list[o.ImpactValue]:
-        return self._get_each(f"total-impacts", o.ImpactValue.from_dict)
+        return self._get_each("total-impacts", o.ImpactValue.from_dict)
 
     def get_total_impact_value_of(
         self, impact_category: o.Ref
@@ -372,10 +372,10 @@ class Result(IpcResult):
         return val
 
     def get_normalized_impacts(self) -> list[o.ImpactValue]:
-        return self._get_each(f"normalized-impacts", o.ImpactValue.from_dict)
+        return self._get_each("normalized-impacts", o.ImpactValue.from_dict)
 
     def get_weighted_impacts(self) -> list[o.ImpactValue]:
-        return self._get_each(f"weighted-impacts", o.ImpactValue.from_dict)
+        return self._get_each("weighted-impacts", o.ImpactValue.from_dict)
 
     def get_impact_contributions_of(
         self, impact_category: o.Ref
@@ -491,10 +491,10 @@ class Result(IpcResult):
         )
 
     def get_grouped_impact_results_of(
-        self, impact_category: o.Ref
+        self, impact: o.Ref
     ) -> list[o.GroupValue]:
         return self._get_each(
-            f"grouped-impact-results-of/{impact_category.id}",
+            f"grouped-impact-results-of/{impact.id}",
             o.GroupValue.from_dict,
         )
 
@@ -503,13 +503,13 @@ class Result(IpcResult):
     # region: cost results
 
     def get_total_costs(self) -> o.CostValue:
-        val = self._get(f"total-costs", o.CostValue.from_dict)
+        val = self._get("total-costs", o.CostValue.from_dict)
         if val is None:
             return o.CostValue(amount=0)
         return val
 
     def get_cost_contributions(self) -> list[o.TechFlowValue]:
-        return self._get_each(f"cost-contributions", o.TechFlowValue.from_dict)
+        return self._get_each("cost-contributions", o.TechFlowValue.from_dict)
 
     def get_direct_costs_of(self, tech_flow: o.TechFlow) -> o.CostValue:
         val = self._get(
