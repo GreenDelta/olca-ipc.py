@@ -29,3 +29,12 @@ The source code and API documentation of the version for openLCA 1.x is in the
 openLCA 2, you can also just use the
 [olca-schema package](https://pypi.org/project/olca-schema/), which is a
 dependency of `olca-ipc`.
+
+
+## Tests and packaging
+
+```bash
+uv venv [-p 3.12]
+uv sync --extra test
+uv run pytest tests
+```

@@ -2,14 +2,11 @@ import unittest
 from functools import reduce
 
 import olca_schema as o
-
 from config import client
 
 
 class AnalysisGroupsTest(unittest.TestCase):
-
     def test_analysis_groups(self):
-
         # create units & flows
         euro = o.Currency(id="euro", name="Euro", code="EUR")
         euro.ref_currency = euro.to_ref()
@@ -45,7 +42,9 @@ class AnalysisGroupsTest(unittest.TestCase):
         # insert data & create the product system
         client.put_all(euro, units, mass, e, p, q, P, Q, I, M)
         sys_ref = client.create_product_system(P)
+        assert sys_ref is not None
         system = client.get(o.ProductSystem, sys_ref.id)
+        assert system is not None
 
         system.analysis_groups = [
             o.AnalysisGroup(name="Top", processes=[P.to_ref()]),
