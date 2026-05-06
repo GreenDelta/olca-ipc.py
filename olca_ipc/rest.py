@@ -1,9 +1,10 @@
 import logging as log
-from typing import Any, Callable, Type, TypeVar, cast
+from typing import Any, Callable, Type, TypeVar, cast, override
 
 import olca_schema as o
 import requests
 
+from . import FileData
 from .protocol import E, IpcProtocol, IpcResult
 
 T = TypeVar("T")
@@ -121,6 +122,23 @@ class RestClient(IpcProtocol):
             log.error("failed to upload entity: %s", resp.text)
             return None
         return o.Ref.from_dict(resp.json())
+
+    @override
+    def put_source_file(
+        self, source: o.Source | o.Ref, file_data: FileData
+    ) -> bool:
+        resp = requests.post(
+            f"{self.endpoint}data/put-source-file",
+            json={
+                "source": o.as_ref(source).to_dict(),
+                "file": file_data.to_dict(),
+            },
+            **self.req_args,
+        )
+        if _not_ok(resp):
+            log.error("failed to upload source file: %s", resp.text)
+            return False
+        return True
 
     def create_product_system(
         self,

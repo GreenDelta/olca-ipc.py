@@ -1,11 +1,11 @@
 import logging as log
 from dataclasses import dataclass
-from typing import cast, Any, Callable, Optional, Tuple, Type, TypeVar
+from typing import Any, Callable, Optional, Tuple, Type, TypeVar, override
 
-import requests
 import olca_schema as o
+import requests
 
-from .protocol import E, IpcProtocol, IpcResult
+from .protocol import E, IpcProtocol, IpcResult, FileData
 
 _T = TypeVar("_T")
 
@@ -43,14 +43,14 @@ class Client(IpcProtocol):
         if err:
             log.warning("failed to get entity of type %s: %s", model_type, err)
             return None
-        return cast(E, model_type.from_dict(result))
+        return model_type.from_dict(result)
 
     def get_all(self, model_type: Type[E]) -> list[E]:
         params = {"@type": model_type.__name__}
         result, err = self.rpc_call("data/get/all", params)
         if err:
             log.error("failed to get all of type %s: %s", model_type, err)
-        return cast(list[E], [model_type.from_dict(r) for r in result])
+        return [model_type.from_dict(r) for r in result]
 
     def get_descriptors(self, model_type: Type[E]) -> list[o.Ref]:
         params = {"@type": model_type.__name__}
@@ -118,6 +118,22 @@ class Client(IpcProtocol):
             return None
         return o.Ref.from_dict(resp)
 
+    @override
+    def put_source_file(
+        self, source: o.Source | o.Ref, file_data: FileData
+    ) -> bool:
+        resp, err = self.rpc_call(
+            "data/put/source-file",
+            {
+                "source": o.as_ref(source).to_dict(),
+                "file": file_data.to_dict(),
+            },
+        )
+        if err:
+            log.error("failed to upload source file: %s", err)
+            return False
+        return resp == "ok"
+
     def create_product_system(
         self,
         process: o.Ref | o.Process,
@@ -143,7 +159,7 @@ class Client(IpcProtocol):
 
     def delete(self, model: o.RootEntity | o.Ref) -> o.Ref | None:
         if model is None:
-            return
+            return None
         ref = o.as_ref(model).to_dict()
         resp, err = self.rpc_call("data/delete", ref)
         if err:
@@ -223,6 +239,7 @@ class Result(IpcResult):
     client: "Client"
     error: Optional[o.ResultState]
 
+    @override
     def get_state(self) -> o.ResultState:
         if self.error is not None:
             return self.error
@@ -232,6 +249,7 @@ class Result(IpcResult):
             return self.err
         return o.ResultState.from_dict(state)
 
+    @override
     def simulate_next(self) -> o.ResultState:
         if self.error is not None:
             return self.error
@@ -243,11 +261,13 @@ class Result(IpcResult):
             return self.err
         return o.ResultState.from_dict(state)
 
+    @override
     def dispose(self):
         if self.error is not None:
             return
         self.client.rpc_call("result/dispose", {"@id": self.uid})
 
+    @override
     def get_demand(self) -> o.TechFlowValue | None:
         (data, err) = self.client.rpc_call("result/demand", {"@id": self.uid})
         if err:

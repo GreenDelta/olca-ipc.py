@@ -40,6 +40,9 @@ packaging = [
     "twine>=6.2",
 ]
 
+[tool.ruff]
+line-length = 80
+
 [tool.ruff.lint.per-file-ignores]
 # https://docs.astral.sh/ruff/rules/ambiguous-variable-name/#ambiguous-variable-name-e741
 "tests/**/*.py" = ["E741"]

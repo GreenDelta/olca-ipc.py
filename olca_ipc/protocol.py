@@ -1,14 +1,38 @@
+import abc
+import base64
+import os
 import time
 
 from abc import abstractmethod
-from typing import TypeVar, Type
+from dataclasses import dataclass
+from pathlib import Path
+
+from typing import TypeVar, Type, Any
 
 import olca_schema as o
 
 E = TypeVar("E", bound=o.RootEntity)
 
 
-class IpcProtocol:
+@dataclass
+class FileData:
+    name: str
+    """The file name"""
+    content: str
+    """The Base64 encoded content of the file."""
+
+    @classmethod
+    def from_file(cls, path: str | os.PathLike[str]) -> "FileData":
+        file_path = Path(path)
+        data = file_path.read_bytes()
+        content = base64.b64encode(data).decode("ascii")
+        return cls(name=file_path.name, content=content)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"name": self.name, "content": self.content}
+
+
+class IpcProtocol(abc.ABC):
     @abstractmethod
     def get(
         self,
@@ -39,6 +63,7 @@ class IpcProtocol:
         for d in self.get_descriptors(model_type):
             if d.name == name:
                 return d
+        return None
 
     @abstractmethod
     def get_providers(
@@ -54,6 +79,12 @@ class IpcProtocol:
 
     @abstractmethod
     def put(self, model: o.RootEntity) -> o.Ref | None:
+        pass
+
+    @abstractmethod
+    def put_source_file(
+        self, source: o.Source | o.Ref, file_data: FileData
+    ) -> bool:
         pass
 
     def put_all(self, *models: o.RootEntity):
@@ -85,7 +116,7 @@ class IpcProtocol:
         pass
 
 
-class IpcResult:
+class IpcResult(abc.ABC):
     @abstractmethod
     def get_state(self) -> o.ResultState:
         pass
@@ -344,7 +375,7 @@ class IpcResult:
         pass
 
     @abstractmethod
-    def get_upstream_cost_of(
+    def get_upstream_costs_of(
         self, path: list[o.TechFlow]
     ) -> list[o.UpstreamNode]:
         pass
