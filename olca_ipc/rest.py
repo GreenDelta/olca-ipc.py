@@ -67,7 +67,7 @@ class RestClient(IpcProtocol):
             f"data/{_path_of(model_type)}/all",
             model_type.from_dict,
         )
-        return cast(list[E], xs)
+        return xs
 
     def get_descriptors(self, model_type: Type[E]) -> list[o.Ref]:
         return self._get_each(
@@ -93,6 +93,7 @@ class RestClient(IpcProtocol):
                 f"data/{_path_of(model_type)}/name/{name}/info",
                 o.Ref.from_dict,
             )
+        return None
 
     def get_providers(
         self, flow: o.Ref | o.Flow | None = None
@@ -196,37 +197,31 @@ class Result(IpcResult):
         if self.error is not None:
             return self.error
         state = self._get("state", o.ResultState.from_dict)
-        if state is None:
-            self.error = o.ResultState(
-                id=self.uid,
-                error="no result state could be retreived from server",
-            )
-            return self.error
-        if state.error:
-            self.error = state
-        return state
+        return self._state_or(
+            state, "no result state could be retrieved from server"
+        )
 
     def simulate_next(self) -> o.ResultState:
         if self.error is not None:
             return self.error
         state = self._post("simulate/next", o.ResultState.from_dict)
-        if state is None:
-            self.error = o.ResultState(
-                id=self.uid, error="failed to run simulation"
-            )
-            return self.error
-        return state
+        return self._state_or(state, "failed to run simulation")
 
     def dispose(self) -> o.ResultState:
         if self.error:
             return self.error
         state = self._post("dispose", o.ResultState.from_dict)
-        if state is None:
-            self.error = o.ResultState(
-                id=self.uid, error="dispose did not return state"
-            )
-            return self.error
-        return state
+        return self._state_or(state, "dispose did not return state")
+
+    def _state_or(
+        self, state: o.ResultState | None, error: str
+    ) -> o.ResultState:
+        if state:
+            if state.error:
+                self.error = state
+            return state
+        self.error = o.ResultState(id=self.uid, error=error)
+        return cast(o.ResultState, self.error)
 
     def get_demand(self) -> o.TechFlowValue | None:
         return self._get("demand", o.TechFlowValue.from_dict)
