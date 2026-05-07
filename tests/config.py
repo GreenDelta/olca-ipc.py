@@ -4,7 +4,7 @@ import olca_ipc.rest as rest
 
 # configure here the client against which
 # the test suite should be executed
-client: protocol.IpcProtocol
+client: protocol.ProtoClient
 use_rest = False
 if use_rest:
     client = rest.RestClient(

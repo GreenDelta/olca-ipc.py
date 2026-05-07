@@ -32,7 +32,7 @@ class FileData:
         return {"name": self.name, "content": self.content}
 
 
-class IpcProtocol(abc.ABC):
+class ProtoClient(abc.ABC):
     @abstractmethod
     def get(
         self,
@@ -108,15 +108,15 @@ class IpcProtocol(abc.ABC):
             self.delete(model)
 
     @abstractmethod
-    def calculate(self, setup: o.CalculationSetup) -> "IpcResult":
+    def calculate(self, setup: o.CalculationSetup) -> "ProtoResult":
         pass
 
     @abstractmethod
-    def simulate(self, setup: o.CalculationSetup) -> "IpcResult":
+    def simulate(self, setup: o.CalculationSetup) -> "ProtoResult":
         pass
 
 
-class IpcResult(abc.ABC):
+class ProtoResult(abc.ABC):
     @abstractmethod
     def get_state(self) -> o.ResultState:
         pass

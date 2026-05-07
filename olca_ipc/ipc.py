@@ -5,12 +5,12 @@ from typing import Any, Callable, Optional, Tuple, Type, TypeVar, override
 import olca_schema as o
 import requests
 
-from .protocol import E, IpcProtocol, IpcResult, FileData
+from .protocol import E, ProtoClient, ProtoResult, FileData
 
 _T = TypeVar("_T")
 
 
-class Client(IpcProtocol):
+class Client(ProtoClient):
     """
     A client to communicate with an openLCA IPC server over the JSON-RPC
     protocol.
@@ -234,7 +234,7 @@ class Client(IpcProtocol):
 
 
 @dataclass
-class Result(IpcResult):
+class Result(ProtoResult):
     uid: str
     client: "Client"
     error: Optional[o.ResultState]

@@ -1,5 +1,5 @@
 import olca_schema as o
-from .protocol import IpcResult
+from .protocol import ProtoResult
 
 from typing import Literal
 
@@ -10,7 +10,7 @@ class Node:
 
     def __init__(
         self,
-        result: IpcResult,
+        result: ProtoResult,
         ref: _Ref,
         node: o.UpstreamNode,
         path: list[o.TechFlow],
@@ -53,13 +53,13 @@ class Node:
         return self._childs
 
 
-def of(result: IpcResult, ref: _Ref) -> Node:
+def of(result: ProtoResult, ref: _Ref) -> Node:
     [root] = _fetch_next(result, ref, [])
     return Node(result, ref, root, [root.tech_flow])
 
 
 def _fetch_next(
-    result: IpcResult, ref: _Ref, path: list[o.TechFlow]
+    result: ProtoResult, ref: _Ref, path: list[o.TechFlow]
 ) -> list[o.UpstreamNode]:
     if ref == "costs":
         return result.get_upstream_cost_of(path)

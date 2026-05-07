@@ -5,12 +5,12 @@ import olca_schema as o
 import requests
 
 from . import FileData
-from .protocol import E, IpcProtocol, IpcResult
+from .protocol import E, ProtoClient, ProtoResult
 
 T = TypeVar("T")
 
 
-class RestClient(IpcProtocol):
+class RestClient(ProtoClient):
     def __init__(self, endpoint: str, **kwargs):
         self.endpoint = endpoint if endpoint.endswith("/") else endpoint + "/"
         self.req_args = kwargs
@@ -168,24 +168,24 @@ class RestClient(IpcProtocol):
             return None
         return o.Ref.from_dict(resp.json())
 
-    def calculate(self, setup: o.CalculationSetup) -> IpcResult | None:
+    def calculate(self, setup: o.CalculationSetup) -> ProtoResult | None:
         state = self._post(
             "result/calculate", o.ResultState.from_dict, setup.to_dict()
         )
         if state is None:
             return None
-        return Result(self, state)
+        return RestResult(self, state)
 
-    def simulate(self, setup: o.CalculationSetup) -> IpcResult | None:
+    def simulate(self, setup: o.CalculationSetup) -> ProtoResult | None:
         state = self._post(
             "result/simulate", o.ResultState.from_dict, setup.to_dict()
         )
         if state is None:
             return None
-        return Result(self, state)
+        return RestResult(self, state)
 
 
-class Result(IpcResult):
+class RestResult(ProtoResult):
     def __init__(self, client: RestClient, state: o.ResultState):
         self.client = client
         self.uid = state.id
@@ -660,13 +660,13 @@ def _encode_path(path: list[o.TechFlow]) -> str | None:
         return None
     p = None
     for tf in path:
-        next = ""
+        segment = ""
         if tf.provider and tf.provider.id:
-            next += tf.provider.id
+            segment += tf.provider.id
         if tf.flow and tf.flow.id:
-            next += "::" + tf.flow.id
+            segment += "::" + tf.flow.id
         if p is None:
-            p = next
+            p = segment
         else:
-            p += "/" + next
+            p += "/" + segment
     return p
