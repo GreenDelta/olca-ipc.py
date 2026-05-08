@@ -1,6 +1,6 @@
 import logging as log
 from dataclasses import dataclass
-from typing import Any, Callable, Optional, Tuple, Type, TypeVar, override
+from typing import Any, Callable, Optional, Tuple, Type, TypeVar, cast, override
 
 import olca_schema as o
 import requests
@@ -174,7 +174,7 @@ class Client(ProtoClient):
                 uid="", client=self, error=o.ResultState(id="", error=err)
             )
         state = o.ResultState.from_dict(resp)
-        return Result(uid=state.id, client=self, error=None)
+        return Result(uid=cast(str, state.id), client=self, error=None)
 
     def simulate(self, setup: o.CalculationSetup) -> "Result":
         resp, err = self.rpc_call("result/simulate", setup.to_dict())
@@ -183,7 +183,7 @@ class Client(ProtoClient):
                 uid="", client=self, error=o.ResultState(id="", error=err)
             )
         state = o.ResultState.from_dict(resp)
-        return Result(uid=state.id, client=self, error=None)
+        return Result(uid=cast(str, state.id), client=self, error=None)
 
     def rpc_call(
         self, method: str, params: Any = None
@@ -193,7 +193,7 @@ class Client(ProtoClient):
 
         It returns a tuple (result, error).
         """
-        req = {
+        req: dict[str, Any] = {
             "jsonrpc": "2.0",
             "id": self.next_id,
             "method": method,
@@ -206,8 +206,11 @@ class Client(ProtoClient):
         resp: dict = raw.json()
         raw.close()
         err: dict | None = resp.get("error")
-        if err is not None:
-            err_msg = "%i: %s" % (err.get("code"), err.get("message"))
+        if err:
+            err_msg = "%d: %s" % (
+                cast(int, err.get("code")),
+                err.get("message"),
+            )
             return None, err_msg
         result = resp.get("result")
         if result is None:
@@ -245,8 +248,8 @@ class Result(ProtoResult):
             return self.error
         (state, err) = self.client.rpc_call("result/state", {"@id": self.uid})
         if err:
-            self.err = o.ResultState(id=self.uid, error=err)
-            return self.err
+            self.error = o.ResultState(id=self.uid, error=err)
+            return self.error
         return o.ResultState.from_dict(state)
 
     @override
@@ -742,15 +745,14 @@ class Result(ProtoResult):
 
     # endregion
 
-    def get_sankey_graph(self, config: o.SankeyRequest) -> o.SankeyGraph | None:
+    def get_sankey_graph(self, config: o.SankeyRequest) -> o.SankeyGraph:
         args = {
             "@id": self.uid,
             "config": config.to_dict(),
         }
         (r, err) = self.client.rpc_call("result/sankey", args)
         if err:
-            log.error("request result/sankey failed: %s", err)
-            return None
+            raise RuntimeError(f"request result/sankey failed: {err}")
         return o.SankeyGraph.from_dict(r)
 
 

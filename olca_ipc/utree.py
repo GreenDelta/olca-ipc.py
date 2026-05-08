@@ -1,13 +1,12 @@
 import olca_schema as o
 from .protocol import ProtoResult
 
-from typing import Literal
+from typing import Literal, cast
 
 _Ref = o.Ref | o.EnviFlow | Literal["costs"]
 
 
 class Node:
-
     def __init__(
         self,
         result: ProtoResult,
@@ -23,46 +22,52 @@ class Node:
 
     @property
     def result(self) -> float:
-        return self._node.result
+        return cast(float, self._node.result)
 
     @property
     def provider(self) -> o.Ref:
-        return self._node.tech_flow.provider
+        return cast(o.Ref, self._node.tech_flow.provider)
 
     @property
     def product(self) -> o.Ref:
-        return self._node.tech_flow.flow
+        return cast(o.Ref, self._node.tech_flow.flow)
 
     @property
     def direct_contribution(self) -> float:
-        return self._node.direct_contribution
+        return cast(float, self._node.direct_contribution)
 
     @property
     def required_amount(self) -> float:
-        return self._node.required_amount
+        return cast(float, self._node.required_amount)
 
     @property
     def childs(self) -> list["Node"]:
         if self._childs is not None:
             return self._childs
         self._childs = []
-        for u in _fetch_next(self._result, self._ref, self._path):
+        ref = self._ref
+        for u in _fetch_next(self._result, ref, self._path):
             self._childs.append(
-                Node(self._result, self._ref, u, self._path + [u.tech_flow])
+                Node(
+                    self._result,
+                    ref,
+                    u,
+                    self._path + [cast(o.TechFlow, u.tech_flow)],
+                )
             )
         return self._childs
 
 
 def of(result: ProtoResult, ref: _Ref) -> Node:
     [root] = _fetch_next(result, ref, [])
-    return Node(result, ref, root, [root.tech_flow])
+    return Node(result, ref, root, [cast(o.TechFlow, root.tech_flow)])
 
 
 def _fetch_next(
     result: ProtoResult, ref: _Ref, path: list[o.TechFlow]
 ) -> list[o.UpstreamNode]:
     if ref == "costs":
-        return result.get_upstream_cost_of(path)
+        return result.get_upstream_costs_of(path)
     if isinstance(ref, o.EnviFlow):
         return result.get_upstream_interventions_of(ref, path)
     if isinstance(ref, o.Ref):

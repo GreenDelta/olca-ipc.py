@@ -217,7 +217,7 @@ class ProtoResult(abc.ABC):
     @abstractmethod
     def get_flow_intensities_of(
         self, tech_flow: o.TechFlow
-    ) -> list[o.EnviFlow]:
+    ) -> list[o.EnviFlowValue]:
         pass
 
     @abstractmethod

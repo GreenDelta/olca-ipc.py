@@ -66,7 +66,7 @@ class SimpleCalculationTest(unittest.TestCase):
             # todo: scaling factors etc.
             (r.get_total_requirements(), 2)
         ]
-        for (values, expected) in seq:
+        for values, expected in seq:
             value: o.TechFlowValue = next(
                 filter(
                     lambda x: x.tech_flow.provider.id == self.process.id, values

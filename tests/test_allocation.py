@@ -60,7 +60,7 @@ class AllocationTest(unittest.TestCase):
             (o.AllocationType.NO_ALLOCATION, 0.5),
             (None, 0.5),
         ]
-        for (method, value) in expected:
+        for method, value in expected:
             print("test with allocation method = %s ..." % method)
             setup.allocation = method
             result = client.calculate(setup)

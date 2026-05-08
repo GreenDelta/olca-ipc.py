@@ -36,23 +36,23 @@ class TestUpstreamTree(unittest.TestCase):
         )
 
         root = utree.of(result, envi_flow)
-        self.assertAlmostEqual(12., root.result)
-        self.assertAlmostEqual(2., root.direct_contribution)
+        self.assertAlmostEqual(12.0, root.result)
+        self.assertAlmostEqual(2.0, root.direct_contribution)
 
         l1 = root.childs[0]
-        self.assertAlmostEqual(10., l1.result)
-        self.assertAlmostEqual(4., l1.direct_contribution)
+        self.assertAlmostEqual(10.0, l1.result)
+        self.assertAlmostEqual(4.0, l1.direct_contribution)
 
         l2 = l1.childs[0]
-        self.assertAlmostEqual(6., l2.result)
-        self.assertAlmostEqual(1., l2.direct_contribution)
+        self.assertAlmostEqual(6.0, l2.result)
+        self.assertAlmostEqual(1.0, l2.direct_contribution)
 
         l3 = l2.childs[0]
-        self.assertAlmostEqual(5., l3.result)
-        self.assertAlmostEqual(2., l3.direct_contribution)
+        self.assertAlmostEqual(5.0, l3.result)
+        self.assertAlmostEqual(2.0, l3.direct_contribution)
 
         l4 = l3.childs[0]
-        self.assertAlmostEqual(3., l4.result)
+        self.assertAlmostEqual(3.0, l4.result)
         self.assertAlmostEqual(0.5, l4.direct_contribution)
 
         l5 = l4.childs[0]

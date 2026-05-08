@@ -168,20 +168,20 @@ class RestClient(ProtoClient):
             return None
         return o.Ref.from_dict(resp.json())
 
-    def calculate(self, setup: o.CalculationSetup) -> ProtoResult | None:
+    def calculate(self, setup: o.CalculationSetup) -> ProtoResult:
         state = self._post(
             "result/calculate", o.ResultState.from_dict, setup.to_dict()
         )
-        if state is None:
-            return None
+        if not state:
+            raise RuntimeError("`calculate` did not return a result state")
         return RestResult(self, state)
 
-    def simulate(self, setup: o.CalculationSetup) -> ProtoResult | None:
+    def simulate(self, setup: o.CalculationSetup) -> ProtoResult:
         state = self._post(
             "result/simulate", o.ResultState.from_dict, setup.to_dict()
         )
-        if state is None:
-            return None
+        if not state:
+            raise RuntimeError("`simulate` did not return a result state")
         return RestResult(self, state)
 
 
@@ -207,11 +207,8 @@ class RestResult(ProtoResult):
         state = self._post("simulate/next", o.ResultState.from_dict)
         return self._state_or(state, "failed to run simulation")
 
-    def dispose(self) -> o.ResultState:
-        if self.error:
-            return self.error
-        state = self._post("dispose", o.ResultState.from_dict)
-        return self._state_or(state, "dispose did not return state")
+    def dispose(self):
+        self._post("dispose", o.ResultState.from_dict)
 
     def _state_or(
         self, state: o.ResultState | None, error: str
@@ -242,11 +239,14 @@ class RestResult(ProtoResult):
 
     def get_total_requirements_of(
         self, tech_flow: o.TechFlow
-    ) -> list[o.TechFlowValue]:
-        return self._get_each(
+    ) -> o.TechFlowValue:
+        v = self._get(
             f"total-requirements-of/{_tech_id(tech_flow)}",
             o.TechFlowValue.from_dict,
         )
+        if v is None:
+            return o.TechFlowValue(amount=0, tech_flow=tech_flow)
+        return v
 
     def get_scaling_factors(self) -> list[o.TechFlowValue]:
         return self._get_each("scaling-factors", o.TechFlowValue.from_dict)
@@ -274,13 +274,14 @@ class RestResult(ProtoResult):
     def get_total_flows(self) -> list[o.EnviFlowValue]:
         return self._get_each("total-flows", o.EnviFlowValue.from_dict)
 
-    def get_total_flow_value_of(
-        self, envi_flow: o.EnviFlow
-    ) -> o.EnviFlowValue | None:
-        return self._get(
+    def get_total_flow_value_of(self, envi_flow: o.EnviFlow) -> o.EnviFlowValue:
+        v = self._get(
             f"total-flow-value-of/{_envi_id(envi_flow)}",
             o.EnviFlowValue.from_dict,
         )
+        if v is None:
+            return o.EnviFlowValue(amount=0, envi_flow=envi_flow)
+        return v
 
     def get_flow_contributions_of(
         self, envi_flow: o.EnviFlow
@@ -311,9 +312,10 @@ class RestResult(ProtoResult):
 
     def get_flow_intensities_of(
         self, tech_flow: o.TechFlow
-    ) -> list[o.EnviFlow]:
+    ) -> list[o.EnviFlowValue]:
         return self._get_each(
-            f"flow-intensities-of/{_tech_id(tech_flow)}", o.EnviFlow.from_dict
+            f"flow-intensities-of/{_tech_id(tech_flow)}",
+            o.EnviFlowValue.from_dict,
         )
 
     def get_flow_intensity_of(
@@ -564,8 +566,11 @@ class RestResult(ProtoResult):
 
     # endregion
 
-    def get_sankey_graph(self, config: o.SankeyRequest) -> o.SankeyGraph | None:
-        return self._post("sankey", o.SankeyGraph.from_dict, config.to_dict())
+    def get_sankey_graph(self, config: o.SankeyRequest) -> o.SankeyGraph:
+        g = self._post("sankey", o.SankeyGraph.from_dict, config.to_dict())
+        if g is None:
+            raise RuntimeError("failed to retrieve Sankey graph from server")
+        return g
 
     def _get(self, path: str, transform: Callable[[Any], T]) -> T | None:
         return self.client._get(f"result/{self.uid}/{path}", transform)
