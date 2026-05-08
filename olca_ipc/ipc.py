@@ -25,6 +25,7 @@ class Client(ProtoClient):
         self.next_id = 1
         self._s = requests.Session()
 
+    @override
     def get(
         self,
         model_type: Type[E],
@@ -43,15 +44,17 @@ class Client(ProtoClient):
         if err:
             log.warning("failed to get entity of type %s: %s", model_type, err)
             return None
-        return model_type.from_dict(result)
+        return cast(E, model_type.from_dict(result))
 
+    @override
     def get_all(self, model_type: Type[E]) -> list[E]:
         params = {"@type": model_type.__name__}
         result, err = self.rpc_call("data/get/all", params)
         if err:
             log.error("failed to get all of type %s: %s", model_type, err)
-        return [model_type.from_dict(r) for r in result]
+        return [cast(E, model_type.from_dict(r)) for r in result]
 
+    @override
     def get_descriptors(self, model_type: Type[E]) -> list[o.Ref]:
         params = {"@type": model_type.__name__}
         result, err = self.rpc_call("data/get/descriptors", params)
@@ -62,6 +65,7 @@ class Client(ProtoClient):
             return []
         return [o.Ref.from_dict(r) for r in result]
 
+    @override
     def get_descriptor(
         self,
         model_type: Type[E],
@@ -79,6 +83,7 @@ class Client(ProtoClient):
             return None
         return o.Ref.from_dict(result)
 
+    @override
     def get_providers(
         self, flow: o.Ref | o.Flow | None = None
     ) -> list[o.TechFlow]:
@@ -96,6 +101,7 @@ class Client(ProtoClient):
             return []
         return [o.TechFlow.from_dict(d) for d in providers]
 
+    @override
     def get_parameters(
         self, model_type: Type[E], uid: str
     ) -> list[o.Parameter | o.ParameterRedef]:
@@ -109,6 +115,7 @@ class Client(ProtoClient):
         else:
             return [o.ParameterRedef.from_dict(p) for p in params]
 
+    @override
     def put(self, model: o.RootEntity) -> o.Ref | None:
         if model is None:
             return None
@@ -134,6 +141,7 @@ class Client(ProtoClient):
             return False
         return resp == "ok"
 
+    @override
     def create_product_system(
         self,
         process: o.Ref | o.Process,
@@ -157,6 +165,7 @@ class Client(ProtoClient):
             return None
         return o.Ref.from_dict(r)
 
+    @override
     def delete(self, model: o.RootEntity | o.Ref) -> o.Ref | None:
         if model is None:
             return None
@@ -167,6 +176,7 @@ class Client(ProtoClient):
             return None
         return o.Ref.from_dict(resp)
 
+    @override
     def calculate(self, setup: o.CalculationSetup) -> "Result":
         resp, err = self.rpc_call("result/calculate", setup.to_dict())
         if err:
@@ -176,6 +186,7 @@ class Client(ProtoClient):
         state = o.ResultState.from_dict(resp)
         return Result(uid=cast(str, state.id), client=self, error=None)
 
+    @override
     def simulate(self, setup: o.CalculationSetup) -> "Result":
         resp, err = self.rpc_call("result/simulate", setup.to_dict())
         if err:
@@ -278,6 +289,7 @@ class Result(ProtoResult):
             return None
         return o.TechFlowValue.from_dict(data)
 
+    @override
     def get_tech_flows(self) -> list[o.TechFlow]:
         (data, err) = self.client.rpc_call(
             "result/tech-flows", {"@id": self.uid}
@@ -287,6 +299,7 @@ class Result(ProtoResult):
             return []
         return [o.TechFlow.from_dict(d) for d in data]
 
+    @override
     def get_envi_flows(self) -> list[o.EnviFlow]:
         args = {"@id": self.uid}
         (r, err) = self.client.rpc_call("result/envi-flows", args)
@@ -295,6 +308,7 @@ class Result(ProtoResult):
             return []
         return [o.EnviFlow.from_dict(d) for d in r]
 
+    @override
     def get_impact_categories(self) -> list[o.Ref]:
         args = {"@id": self.uid}
         (r, err) = self.client.rpc_call("result/impact-categories", args)
@@ -305,6 +319,7 @@ class Result(ProtoResult):
 
     # region: tech-flows
 
+    @override
     def get_total_requirements(self) -> list[o.TechFlowValue]:
         args = {"@id": self.uid}
         (r, err) = self.client.rpc_call("result/total-requirements", args)
@@ -313,6 +328,7 @@ class Result(ProtoResult):
             return []
         return [o.TechFlowValue.from_dict(d) for d in r]
 
+    @override
     def get_total_requirements_of(
         self, tech_flow: o.TechFlow
     ) -> o.TechFlowValue:
@@ -323,6 +339,7 @@ class Result(ProtoResult):
             return o.TechFlowValue(amount=0, tech_flow=tech_flow)
         return o.TechFlowValue.from_dict(r)
 
+    @override
     def get_scaling_factors(self) -> list[o.TechFlowValue]:
         return self.client._call_each(
             "result/scaling-factors",
@@ -330,6 +347,7 @@ class Result(ProtoResult):
             {"@id": self.uid},
         )
 
+    @override
     def get_scaled_tech_flows_of(
         self, tech_flow: o.TechFlow
     ) -> list[o.TechFlowValue]:
@@ -339,6 +357,7 @@ class Result(ProtoResult):
             {"@id": self.uid, "techFlow": tech_flow.to_dict()},
         )
 
+    @override
     def get_unscaled_tech_flows_of(
         self, tech_flow: o.TechFlow
     ) -> list[o.TechFlowValue]:
@@ -352,6 +371,7 @@ class Result(ProtoResult):
 
     # region: inventory results
 
+    @override
     def get_total_flows(self) -> list[o.EnviFlowValue]:
         args = {"@id": self.uid}
         (r, err) = self.client.rpc_call("result/total-flows", args)
@@ -360,6 +380,7 @@ class Result(ProtoResult):
             return []
         return [o.EnviFlowValue.from_dict(d) for d in r]
 
+    @override
     def get_total_flow_value_of(self, envi_flow: o.EnviFlow) -> o.EnviFlowValue:
         args = {"@id": self.uid, "enviFlow": envi_flow.to_dict()}
         (r, err) = self.client.rpc_call("result/total-flow-value-of", args)
@@ -368,6 +389,7 @@ class Result(ProtoResult):
             return o.EnviFlowValue(amount=0, envi_flow=envi_flow)
         return o.EnviFlowValue.from_dict(r)
 
+    @override
     def get_flow_contributions_of(
         self, envi_flow: o.EnviFlow
     ) -> list[o.TechFlowValue]:
@@ -378,6 +400,7 @@ class Result(ProtoResult):
             return []
         return [o.TechFlowValue.from_dict(d) for d in r]
 
+    @override
     def get_direct_interventions_of(
         self, tech_flow: o.TechFlow
     ) -> list[o.EnviFlowValue]:
@@ -388,6 +411,7 @@ class Result(ProtoResult):
             return []
         return [o.EnviFlowValue.from_dict(d) for d in r]
 
+    @override
     def get_direct_intervention_of(
         self, envi_flow: o.EnviFlow, tech_flow: o.TechFlow
     ) -> o.EnviFlowValue:
@@ -402,6 +426,7 @@ class Result(ProtoResult):
             return o.EnviFlowValue(amount=0, envi_flow=envi_flow)
         return o.EnviFlowValue.from_dict(r)
 
+    @override
     def get_flow_intensities_of(
         self, tech_flow: o.TechFlow
     ) -> list[o.EnviFlowValue]:
@@ -412,6 +437,7 @@ class Result(ProtoResult):
             return []
         return [o.EnviFlowValue.from_dict(d) for d in r]
 
+    @override
     def get_flow_intensity_of(
         self, envi_flow: o.EnviFlow, tech_flow: o.TechFlow
     ) -> o.EnviFlowValue:
@@ -426,6 +452,7 @@ class Result(ProtoResult):
             return o.EnviFlowValue(amount=0, envi_flow=envi_flow)
         return o.EnviFlowValue.from_dict(r)
 
+    @override
     def get_total_interventions_of(
         self, tech_flow: o.TechFlow
     ) -> list[o.EnviFlowValue]:
@@ -436,6 +463,7 @@ class Result(ProtoResult):
             return []
         return [o.EnviFlowValue.from_dict(d) for d in r]
 
+    @override
     def get_total_intervention_of(
         self, envi_flow: o.EnviFlow, tech_flow: o.TechFlow
     ) -> o.EnviFlowValue:
@@ -450,6 +478,7 @@ class Result(ProtoResult):
             return o.EnviFlowValue(amount=0, envi_flow=envi_flow)
         return o.EnviFlowValue.from_dict(r)
 
+    @override
     def get_upstream_interventions_of(
         self, envi_flow: o.EnviFlow, path: list[o.TechFlow]
     ) -> list[o.UpstreamNode]:
@@ -466,6 +495,7 @@ class Result(ProtoResult):
             return []
         return [o.UpstreamNode.from_dict(d) for d in r]
 
+    @override
     def get_grouped_flow_results_of(
         self, envi_flow: o.EnviFlow
     ) -> list[o.GroupValue]:
@@ -483,6 +513,7 @@ class Result(ProtoResult):
 
     # region: impact results
 
+    @override
     def get_total_impacts(self) -> list[o.ImpactValue]:
         args = {"@id": self.uid}
         (r, err) = self.client.rpc_call("result/total-impacts", args)
@@ -491,6 +522,7 @@ class Result(ProtoResult):
             return []
         return [o.ImpactValue.from_dict(d) for d in r]
 
+    @override
     def get_total_impact_value_of(
         self, impact_category: o.Ref
     ) -> o.ImpactValue:
@@ -501,6 +533,7 @@ class Result(ProtoResult):
             return o.ImpactValue(amount=0, impact_category=impact_category)
         return o.ImpactValue.from_dict(r)
 
+    @override
     def get_normalized_impacts(self) -> list[o.ImpactValue]:
         (r, err) = self.client.rpc_call(
             "result/total-impacts/normalized", {"@id": self.uid}
@@ -510,6 +543,7 @@ class Result(ProtoResult):
             return []
         return [o.ImpactValue.from_dict(d) for d in r]
 
+    @override
     def get_weighted_impacts(self) -> list[o.ImpactValue]:
         (r, err) = self.client.rpc_call(
             "result/total-impacts/weighted", {"@id": self.uid}
@@ -519,6 +553,7 @@ class Result(ProtoResult):
             return []
         return [o.ImpactValue.from_dict(d) for d in r]
 
+    @override
     def get_impact_contributions_of(
         self, impact_category: o.Ref
     ) -> list[o.TechFlowValue]:
@@ -529,6 +564,7 @@ class Result(ProtoResult):
             return []
         return [o.TechFlowValue.from_dict(d) for d in r]
 
+    @override
     def get_direct_impacts_of(
         self, tech_flow: o.TechFlow
     ) -> list[o.ImpactValue]:
@@ -539,6 +575,7 @@ class Result(ProtoResult):
             return []
         return [o.ImpactValue.from_dict(d) for d in r]
 
+    @override
     def get_direct_impact_of(
         self, impact_category: o.Ref, tech_flow: o.TechFlow
     ) -> o.ImpactValue:
@@ -553,6 +590,7 @@ class Result(ProtoResult):
             return o.ImpactValue(amount=0, impact_category=impact_category)
         return o.ImpactValue.from_dict(r)
 
+    @override
     def get_impact_intensities_of(
         self, tech_flow: o.TechFlow
     ) -> list[o.ImpactValue]:
@@ -563,6 +601,7 @@ class Result(ProtoResult):
             return []
         return [o.ImpactValue.from_dict(d) for d in r]
 
+    @override
     def get_impact_intensity_of(
         self, impact_category: o.Ref, tech_flow: o.TechFlow
     ) -> o.ImpactValue:
@@ -577,6 +616,7 @@ class Result(ProtoResult):
             return o.ImpactValue(amount=0, impact_category=impact_category)
         return o.ImpactValue.from_dict(r)
 
+    @override
     def get_total_impacts_of(
         self, tech_flow: o.TechFlow
     ) -> list[o.ImpactValue]:
@@ -587,6 +627,7 @@ class Result(ProtoResult):
             return []
         return [o.ImpactValue.from_dict(d) for d in r]
 
+    @override
     def get_total_impact_of(
         self, impact_category: o.Ref, tech_flow: o.TechFlow
     ) -> o.ImpactValue:
@@ -601,6 +642,7 @@ class Result(ProtoResult):
             return o.ImpactValue(amount=0, impact_category=impact_category)
         return o.ImpactValue.from_dict(r)
 
+    @override
     def get_impact_factors_of(
         self, impact_category: o.Ref
     ) -> list[o.EnviFlowValue]:
@@ -611,6 +653,7 @@ class Result(ProtoResult):
             return []
         return [o.EnviFlowValue.from_dict(d) for d in r]
 
+    @override
     def get_impact_factor_of(
         self, impact_category: o.Ref, envi_flow: o.EnviFlow
     ) -> o.EnviFlowValue:
@@ -625,6 +668,7 @@ class Result(ProtoResult):
             return o.EnviFlowValue(amount=0, envi_flow=envi_flow)
         return o.EnviFlowValue.from_dict(r)
 
+    @override
     def get_flow_impacts_of(
         self, impact_category: o.Ref
     ) -> list[o.EnviFlowValue]:
@@ -635,6 +679,7 @@ class Result(ProtoResult):
             return []
         return [o.EnviFlowValue.from_dict(d) for d in r]
 
+    @override
     def get_flow_impact_of(
         self, impact_category: o.Ref, envi_flow: o.EnviFlow
     ) -> o.EnviFlowValue:
@@ -649,6 +694,7 @@ class Result(ProtoResult):
             return o.EnviFlowValue(amount=0, envi_flow=envi_flow)
         return o.EnviFlowValue.from_dict(r)
 
+    @override
     def get_upstream_impacts_of(
         self, impact_category: o.Ref, path: list[o.TechFlow]
     ) -> list[o.UpstreamNode]:
@@ -663,6 +709,7 @@ class Result(ProtoResult):
             return []
         return [o.UpstreamNode.from_dict(d) for d in r]
 
+    @override
     def get_grouped_impact_results_of(
         self, impact: o.Ref
     ) -> list[o.GroupValue]:
@@ -682,6 +729,7 @@ class Result(ProtoResult):
 
     # region: cost results
 
+    @override
     def get_total_costs(self) -> o.CostValue:
         args = {"@id": self.uid}
         (r, err) = self.client.rpc_call("result/total-costs", args)
@@ -690,6 +738,7 @@ class Result(ProtoResult):
             return o.CostValue(amount=0)
         return o.CostValue.from_dict(r)
 
+    @override
     def get_cost_contributions(self) -> list[o.TechFlowValue]:
         args = {"@id": self.uid}
         (r, err) = self.client.rpc_call("result/cost-contributions", args)
@@ -698,6 +747,7 @@ class Result(ProtoResult):
             return []
         return [o.TechFlowValue.from_dict(d) for d in r]
 
+    @override
     def get_direct_costs_of(self, tech_flow: o.TechFlow) -> o.CostValue:
         args = {"@id": self.uid, "techFlow": tech_flow.to_dict()}
         (r, err) = self.client.rpc_call("result/direct-costs-of", args)
@@ -706,6 +756,7 @@ class Result(ProtoResult):
             return o.CostValue(amount=0)
         return o.CostValue.from_dict(r)
 
+    @override
     def get_cost_intensities_of(self, tech_flow: o.TechFlow) -> o.CostValue:
         args = {"@id": self.uid, "techFlow": tech_flow.to_dict()}
         (r, err) = self.client.rpc_call("result/cost-intensities-of", args)
@@ -714,6 +765,7 @@ class Result(ProtoResult):
             return o.CostValue(amount=0)
         return o.CostValue.from_dict(r)
 
+    @override
     def get_total_costs_of(self, tech_flow: o.TechFlow) -> o.CostValue:
         args = {"@id": self.uid, "techFlow": tech_flow.to_dict()}
         (r, err) = self.client.rpc_call("result/total-costs-of", args)
@@ -722,6 +774,7 @@ class Result(ProtoResult):
             return o.CostValue(amount=0)
         return o.CostValue.from_dict(r)
 
+    @override
     def get_upstream_costs_of(
         self, path: list[o.TechFlow]
     ) -> list[o.UpstreamNode]:
@@ -735,6 +788,7 @@ class Result(ProtoResult):
             return []
         return [o.UpstreamNode.from_dict(d) for d in r]
 
+    @override
     def get_grouped_cost_results(self) -> list[o.GroupValue]:
         args = {"@id": self.uid}
         (r, err) = self.client.rpc_call("result/grouped-cost-results", args)
@@ -745,6 +799,7 @@ class Result(ProtoResult):
 
     # endregion
 
+    @override
     def get_sankey_graph(self, config: o.SankeyRequest) -> o.SankeyGraph:
         args = {
             "@id": self.uid,

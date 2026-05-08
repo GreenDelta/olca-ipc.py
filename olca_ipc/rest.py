@@ -47,6 +47,7 @@ class RestClient(ProtoClient):
             return []
         return [transform(x) for x in resp.json()]
 
+    @override
     def get(
         self,
         model_type: Type[E],
@@ -62,19 +63,22 @@ class RestClient(ProtoClient):
             path = f"data/{_path_of(model_type)}/name/{name}"
         return cast(E, self._get(path, model_type.from_dict))
 
+    @override
     def get_all(self, model_type: Type[E]) -> list[E]:
         xs = self._get_each(
             f"data/{_path_of(model_type)}/all",
             model_type.from_dict,
         )
-        return xs
+        return cast(list[E], xs)
 
+    @override
     def get_descriptors(self, model_type: Type[E]) -> list[o.Ref]:
         return self._get_each(
             f"data/{_path_of(model_type)}",
             o.Ref.from_dict,
         )
 
+    @override
     def get_descriptor(
         self,
         model_type: Type[E],
@@ -95,6 +99,7 @@ class RestClient(ProtoClient):
             )
         return None
 
+    @override
     def get_providers(
         self, flow: o.Ref | o.Flow | None = None
     ) -> list[o.TechFlow]:
@@ -104,6 +109,7 @@ class RestClient(ProtoClient):
             path = "data/providers"
         return self._get_each(path, o.TechFlow.from_dict)
 
+    @override
     def get_parameters(
         self, model_type: Type[E], uid: str
     ) -> list[o.Parameter | o.ParameterRedef]:
@@ -113,6 +119,7 @@ class RestClient(ProtoClient):
         else:
             return self._get_each(path, o.Parameter.from_dict)
 
+    @override
     def put(self, model: o.RootEntity) -> o.Ref | None:
         resp = requests.put(
             f"{self.endpoint}data/{_path_of(model.__class__)}",
@@ -141,6 +148,7 @@ class RestClient(ProtoClient):
             return False
         return True
 
+    @override
     def create_product_system(
         self,
         process: o.Ref | o.Process,
@@ -151,6 +159,7 @@ class RestClient(ProtoClient):
             params["config"] = config.to_dict()
         return self._post("data/create-system", o.Ref.from_dict, params)
 
+    @override
     def delete(self, model: o.RootEntity | o.Ref) -> o.Ref | None:
         if isinstance(model, o.Ref):
             t = model.ref_type.value
@@ -168,6 +177,7 @@ class RestClient(ProtoClient):
             return None
         return o.Ref.from_dict(resp.json())
 
+    @override
     def calculate(self, setup: o.CalculationSetup) -> ProtoResult:
         state = self._post(
             "result/calculate", o.ResultState.from_dict, setup.to_dict()
@@ -176,6 +186,7 @@ class RestClient(ProtoClient):
             raise RuntimeError("`calculate` did not return a result state")
         return RestResult(self, state)
 
+    @override
     def simulate(self, setup: o.CalculationSetup) -> ProtoResult:
         state = self._post(
             "result/simulate", o.ResultState.from_dict, setup.to_dict()
@@ -193,6 +204,7 @@ class RestResult(ProtoResult):
         if state.error:
             self.error = state
 
+    @override
     def get_state(self) -> o.ResultState:
         if self.error is not None:
             return self.error
@@ -201,12 +213,14 @@ class RestResult(ProtoResult):
             state, "no result state could be retrieved from server"
         )
 
+    @override
     def simulate_next(self) -> o.ResultState:
         if self.error is not None:
             return self.error
         state = self._post("simulate/next", o.ResultState.from_dict)
         return self._state_or(state, "failed to run simulation")
 
+    @override
     def dispose(self):
         self._post("dispose", o.ResultState.from_dict)
 
@@ -220,23 +234,29 @@ class RestResult(ProtoResult):
         self.error = o.ResultState(id=self.uid, error=error)
         return cast(o.ResultState, self.error)
 
+    @override
     def get_demand(self) -> o.TechFlowValue | None:
         return self._get("demand", o.TechFlowValue.from_dict)
 
+    @override
     def get_tech_flows(self) -> list[o.TechFlow]:
         return self._get_each("tech-flows", o.TechFlow.from_dict)
 
+    @override
     def get_envi_flows(self) -> list[o.EnviFlow]:
         return self._get_each("envi-flows", o.EnviFlow.from_dict)
 
+    @override
     def get_impact_categories(self) -> list[o.Ref]:
         return self._get_each("impact-categories", o.Ref.from_dict)
 
     # region: tech-flows
 
+    @override
     def get_total_requirements(self) -> list[o.TechFlowValue]:
         return self._get_each("total-requirements", o.TechFlowValue.from_dict)
 
+    @override
     def get_total_requirements_of(
         self, tech_flow: o.TechFlow
     ) -> o.TechFlowValue:
@@ -248,9 +268,11 @@ class RestResult(ProtoResult):
             return o.TechFlowValue(amount=0, tech_flow=tech_flow)
         return v
 
+    @override
     def get_scaling_factors(self) -> list[o.TechFlowValue]:
         return self._get_each("scaling-factors", o.TechFlowValue.from_dict)
 
+    @override
     def get_scaled_tech_flows_of(
         self, tech_flow: o.TechFlow
     ) -> list[o.TechFlowValue]:
@@ -259,6 +281,7 @@ class RestResult(ProtoResult):
             o.TechFlowValue.from_dict,
         )
 
+    @override
     def get_unscaled_tech_flows_of(
         self, tech_flow: o.TechFlow
     ) -> list[o.TechFlowValue]:
@@ -271,9 +294,11 @@ class RestResult(ProtoResult):
 
     # region: inventory results
 
+    @override
     def get_total_flows(self) -> list[o.EnviFlowValue]:
         return self._get_each("total-flows", o.EnviFlowValue.from_dict)
 
+    @override
     def get_total_flow_value_of(self, envi_flow: o.EnviFlow) -> o.EnviFlowValue:
         v = self._get(
             f"total-flow-value-of/{_envi_id(envi_flow)}",
@@ -283,6 +308,7 @@ class RestResult(ProtoResult):
             return o.EnviFlowValue(amount=0, envi_flow=envi_flow)
         return v
 
+    @override
     def get_flow_contributions_of(
         self, envi_flow: o.EnviFlow
     ) -> list[o.TechFlowValue]:
@@ -291,6 +317,7 @@ class RestResult(ProtoResult):
             o.TechFlowValue.from_dict,
         )
 
+    @override
     def get_direct_interventions_of(
         self, tech_flow: o.TechFlow
     ) -> list[o.EnviFlowValue]:
@@ -299,6 +326,7 @@ class RestResult(ProtoResult):
             o.EnviFlowValue.from_dict,
         )
 
+    @override
     def get_direct_intervention_of(
         self, envi_flow: o.EnviFlow, tech_flow: o.TechFlow
     ) -> o.EnviFlowValue:
@@ -310,6 +338,7 @@ class RestResult(ProtoResult):
             return o.EnviFlowValue(amount=0, envi_flow=envi_flow)
         return val
 
+    @override
     def get_flow_intensities_of(
         self, tech_flow: o.TechFlow
     ) -> list[o.EnviFlowValue]:
@@ -318,6 +347,7 @@ class RestResult(ProtoResult):
             o.EnviFlowValue.from_dict,
         )
 
+    @override
     def get_flow_intensity_of(
         self, envi_flow: o.EnviFlow, tech_flow: o.TechFlow
     ) -> o.EnviFlowValue:
@@ -329,6 +359,7 @@ class RestResult(ProtoResult):
             return o.EnviFlowValue(amount=0, envi_flow=envi_flow)
         return val
 
+    @override
     def get_total_interventions_of(
         self, tech_flow: o.TechFlow
     ) -> list[o.EnviFlowValue]:
@@ -337,6 +368,7 @@ class RestResult(ProtoResult):
             o.EnviFlowValue.from_dict,
         )
 
+    @override
     def get_total_intervention_of(
         self, envi_flow: o.EnviFlow, tech_flow: o.TechFlow
     ) -> o.EnviFlowValue:
@@ -348,6 +380,7 @@ class RestResult(ProtoResult):
             return o.EnviFlowValue(amount=0, envi_flow=envi_flow)
         return val
 
+    @override
     def get_upstream_interventions_of(
         self, envi_flow: o.EnviFlow, path: list[o.TechFlow]
     ) -> list[o.UpstreamNode]:
@@ -360,6 +393,7 @@ class RestResult(ProtoResult):
             params,
         )
 
+    @override
     def get_grouped_flow_results_of(
         self, envi_flow: o.EnviFlow
     ) -> list[o.GroupValue]:
@@ -372,9 +406,11 @@ class RestResult(ProtoResult):
 
     # region: impact results
 
+    @override
     def get_total_impacts(self) -> list[o.ImpactValue]:
         return self._get_each("total-impacts", o.ImpactValue.from_dict)
 
+    @override
     def get_total_impact_value_of(
         self, impact_category: o.Ref
     ) -> o.ImpactValue:
@@ -386,12 +422,15 @@ class RestResult(ProtoResult):
             return o.ImpactValue(amount=0, impact_category=impact_category)
         return val
 
+    @override
     def get_normalized_impacts(self) -> list[o.ImpactValue]:
         return self._get_each("normalized-impacts", o.ImpactValue.from_dict)
 
+    @override
     def get_weighted_impacts(self) -> list[o.ImpactValue]:
         return self._get_each("weighted-impacts", o.ImpactValue.from_dict)
 
+    @override
     def get_impact_contributions_of(
         self, impact_category: o.Ref
     ) -> list[o.TechFlowValue]:
@@ -400,6 +439,7 @@ class RestResult(ProtoResult):
             o.TechFlowValue.from_dict,
         )
 
+    @override
     def get_direct_impacts_of(
         self, tech_flow: o.TechFlow
     ) -> list[o.ImpactValue]:
@@ -408,6 +448,7 @@ class RestResult(ProtoResult):
             o.ImpactValue.from_dict,
         )
 
+    @override
     def get_direct_impact_of(
         self, impact_category: o.Ref, tech_flow: o.TechFlow
     ) -> o.ImpactValue:
@@ -419,6 +460,7 @@ class RestResult(ProtoResult):
             return o.ImpactValue(amount=0, impact_category=impact_category)
         return val
 
+    @override
     def get_impact_intensities_of(
         self, tech_flow: o.TechFlow
     ) -> list[o.ImpactValue]:
@@ -427,6 +469,7 @@ class RestResult(ProtoResult):
             o.ImpactValue.from_dict,
         )
 
+    @override
     def get_impact_intensity_of(
         self, impact_category: o.Ref, tech_flow: o.TechFlow
     ) -> o.ImpactValue:
@@ -438,6 +481,7 @@ class RestResult(ProtoResult):
             return o.ImpactValue(amount=0, impact_category=impact_category)
         return val
 
+    @override
     def get_total_impacts_of(
         self, tech_flow: o.TechFlow
     ) -> list[o.ImpactValue]:
@@ -445,6 +489,7 @@ class RestResult(ProtoResult):
             f"total-impacts-of/{_tech_id(tech_flow)}", o.ImpactValue.from_dict
         )
 
+    @override
     def get_total_impact_of(
         self, impact_category: o.Ref, tech_flow: o.TechFlow
     ) -> o.ImpactValue:
@@ -456,6 +501,7 @@ class RestResult(ProtoResult):
             return o.ImpactValue(amount=0, impact_category=impact_category)
         return val
 
+    @override
     def get_impact_factors_of(
         self, impact_category: o.Ref
     ) -> list[o.EnviFlowValue]:
@@ -464,6 +510,7 @@ class RestResult(ProtoResult):
             o.EnviFlowValue.from_dict,
         )
 
+    @override
     def get_impact_factor_of(
         self, impact_category: o.Ref, envi_flow: o.EnviFlow
     ) -> o.EnviFlowValue:
@@ -475,6 +522,7 @@ class RestResult(ProtoResult):
             return o.EnviFlowValue(amount=0, envi_flow=envi_flow)
         return val
 
+    @override
     def get_flow_impacts_of(
         self, impact_category: o.Ref
     ) -> list[o.EnviFlowValue]:
@@ -482,6 +530,7 @@ class RestResult(ProtoResult):
             f"flow-impacts-of/{impact_category.id}", o.EnviFlowValue.from_dict
         )
 
+    @override
     def get_flow_impact_of(
         self, impact_category: o.Ref, envi_flow: o.EnviFlow
     ) -> o.EnviFlowValue:
@@ -493,6 +542,7 @@ class RestResult(ProtoResult):
             return o.EnviFlowValue(amount=0, envi_flow=envi_flow)
         return val
 
+    @override
     def get_upstream_impacts_of(
         self, impact_category: o.Ref, path: list[o.TechFlow]
     ) -> list[o.UpstreamNode]:
@@ -505,6 +555,7 @@ class RestResult(ProtoResult):
             params,
         )
 
+    @override
     def get_grouped_impact_results_of(
         self, impact: o.Ref
     ) -> list[o.GroupValue]:
@@ -517,15 +568,18 @@ class RestResult(ProtoResult):
 
     # region: cost results
 
+    @override
     def get_total_costs(self) -> o.CostValue:
         val = self._get("total-costs", o.CostValue.from_dict)
         if val is None:
             return o.CostValue(amount=0)
         return val
 
+    @override
     def get_cost_contributions(self) -> list[o.TechFlowValue]:
         return self._get_each("cost-contributions", o.TechFlowValue.from_dict)
 
+    @override
     def get_direct_costs_of(self, tech_flow: o.TechFlow) -> o.CostValue:
         val = self._get(
             f"direct-costs-of/{_tech_id(tech_flow)}", o.CostValue.from_dict
@@ -534,6 +588,7 @@ class RestResult(ProtoResult):
             return o.CostValue(amount=0)
         return val
 
+    @override
     def get_cost_intensities_of(self, tech_flow: o.TechFlow) -> o.CostValue:
         val = self._get(
             f"cost-intensities-of/{_tech_id(tech_flow)}",
@@ -543,6 +598,7 @@ class RestResult(ProtoResult):
             return o.CostValue(amount=0)
         return val
 
+    @override
     def get_total_costs_of(self, tech_flow: o.TechFlow) -> o.CostValue:
         val = self._get(
             f"total-costs-of/{_tech_id(tech_flow)}", o.CostValue.from_dict
@@ -551,6 +607,7 @@ class RestResult(ProtoResult):
             return o.CostValue(amount=0)
         return val
 
+    @override
     def get_upstream_costs_of(
         self, path: list[o.TechFlow]
     ) -> list[o.UpstreamNode]:
@@ -561,11 +618,13 @@ class RestResult(ProtoResult):
             "upstream-costs-of", o.UpstreamNode.from_dict, params
         )
 
+    @override
     def get_grouped_cost_results(self) -> list[o.GroupValue]:
         return self._get_each("grouped-cost-results", o.GroupValue.from_dict)
 
     # endregion
 
+    @override
     def get_sankey_graph(self, config: o.SankeyRequest) -> o.SankeyGraph:
         g = self._post("sankey", o.SankeyGraph.from_dict, config.to_dict())
         if g is None:
