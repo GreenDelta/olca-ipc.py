@@ -161,7 +161,7 @@ class RestClient(ProtoClient):
 
     @override
     def delete(self, model: o.RootEntity | o.Ref) -> o.Ref | None:
-        if isinstance(model, o.Ref):
+        if isinstance(model, o.Ref) and model.ref_type:
             t = model.ref_type.value
         else:
             t = model.__class__.__name__
@@ -232,7 +232,7 @@ class RestResult(ProtoResult):
                 self.error = state
             return state
         self.error = o.ResultState(id=self.uid, error=error)
-        return cast(o.ResultState, self.error)
+        return cast(o.ResultState, self.error)  # ty: ignore
 
     @override
     def get_demand(self) -> o.TechFlowValue | None:

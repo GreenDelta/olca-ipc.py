@@ -1,7 +1,8 @@
-import olca_schema as o
-from .protocol import ProtoResult
-
 from typing import Literal, cast
+
+import olca_schema as o
+
+from .protocol import ProtoResult
 
 _Ref = o.Ref | o.EnviFlow | Literal["costs"]
 
