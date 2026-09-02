@@ -386,6 +386,30 @@ class ProtoResult(abc.ABC):
 
     # endregion
 
+    # region: tag result
+
+    @abstractmethod
+    def get_tag_direct_contribution_of(
+        self, tag: str, envi_flow: o.EnviFlow
+    ) -> o.EnviFlowValue:
+        pass
+
+    @abstractmethod
+    def get_tags_direct_contributions(self, envi_flow: o.EnviFlow) -> list[o.TagValue]:
+        pass
+
+    @abstractmethod
+    def get_tag_direct_impact_of(
+        self, tag: str, impact_category: o.Ref
+    ) -> o.ImpactValue:
+        pass
+
+    @abstractmethod
+    def get_tags_direct_impacts(self, impact_category: o.Ref) -> list[o.TagValue]:
+        pass
+
+    # endregion
+
     @abstractmethod
     def get_sankey_graph(self, config: o.SankeyRequest) -> o.SankeyGraph:
         pass

@@ -624,6 +624,49 @@ class RestResult(ProtoResult):
 
     # endregion
 
+
+    # region: tag result
+
+    @override
+    def get_tag_direct_contribution_of(
+        self, tag: str, envi_flow: o.EnviFlow
+    ) -> o.EnviFlowValue:
+        val = self._get(
+            f"tag-direct-contribution-of/{tag}/{_envi_id(envi_flow)}",
+            o.EnviFlowValue.from_dict,
+        )
+        if val is None:
+            return o.EnviFlowValue(amount=0, envi_flow=envi_flow)
+        return val
+
+
+    @override
+    def get_tags_direct_contributions(self, envi_flow: o.EnviFlow) -> list[o.TagValue]:
+        return self._get_each(
+            f"tags-direct-contributions/{_envi_id(envi_flow)}",
+            o.TagValue.from_dict,
+        )
+
+    @override
+    def get_tag_direct_impact_of(
+        self, tag: str, impact_category: o.Ref
+    ) -> o.ImpactValue:
+        val = self._get(
+            f"tag-direct-impact-of/{tag}/{impact_category.id}",
+            o.ImpactValue.from_dict,
+        )
+        if val is None:
+            return o.ImpactValue(amount=0)
+        return val
+
+    @override
+    def get_tags_direct_impacts(self, impact_category: o.Ref) -> list[o.TagValue]:
+        return self._get_each(
+            f"tags-direct-impacts/{impact_category.id}", o.TagValue.from_dict
+        )
+
+    # endregion
+
     @override
     def get_sankey_graph(self, config: o.SankeyRequest) -> o.SankeyGraph:
         g = self._post("sankey", o.SankeyGraph.from_dict, config.to_dict())
