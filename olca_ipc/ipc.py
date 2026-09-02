@@ -802,7 +802,7 @@ class Result(ProtoResult):
     # region: tag result
 
     @override
-    def get_tag_direct_contribution_of(
+    def get_tag_direct_flow_contribution_of(
         self, tag: str, envi_flow: o.EnviFlow
     ) -> o.EnviFlowValue:
         args = {
@@ -810,21 +810,21 @@ class Result(ProtoResult):
             "tag": tag,
             "enviFlow": envi_flow.to_dict(),
         }
-        r, err = self.client.rpc_call("result/tag-direct-contribution-of", args)
+        r, err = self.client.rpc_call("result/tag-direct-flow-contribution-of", args)
         if err:
-            log.error("request tag-direct-contribution-of failed: %s", err)
+            log.error("request tag-direct-flow-contribution-of failed: %s", err)
             return o.EnviFlowValue(amount=0, envi_flow=envi_flow)
         return o.EnviFlowValue.from_dict(r)
 
     @override
-    def get_tags_direct_contributions(self, envi_flow: o.EnviFlow) -> list[o.TagValue]:
+    def get_tags_direct_flow_contributions(self, envi_flow: o.EnviFlow) -> list[o.TagValue]:
         args = {
             "@id": self.uid,
             "enviFlow": envi_flow.to_dict(),
         }
-        r, err = self.client.rpc_call("result/tags-direct-contributions", args)
+        r, err = self.client.rpc_call("result/tags-direct-flow-contributions", args)
         if err:
-            log.error("request tags-direct-contributions failed: %s", err)
+            log.error("request tags-direct-flow-contributions failed: %s", err)
             return []
         return [o.TagValue.from_dict(d) for d in r]
 

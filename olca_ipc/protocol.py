@@ -389,13 +389,13 @@ class ProtoResult(abc.ABC):
     # region: tag result
 
     @abstractmethod
-    def get_tag_direct_contribution_of(
+    def get_tag_direct_flow_contribution_of(
         self, tag: str, envi_flow: o.EnviFlow
     ) -> o.EnviFlowValue:
         pass
 
     @abstractmethod
-    def get_tags_direct_contributions(self, envi_flow: o.EnviFlow) -> list[o.TagValue]:
+    def get_tags_direct_flow_contributions(self, envi_flow: o.EnviFlow) -> list[o.TagValue]:
         pass
 
     @abstractmethod

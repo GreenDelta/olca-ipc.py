@@ -628,11 +628,11 @@ class RestResult(ProtoResult):
     # region: tag result
 
     @override
-    def get_tag_direct_contribution_of(
+    def get_tag_direct_flow_contribution_of(
         self, tag: str, envi_flow: o.EnviFlow
     ) -> o.EnviFlowValue:
         val = self._get(
-            f"tag-direct-contribution-of/{tag}/{_envi_id(envi_flow)}",
+            f"tag-direct-flow-contribution-of/{tag}/{_envi_id(envi_flow)}",
             o.EnviFlowValue.from_dict,
         )
         if val is None:
@@ -641,9 +641,9 @@ class RestResult(ProtoResult):
 
 
     @override
-    def get_tags_direct_contributions(self, envi_flow: o.EnviFlow) -> list[o.TagValue]:
+    def get_tags_direct_flow_contributions(self, envi_flow: o.EnviFlow) -> list[o.TagValue]:
         return self._get_each(
-            f"tags-direct-contributions/{_envi_id(envi_flow)}",
+            f"tags-direct-flow-contributions/{_envi_id(envi_flow)}",
             o.TagValue.from_dict,
         )
 
