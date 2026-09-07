@@ -386,6 +386,26 @@ class ProtoResult(abc.ABC):
 
     # endregion
 
+    # region: tag result
+
+    @abstractmethod
+    def get_tag_results_of_flow(
+        self, envi_flow: o.EnviFlow
+    ) -> list[o.TagValue]:
+        pass
+
+    @abstractmethod
+    def get_tag_results_of_impact(
+        self, impact_category: o.Ref
+    ) -> list[o.TagValue]:
+        pass
+
+    @abstractmethod
+    def get_tag_results_of_costs(self) -> list[o.TagValue]:
+        pass
+
+    # endregion
+
     @abstractmethod
     def get_sankey_graph(self, config: o.SankeyRequest) -> o.SankeyGraph:
         pass

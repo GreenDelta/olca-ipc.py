@@ -624,6 +624,32 @@ class RestResult(ProtoResult):
 
     # endregion
 
+
+    # region: tag result
+
+    @override
+    def get_tag_results_of_flow(
+        self, envi_flow: o.EnviFlow
+    ) -> list[o.TagValue]:
+        return self._get_each(
+            f"tag-results-of-flow/{_envi_id(envi_flow)}",
+            o.TagValue.from_dict,
+        )
+
+    @override
+    def get_tag_results_of_impact(
+        self, impact_category: o.Ref
+    ) -> list[o.TagValue]:
+        return self._get_each(
+            f"tag-results-of-impact/{impact_category.id}", o.TagValue.from_dict
+        )
+
+    @override
+    def get_tag_results_of_costs(self) -> list[o.TagValue]:
+        return self._get_each("tag-results-of-costs", o.TagValue.from_dict)
+
+    # endregion
+
     @override
     def get_sankey_graph(self, config: o.SankeyRequest) -> o.SankeyGraph:
         g = self._post("sankey", o.SankeyGraph.from_dict, config.to_dict())

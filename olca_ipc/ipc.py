@@ -799,6 +799,43 @@ class Result(ProtoResult):
 
     # endregion
 
+    # region: tag result
+
+    @override
+    def get_tag_results_of_flow(self, envi_flow: o.EnviFlow) -> list[o.TagValue]:
+        args = {
+            "@id": self.uid,
+            "enviFlow": envi_flow.to_dict(),
+        }
+        r, err = self.client.rpc_call("result/tag-results-of-flow", args)
+        if err:
+            log.error("request tag-results-of-flow failed: %s", err)
+            return []
+        return [o.TagValue.from_dict(d) for d in r]
+
+    @override
+    def get_tag_results_of_impact(self, impact_category: o.Ref) -> list[o.TagValue]:
+        args = {
+            "@id": self.uid,
+            "impactCategory": impact_category.to_dict(),
+        }
+        r, err = self.client.rpc_call("result/tag-results-of-impact", args)
+        if err:
+            log.error("request tag-results-of-impact failed: %s", err)
+            return []
+        return [o.TagValue.from_dict(d) for d in r]
+
+    @override
+    def get_tag_results_of_costs(self) -> list[o.TagValue]:
+        args = { "@id": self.uid }
+        r, err = self.client.rpc_call("result/tag-results-of-costs", args)
+        if err:
+            log.error("request tag-results-of-costs failed: %s", err)
+            return []
+        return [o.TagValue.from_dict(d) for d in r]
+
+    # endregion
+
     @override
     def get_sankey_graph(self, config: o.SankeyRequest) -> o.SankeyGraph:
         args = {
