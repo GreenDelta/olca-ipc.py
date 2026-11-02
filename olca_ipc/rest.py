@@ -161,16 +161,13 @@ class RestClient(ProtoClient):
 
     @override
     def delete(self, model: o.RootEntity | o.Ref) -> o.Ref | None:
+        model_type: Any = model.__class__
         if isinstance(model, o.Ref) and model.ref_type:
-            t = model.ref_type.value
-        else:
-            t = model.__class__.__name__
-        path = ""
-        for char in t:
-            if char.isupper() and len(path) > 0:
-                path += "-"
-            path += char
-        url = f"{self.endpoint}data/{path.lower()}/{model.id}"
+            model_type = getattr(o, model.ref_type.value, None)
+        path = _path_of(model_type)
+        if path is None:
+            return None
+        url = f"{self.endpoint}data/{path}/{model.id}"
         resp = requests.delete(url, **self.req_args)
         if _not_ok(resp):
             log.error("failed to delete model: %s", resp.text)
@@ -701,7 +698,7 @@ def _envi_id(envi_flow: o.EnviFlow) -> str:
     return envi_id
 
 
-def _path_of(model_type: Type[E]) -> str | None:
+def _path_of(model_type: Type[E] | None) -> str | None:
     if model_type is None:
         log.error("no model type given")
         return None
