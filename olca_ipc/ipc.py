@@ -52,6 +52,7 @@ class Client(ProtoClient):
         result, err = self.rpc_call("data/get/all", params)
         if err:
             log.error("failed to get all of type %s: %s", model_type, err)
+            return []
         return [cast(E, model_type.from_dict(r)) for r in result]
 
     @override
@@ -108,7 +109,9 @@ class Client(ProtoClient):
         params = {"@type": model_type.__name__, "@id": uid}
         params, err = self.rpc_call("data/get/parameters", params)
         if err:
-            log.error("failed to get parameters of %s id=%d", model_type, uid)
+            log.error(
+                "failed to get parameters of %s id=%s: %s", model_type, uid, err
+            )
             return []
         if model_type in (o.Process, o.ImpactCategory):
             return [o.Parameter.from_dict(p) for p in params]
@@ -271,13 +274,13 @@ class Result(ProtoResult):
             "result/simulate/next", {"@id": self.uid}
         )
         if err:
-            self.err = o.ResultState(id=self.uid, error=err)
-            return self.err
+            self.error = o.ResultState(id=self.uid, error=err)
+            return self.error
         return o.ResultState.from_dict(state)
 
     @override
     def dispose(self):
-        if self.error is not None:
+        if not self.uid:
             return
         self.client.rpc_call("result/dispose", {"@id": self.uid})
 
