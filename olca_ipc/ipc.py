@@ -119,6 +119,19 @@ class Client(ProtoClient):
             return [o.ParameterRedef.from_dict(p) for p in params]
 
     @override
+    def get_usage(self, model_type: Type[E], uid: str) -> list[o.Ref]:
+        params = {"@type": model_type.__name__, "@id": uid}
+        refs, err = self.rpc_call("data/get/usage", params)
+        if err:
+            log.error(
+                "failed to get usage of %s id=%s: %s", model_type, uid, err
+            )
+            return []
+        if refs is None:
+            return []
+        return [o.Ref.from_dict(r) for r in refs]
+
+    @override
     def put(self, model: o.RootEntity) -> o.Ref | None:
         if model is None:
             return None

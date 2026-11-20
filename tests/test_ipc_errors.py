@@ -24,6 +24,24 @@ class IpcErrorTest(unittest.TestCase):
         self.assertEqual([], params)
         self.assertIn("id=p1: -32000: failed", logs.output[0])
 
+    def test_get_usage(self):
+        self.rpc_call.return_value = (
+            [{"@type": "Process", "@id": "p", "name": "P"}],
+            None,
+        )
+        refs = self.client.get_usage(o.Flow, "f1")
+        self.rpc_call.assert_called_once_with(
+            "data/get/usage", {"@type": "Flow", "@id": "f1"}
+        )
+        self.assertEqual(["p"], [r.id for r in refs])
+
+    def test_get_usage_on_error(self):
+        self.rpc_call.return_value = (None, "-32000: failed")
+        with self.assertLogs(level="ERROR") as logs:
+            refs = self.client.get_usage(o.Flow, "f1")
+        self.assertEqual([], refs)
+        self.assertIn("id=f1: -32000: failed", logs.output[0])
+
     def test_simulate_next_error_is_kept(self):
         result = Result(uid="r1", client=self.client, error=None)
         self.rpc_call.return_value = (None, "-32000: failed")

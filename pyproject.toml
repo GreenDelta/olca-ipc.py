@@ -19,7 +19,7 @@ classifiers = [
     "Topic :: Utilities",
 ]
 dependencies = [
-    "olca-schema>=2.6.2",
+    "olca-schema>=2.7.0",
     "requests>=2.33.1"
 ]
 

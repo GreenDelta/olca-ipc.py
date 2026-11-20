@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = ">=3.12"
 
 [[package]]
@@ -357,7 +357,7 @@ test = [
 [package.metadata]
 requires-dist = [
     { name = "build", marker = "extra == 'packaging'", specifier = ">=1.4" },
-    { name = "olca-schema", specifier = ">=2.6.2" },
+    { name = "olca-schema", specifier = ">=2.7.0" },
     { name = "pytest", marker = "extra == 'test'", specifier = ">=9.0" },
     { name = "requests", specifier = ">=2.33.1" },
     { name = "twine", marker = "extra == 'packaging'", specifier = ">=6.2" },
@@ -366,11 +366,11 @@ provides-extras = ["test", "packaging"]
 
 [[package]]
 name = "olca-schema"
-version = "2.6.2"
+version = "2.7.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/b5/f3/a0c0ff2ee54aecd68e56de9bd2b681c7ce2323056d9cd1f551b8e5b215c4/olca_schema-2.6.2.tar.gz", hash = "sha256:899b29e3658aff8907b3c649fa0e27771b659613a50ce89c7c9672971b15c29f", size = 34316, upload-time = "2026-04-27T09:23:49.458Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ed/7d/96a68793154a28f8359c902520f873f5d2660cc9ce8c83849920d7218722/olca_schema-2.7.0.tar.gz", hash = "sha256:66c394cbc78b6441b407a7e2c1ed8fa6c15b7218d0b386bf0af4e934f1e32a48", size = 34592, upload-time = "2026-11-20T14:32:23.013Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7c/80/eec9837bc0124d94310ddc659fb8793be3a015adfa0053cfb8c4b02cae09/olca_schema-2.6.2-py3-none-any.whl", hash = "sha256:6bdc1de25ba09d893d2f730c9f876cd6489270e713900ccda7d4b9d869c9ef81", size = 29445, upload-time = "2026-04-27T09:23:47.966Z" },
+    { url = "https://files.pythonhosted.org/packages/65/a5/7f7e5d8e350e396a29be75f0fbfeb37c465eda7a5c19bfc39468f2b5c6a4/olca_schema-2.7.0-py3-none-any.whl", hash = "sha256:60d0488adff446ab8ec312a5b1a6a903298a88c38ae4a981559789460bbe9ad7", size = 29681, upload-time = "2026-11-20T14:32:21.982Z" },
 ]
 
 [[package]]

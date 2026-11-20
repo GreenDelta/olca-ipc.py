@@ -120,6 +120,11 @@ class RestClient(ProtoClient):
             return self._get_each(path, o.Parameter.from_dict)
 
     @override
+    def get_usage(self, model_type: Type[E], uid: str) -> list[o.Ref]:
+        path = f"data/{_path_of(model_type)}/{uid}/usage"
+        return self._get_each(path, o.Ref.from_dict)
+
+    @override
     def put(self, model: o.RootEntity) -> o.Ref | None:
         resp = requests.put(
             f"{self.endpoint}data/{_path_of(model.__class__)}",

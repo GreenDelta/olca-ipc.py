@@ -78,6 +78,12 @@ class ProtoClient(abc.ABC):
         pass
 
     @abstractmethod
+    def get_usage(self, model_type: Type[E], uid: str) -> list[o.Ref]:
+        """Returns references to the entities that use the entity with the
+        given type and ID, e.g. the processes that use a flow."""
+        pass
+
+    @abstractmethod
     def put(self, model: o.RootEntity) -> o.Ref | None:
         pass
 

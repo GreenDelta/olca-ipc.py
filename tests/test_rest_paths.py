@@ -29,6 +29,17 @@ class RestPathTest(unittest.TestCase):
                     self.client.delete(entity)
                 self.assertEqual(f"{_URL}data/{path}", req.call_args.args[0])
 
+    def test_get_usage(self):
+        with mock.patch("requests.get") as req:
+            req.return_value.status_code = 200
+            req.return_value.json.return_value = [
+                {"@type": "Process", "@id": "p", "name": "P"}
+            ]
+            refs = self.client.get_usage(o.Flow, "f")
+        self.assertEqual(f"{_URL}data/flows/f/usage", req.call_args.args[0])
+        self.assertEqual(1, len(refs))
+        self.assertEqual("p", refs[0].id)
+
     def test_delete_without_path(self):
         # a Ref without a type has no REST path, so no request is sent
         with mock.patch("requests.delete") as req:
