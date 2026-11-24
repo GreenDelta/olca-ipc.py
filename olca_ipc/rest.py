@@ -1,5 +1,6 @@
 import logging as log
 from typing import Any, Callable, Type, TypeVar, cast, override
+from urllib.parse import quote
 
 import olca_schema as o
 import requests
@@ -60,7 +61,7 @@ class RestClient(ProtoClient):
         if uid:
             path = f"data/{_path_of(model_type)}/{uid}"
         else:
-            path = f"data/{_path_of(model_type)}/name/{name}"
+            path = f"data/{_path_of(model_type)}/name/{_quote_name(name)}"
         return cast(E, self._get(path, model_type.from_dict))
 
     @override
@@ -92,12 +93,9 @@ class RestClient(ProtoClient):
             return self._get(
                 f"data/{_path_of(model_type)}/{uid}/info", o.Ref.from_dict
             )
-        if name is not None:
-            return self._get(
-                f"data/{_path_of(model_type)}/name/{name}/info",
-                o.Ref.from_dict,
-            )
-        return None
+        # the REST API has no route for a descriptor by name; the route
+        # `name/<name>` would take `/info` as part of the name
+        return self.find(model_type, cast(str, name))
 
     @override
     def get_providers(
@@ -683,6 +681,13 @@ def _not_ok(resp: requests.Response) -> bool:
         return False
     log.error("response status != 200; message=%s", resp.text)
     return True
+
+
+def _quote_name(name: str | None) -> str:
+    # encodes `#`, `?`, and `%` so that the full name is in the path; the
+    # other characters are kept as requests would send them, e.g. a `/`
+    # that the route `name/<name>` accepts
+    return quote(name or "", safe="/,;!$&'()*+=:@~")
 
 
 def _tech_id(tech_flow: o.TechFlow) -> str:
